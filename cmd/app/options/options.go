@@ -28,7 +28,7 @@ type Options struct {
 	issuerName  string
 	issuerKind  string
 	issuerGroup string
-	namespace   string
+	Namespace   string
 
 	kubeConfigFlags *genericclioptions.ConfigFlags
 
@@ -36,6 +36,7 @@ type Options struct {
 	Logr           *logrus.Entry
 	IssuerRef      cmmeta.ObjectReference
 	CMClient       cmclient.CertificateRequestInterface
+	KubeClient     kubernetes.Interface
 	Auther         authenticate.Authenticator
 }
 
@@ -61,19 +62,19 @@ func (o *Options) Complete() error {
 		return fmt.Errorf("failed to build kubernetes rest config: %s", err)
 	}
 
-	kubeClient, err := kubernetes.NewForConfig(restConfig)
+	o.KubeClient, err = kubernetes.NewForConfig(restConfig)
 	if err != nil {
 		return fmt.Errorf("failed to build kubernetes client: %s", err)
 	}
 
-	o.Auther = authenticate.NewKubeJWTAuthenticator(kubeClient, "Kubernetes", nil, spiffe.GetTrustDomain(), jwt.PolicyThirdParty)
+	o.Auther = authenticate.NewKubeJWTAuthenticator(o.KubeClient, "Kubernetes", nil, spiffe.GetTrustDomain(), jwt.PolicyThirdParty)
 
 	cmClient, err := cmversioned.NewForConfig(restConfig)
 	if err != nil {
 		return fmt.Errorf("failed to build cert-manager client: %s", err)
 	}
 
-	o.CMClient = cmClient.CertmanagerV1().CertificateRequests(o.namespace)
+	o.CMClient = cmClient.CertmanagerV1().CertificateRequests(o.Namespace)
 
 	o.IssuerRef = cmmeta.ObjectReference{
 		Name:  o.issuerName,
@@ -131,7 +132,7 @@ func (o *Options) addCertManagerFlags(fs *pflag.FlagSet) {
 		"issuer-group", "g", "cert-manager.io",
 		"Group of the issuer to sign istio workload certificates.")
 
-	fs.StringVarP(&o.namespace,
+	fs.StringVarP(&o.Namespace,
 		"certificate-namespace", "c", "istio-system",
 		"Namespace to request certificates.")
 }

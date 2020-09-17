@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/pem"
 	"fmt"
 	"sync"
 	"time"
@@ -12,6 +13,7 @@ import (
 	cmmeta "github.com/jetstack/cert-manager/pkg/apis/meta/v1"
 	cmclient "github.com/jetstack/cert-manager/pkg/client/clientset/versioned/typed/certmanager/v1"
 	"github.com/sirupsen/logrus"
+	"istio.io/istio/pkg/spiffe"
 	pkiutil "istio.io/istio/security/pkg/pki/util"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -19,6 +21,7 @@ import (
 )
 
 const (
+	// TODO:
 	servingCertificateTTL = time.Hour * 24
 	renewalTime           = (2 * servingCertificateTTL) / 3
 )
@@ -26,17 +29,18 @@ const (
 type GetConfigForClientFunc func(*tls.ClientHelloInfo) (*tls.Config, error)
 
 // tls is used to provider an automatically renewed serving certificate
-type provider struct {
+type Provider struct {
 	log       *logrus.Entry
 	client    cmclient.CertificateRequestInterface
 	issuerRef cmmeta.ObjectReference
 
 	mu        sync.RWMutex
 	tlsConfig *tls.Config
+	rootCA    []byte
 }
 
-func ConfigGetter(ctx context.Context, log *logrus.Entry, client cmclient.CertificateRequestInterface, issuerRef cmmeta.ObjectReference) (GetConfigForClientFunc, error) {
-	p := &provider{
+func NewProvider(ctx context.Context, log *logrus.Entry, client cmclient.CertificateRequestInterface, issuerRef cmmeta.ObjectReference) (*Provider, error) {
+	p := &Provider{
 		client:    client,
 		issuerRef: issuerRef,
 		log:       log.WithField("module", "serving_certificate"),
@@ -68,10 +72,10 @@ func ConfigGetter(ctx context.Context, log *logrus.Entry, client cmclient.Certif
 		}
 	}()
 
-	return p.GetConfigForClient, nil
+	return p, nil
 }
 
-func (p *provider) tryFetchCertificate(ctx context.Context) {
+func (p *Provider) tryFetchCertificate(ctx context.Context) {
 	ticker := time.NewTicker(time.Second * 10)
 
 	for {
@@ -92,13 +96,19 @@ func (p *provider) tryFetchCertificate(ctx context.Context) {
 	}
 }
 
-func (p *provider) GetConfigForClient(_ *tls.ClientHelloInfo) (*tls.Config, error) {
+func (p *Provider) GetConfigForClient(_ *tls.ClientHelloInfo) (*tls.Config, error) {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 	return p.tlsConfig, nil
 }
 
-func (p *provider) fetchCertificate(ctx context.Context) error {
+func (p *Provider) RootCA() []byte {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	return p.rootCA
+}
+
+func (p *Provider) fetchCertificate(ctx context.Context) error {
 	opts := pkiutil.CertOptions{
 		Host:       "cert-manager-istio-agent.cert-manager.svc",
 		IsServer:   true,
@@ -146,6 +156,7 @@ func (p *provider) fetchCertificate(ctx context.Context) error {
 
 	log.Debug("serving CertificateRequest ready")
 
+	// TODO:
 	//go func() {
 	//	if err := p.client.Delete(ctx, cr.Name, metav1.DeleteOptions{}); err != nil {
 	//		log.Errorf("failed to delete serving CertificateRequest: %s", err)
@@ -155,35 +166,45 @@ func (p *provider) fetchCertificate(ctx context.Context) error {
 	//	log.Debug("deleted serving CertificateRequest")
 	//}()
 
-	rootCA := x509.NewCertPool()
-	rootCA.AppendCertsFromPEM(cr.Status.CA)
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	p.rootCA = cr.Status.CA
+
+	// TODO: define static rootCA
+	var rootCert *x509.Certificate
+	if len(cr.Status.CA) > 0 {
+		block, _ := pem.Decode(cr.Status.CA)
+		if block == nil {
+			return fmt.Errorf("failed to decode root cert PEM")
+		}
+		rootCert, err = x509.ParseCertificate(block.Bytes)
+		if err != nil {
+			return fmt.Errorf("failed to parse certificate: %v", err)
+		}
+	}
+
+	peerCertVerifier := spiffe.NewPeerCertVerifier()
+	peerCertVerifier.AddMapping(spiffe.GetTrustDomain(), []*x509.Certificate{rootCert})
 
 	tlsCert, err := tls.X509KeyPair(cr.Status.Certificate, pk)
 	if err != nil {
 		return err
 	}
 
-	p.mu.Lock()
-	defer p.mu.Unlock()
-
-	//p.tlsConfig = &tls.Config{
-	//	//RootCAs: rootCA,
-	//	//ClientCAs:    rootCA,
-	//	Certificates: []tls.Certificate{tlsCert},
-	//}
+	rootCA := x509.NewCertPool()
+	rootCA.AppendCertsFromPEM(cr.Status.CA)
 
 	p.tlsConfig = &tls.Config{
-		//GetCertificate: s.getIstiodCertificate,
 		Certificates: []tls.Certificate{tlsCert},
 		ClientAuth:   tls.VerifyClientCertIfGiven,
-		//ClientCAs:    s.peerCertVerifier.GetGeneralCertPool(),
+		ClientCAs:    peerCertVerifier.GetGeneralCertPool(),
 		VerifyPeerCertificate: func(rawCerts [][]byte, verifiedChains [][]*x509.Certificate) error {
-			return nil
-			//err := s.peerCertVerifier.VerifyPeerCert(rawCerts, verifiedChains)
-			//if err != nil {
-			//	log.Infof("Could not verify certificate: %v", err)
-			//}
-			//return err
+			err := peerCertVerifier.VerifyPeerCert(rawCerts, verifiedChains)
+			if err != nil {
+				log.Infof("Could not verify certificate: %v", err)
+			}
+			return err
 		},
 	}
 

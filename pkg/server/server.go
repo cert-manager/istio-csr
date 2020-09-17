@@ -65,7 +65,7 @@ func (s *Server) Run(ctx context.Context, tlsConfig *tls.Config, listenAddress s
 		s.log.Info("grpc server stopped")
 	}()
 
-	s.log.Infof("grpc serving on %s", listenAddress)
+	s.log.Infof("grpc serving on %s", listener.Addr())
 
 	return grpcServer.Serve(listener)
 }
