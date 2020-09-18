@@ -21,16 +21,17 @@ import (
 )
 
 const (
-	// TODO:
-	servingCertificateTTL = time.Hour * 24
-	renewalTime           = (2 * servingCertificateTTL) / 3
+//renewalTime = (2 * servingCertificateTTL) / 3
 )
 
 type GetConfigForClientFunc func(*tls.ClientHelloInfo) (*tls.Config, error)
 
 // tls is used to provider an automatically renewed serving certificate
 type Provider struct {
-	log       *logrus.Entry
+	log *logrus.Entry
+
+	servingCertificateTTL time.Duration
+
 	client    cmclient.CertificateRequestInterface
 	issuerRef cmmeta.ObjectReference
 
@@ -39,11 +40,13 @@ type Provider struct {
 	rootCA    []byte
 }
 
-func NewProvider(ctx context.Context, log *logrus.Entry, client cmclient.CertificateRequestInterface, issuerRef cmmeta.ObjectReference) (*Provider, error) {
+func NewProvider(ctx context.Context, log *logrus.Entry, servingCertifcateTTL time.Duration,
+	client cmclient.CertificateRequestInterface, issuerRef cmmeta.ObjectReference) (*Provider, error) {
 	p := &Provider{
-		client:    client,
-		issuerRef: issuerRef,
-		log:       log.WithField("module", "serving_certificate"),
+		log:                   log.WithField("module", "serving_certificate"),
+		servingCertificateTTL: servingCertifcateTTL,
+		client:                client,
+		issuerRef:             issuerRef,
 	}
 
 	p.log.Info("fetching initial serving certificate")
@@ -55,16 +58,18 @@ func NewProvider(ctx context.Context, log *logrus.Entry, client cmclient.Certifi
 	default:
 	}
 
-	ticker := time.NewTicker(renewalTime)
-
 	go func() {
 		for {
+			renewalTime := (2 * p.servingCertificateTTL) / 3
+			timer := time.NewTimer(renewalTime)
+
 			p.log.Infof("renewing serving certificate in %s", renewalTime)
 
 			select {
 			case <-ctx.Done():
 				return
-			case <-ticker.C:
+			case <-timer.C:
+				timer.Stop()
 			}
 
 			p.log.Info("renewing serving certificate")
@@ -112,7 +117,7 @@ func (p *Provider) fetchCertificate(ctx context.Context) error {
 	opts := pkiutil.CertOptions{
 		Host:       "cert-manager-istio-agent.cert-manager.svc",
 		IsServer:   true,
-		TTL:        servingCertificateTTL,
+		TTL:        p.servingCertificateTTL,
 		RSAKeySize: 2048,
 	}
 

@@ -3,6 +3,7 @@ package options
 import (
 	"fmt"
 	"os"
+	"time"
 
 	cmmeta "github.com/jetstack/cert-manager/pkg/apis/meta/v1"
 	cmversioned "github.com/jetstack/cert-manager/pkg/client/clientset/versioned"
@@ -32,12 +33,16 @@ type Options struct {
 
 	kubeConfigFlags *genericclioptions.ConfigFlags
 
-	ServingAddress string
-	Logr           *logrus.Entry
-	IssuerRef      cmmeta.ObjectReference
-	CMClient       cmclient.CertificateRequestInterface
-	KubeClient     kubernetes.Interface
-	Auther         authenticate.Authenticator
+	Logr *logrus.Entry
+
+	ServingCertificateTTL time.Duration
+	ServingAddress        string
+
+	IssuerRef cmmeta.ObjectReference
+
+	CMClient   cmclient.CertificateRequestInterface
+	KubeClient kubernetes.Interface
+	Auther     authenticate.Authenticator
 }
 
 func (o *Options) Prepare(cmd *cobra.Command) *Options {
@@ -119,6 +124,11 @@ func (o *Options) addAppFlags(fs *pflag.FlagSet) {
 	fs.StringVarP(&o.ServingAddress,
 		"serving-address", "a", "0.0.0.0:443",
 		"Address to serve certificates gRPC service.")
+
+	fs.DurationVarP(&o.ServingCertificateTTL,
+		"serving-certificate-ttl", "t", time.Hour*24,
+		"TTL duration of serving certificates. Will be renewed after 2/3 of the "+
+			"duration.")
 }
 
 func (o *Options) addCertManagerFlags(fs *pflag.FlagSet) {

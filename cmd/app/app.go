@@ -29,9 +29,8 @@ func NewCommand(ctx context.Context) *cobra.Command {
 				return err
 			}
 
-			//TODO: leader election
-
-			tlsProvider, err := agenttls.NewProvider(ctx, opts.Logr, opts.CMClient, opts.IssuerRef)
+			tlsProvider, err := agenttls.NewProvider(ctx, opts.Logr, opts.ServingCertificateTTL,
+				opts.CMClient, opts.IssuerRef)
 			if err != nil {
 				return err
 			}
