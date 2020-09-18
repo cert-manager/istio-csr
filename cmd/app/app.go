@@ -18,7 +18,7 @@ const (
 )
 
 func NewCommand(ctx context.Context) *cobra.Command {
-	opts := new(options.Options)
+	opts := options.New()
 
 	cmd := &cobra.Command{
 		Use:   "cert-manager-istio-agent",
@@ -29,13 +29,13 @@ func NewCommand(ctx context.Context) *cobra.Command {
 				return err
 			}
 
-			tlsProvider, err := agenttls.NewProvider(ctx, opts.Logr, opts.ServingCertificateTTL,
-				opts.CMClient, opts.IssuerRef)
+			tlsProvider, err := agenttls.NewProvider(ctx, opts.Logr, opts.TLSOptions,
+				opts.KubeOptions, opts.CertManagerOptions)
 			if err != nil {
 				return err
 			}
 
-			server := server.New(opts.Logr, opts.CMClient, opts.Auther, opts.IssuerRef)
+			server := server.New(opts.Logr, opts.CertManagerOptions, opts.KubeOptions)
 
 			tlsConfig, err := tlsProvider.GetConfigForClient(nil)
 			if err != nil {
@@ -46,7 +46,7 @@ func NewCommand(ctx context.Context) *cobra.Command {
 				"root-cert.pem": fmt.Sprintf("%s", tlsProvider.RootCA()),
 			}
 
-			rootCAController := controller.NewCARootController(opts.Logr, opts.KubeClient,
+			rootCAController := controller.NewCARootController(opts.Logr, opts.KubeOptions,
 				opts.Namespace, "istio-ca-root-cert", rootCAConfigData)
 
 			id, err := os.Hostname()

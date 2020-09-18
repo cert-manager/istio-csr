@@ -17,6 +17,8 @@ import (
 	"k8s.io/client-go/tools/leaderelection"
 	"k8s.io/client-go/tools/leaderelection/resourcelock"
 	"k8s.io/client-go/util/workqueue"
+
+	"github.com/jetstack/cert-manager-istio-agent/cmd/app/options"
 )
 
 const (
@@ -41,14 +43,14 @@ type CARoot struct {
 	namespaceLister corev1listers.NamespaceLister
 }
 
-func NewCARootController(log *logrus.Entry, kubeClient kubernetes.Interface,
+func NewCARootController(log *logrus.Entry, kubeOptions *options.KubeOptions,
 	leaderElectionNamepace string, configMapName string, data map[string]string) *CARoot {
 	return &CARoot{
 		data:                    data,
 		configMapName:           configMapName,
 		leaderElectionNamespace: leaderElectionNamepace,
 		log:                     log.WithField("module", "ca-root-controller"),
-		client:                  kubeClient,
+		client:                  kubeOptions.KubeClient,
 		workqueue:               workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter()),
 	}
 }

@@ -14,14 +14,13 @@ import (
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
-
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/status"
 	securityapi "istio.io/api/security/v1alpha1"
-
 	"istio.io/istio/security/pkg/server/ca/authenticate"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/jetstack/cert-manager-istio-agent/cmd/app/options"
 	"github.com/jetstack/cert-manager-istio-agent/pkg/util"
 )
 
@@ -34,16 +33,12 @@ type Server struct {
 	issuerRef cmmeta.ObjectReference
 }
 
-func New(log *logrus.Entry,
-	client cmclient.CertificateRequestInterface,
-	auther authenticate.Authenticator,
-	issuerRef cmmeta.ObjectReference) *Server {
-
+func New(log *logrus.Entry, cmOptions *options.CertManagerOptions, kubeOptions *options.KubeOptions) *Server {
 	return &Server{
 		log:       log.WithField("module", "certificate_provider"),
-		client:    client,
-		auther:    auther,
-		issuerRef: issuerRef,
+		client:    kubeOptions.CMClient,
+		auther:    kubeOptions.Auther,
+		issuerRef: cmOptions.IssuerRef,
 	}
 }
 

@@ -17,6 +17,7 @@ import (
 	pkiutil "istio.io/istio/security/pkg/pki/util"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/jetstack/cert-manager-istio-agent/cmd/app/options"
 	"github.com/jetstack/cert-manager-istio-agent/pkg/util"
 )
 
@@ -38,15 +39,16 @@ type Provider struct {
 }
 
 // TODO: add tls options struct
-func NewProvider(ctx context.Context, log *logrus.Entry, rootCA string, servingCertifcateTTL time.Duration,
-	client cmclient.CertificateRequestInterface, issuerRef cmmeta.ObjectReference) (*Provider, error) {
+func NewProvider(ctx context.Context, log *logrus.Entry, tlsOptions *options.TLSOptions,
+	kubeOptions *options.KubeOptions, cmOptions *options.CertManagerOptions) (*Provider, error) {
+
 	p := &Provider{
 		log:                   log.WithField("module", "serving_certificate"),
-		servingCertificateTTL: servingCertifcateTTL,
-		customRootCA:          len(rootCA) > 0,
-		client:                client,
-		issuerRef:             issuerRef,
-		rootCA:                []byte(rootCA),
+		servingCertificateTTL: tlsOptions.ServingCertificateTTL,
+		customRootCA:          len(tlsOptions.RootCACert) > 0,
+		client:                kubeOptions.CMClient,
+		issuerRef:             cmOptions.IssuerRef,
+		rootCA:                []byte(tlsOptions.RootCACert),
 	}
 
 	p.log.Info("fetching initial serving certificate")

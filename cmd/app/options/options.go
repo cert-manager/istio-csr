@@ -24,25 +24,48 @@ import (
 
 // Options is a struct to hold options for cert-manager-istio-agent
 type Options struct {
-	logLevel string
+	*AppOptions
+	*CertManagerOptions
+	*TLSOptions
+	*KubeOptions
+}
 
+type AppOptions struct {
+	logLevel string
+	Logr     *logrus.Entry
+}
+
+type CertManagerOptions struct {
 	issuerName  string
 	issuerKind  string
 	issuerGroup string
-	Namespace   string
 
-	kubeConfigFlags *genericclioptions.ConfigFlags
-
-	Logr *logrus.Entry
-
-	ServingCertificateTTL time.Duration
-	ServingAddress        string
-
+	Namespace string
+	DeleteCRs bool
 	IssuerRef cmmeta.ObjectReference
+}
+
+type TLSOptions struct {
+	RootCACert            string
+	ServingAddress        string
+	ServingCertificateTTL time.Duration
+}
+
+type KubeOptions struct {
+	kubeConfigFlags *genericclioptions.ConfigFlags
 
 	CMClient   cmclient.CertificateRequestInterface
 	KubeClient kubernetes.Interface
 	Auther     authenticate.Authenticator
+}
+
+func New() *Options {
+	return &Options{
+		AppOptions:         new(AppOptions),
+		CertManagerOptions: new(CertManagerOptions),
+		TLSOptions:         new(TLSOptions),
+		KubeOptions:        new(KubeOptions),
+	}
 }
 
 func (o *Options) Prepare(cmd *cobra.Command) *Options {
@@ -93,10 +116,11 @@ func (o *Options) Complete() error {
 func (o *Options) addFlags(cmd *cobra.Command) {
 	var nfs cliflag.NamedFlagSets
 
-	o.addAppFlags(nfs.FlagSet("App"))
-	o.addCertManagerFlags(nfs.FlagSet("cert-manager"))
-	o.kubeConfigFlags = genericclioptions.NewConfigFlags(true)
-	o.kubeConfigFlags.AddFlags(nfs.FlagSet("Kubernetes"))
+	o.AppOptions.addFlags(nfs.FlagSet("App"))
+	o.TLSOptions.addFlags(nfs.FlagSet("TLS"))
+	o.CertManagerOptions.addFlags(nfs.FlagSet("cert-manager"))
+	o.KubeOptions.kubeConfigFlags = genericclioptions.NewConfigFlags(true)
+	o.KubeOptions.kubeConfigFlags.AddFlags(nfs.FlagSet("Kubernetes"))
 
 	usageFmt := "Usage:\n  %s\n"
 	cmd.SetUsageFunc(func(cmd *cobra.Command) error {
@@ -116,33 +140,46 @@ func (o *Options) addFlags(cmd *cobra.Command) {
 	}
 }
 
-func (o *Options) addAppFlags(fs *pflag.FlagSet) {
-	fs.StringVarP(&o.logLevel,
+func (a *AppOptions) addFlags(fs *pflag.FlagSet) {
+
+	fs.StringVarP(&a.logLevel,
 		"log-level", "v", "info",
 		"Log level (debug, info, warn, error, fatal, panic).")
+}
 
-	fs.StringVarP(&o.ServingAddress,
+func (t *TLSOptions) addFlags(fs *pflag.FlagSet) {
+	fs.StringVarP(&t.ServingAddress,
 		"serving-address", "a", "0.0.0.0:443",
 		"Address to serve certificates gRPC service.")
 
-	fs.DurationVarP(&o.ServingCertificateTTL,
+	fs.DurationVarP(&t.ServingCertificateTTL,
 		"serving-certificate-ttl", "t", time.Hour*24,
 		"TTL duration of serving certificates. Will be renewed after 2/3 of the "+
 			"duration.")
+
+	fs.StringVar(&t.RootCACert,
+		"root-ca-cert", "",
+		"PEM encoded Root CA certificate to be used as root of trust for TLS. If "+
+			"empty, the CA returned from the cert-manager Issuer will be used.")
 }
 
-func (o *Options) addCertManagerFlags(fs *pflag.FlagSet) {
-	fs.StringVarP(&o.issuerName,
+func (c *CertManagerOptions) addFlags(fs *pflag.FlagSet) {
+	fs.StringVarP(&c.issuerName,
 		"issuer-name", "u", "istio-ca",
 		"Name of the issuer to sign istio workload certificates.")
-	fs.StringVarP(&o.issuerKind,
+	fs.StringVarP(&c.issuerKind,
 		"issuer-kind", "k", "Issuer",
 		"Kind of the issuer to sign istio workload certificates.")
-	fs.StringVarP(&o.issuerGroup,
+	fs.StringVarP(&c.issuerGroup,
 		"issuer-group", "g", "cert-manager.io",
 		"Group of the issuer to sign istio workload certificates.")
 
-	fs.StringVarP(&o.Namespace,
+	fs.BoolVarP(&c.DeleteCRs,
+		"delete-certificate-requests", "d", true,
+		"If enabled, will deleted created certificate request once they are "+
+			"ready.")
+
+	fs.StringVarP(&c.Namespace,
 		"certificate-namespace", "c", "istio-system",
 		"Namespace to request certificates.")
 }
