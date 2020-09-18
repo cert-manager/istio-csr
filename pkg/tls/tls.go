@@ -20,33 +20,33 @@ import (
 	"github.com/jetstack/cert-manager-istio-agent/pkg/util"
 )
 
-const (
-//renewalTime = (2 * servingCertificateTTL) / 3
-)
-
 type GetConfigForClientFunc func(*tls.ClientHelloInfo) (*tls.Config, error)
 
 // tls is used to provider an automatically renewed serving certificate
 type Provider struct {
 	log *logrus.Entry
 
+	customRootCA          bool
 	servingCertificateTTL time.Duration
+	rootCA                []byte
 
 	client    cmclient.CertificateRequestInterface
 	issuerRef cmmeta.ObjectReference
 
 	mu        sync.RWMutex
 	tlsConfig *tls.Config
-	rootCA    []byte
 }
 
-func NewProvider(ctx context.Context, log *logrus.Entry, servingCertifcateTTL time.Duration,
+// TODO: add tls options struct
+func NewProvider(ctx context.Context, log *logrus.Entry, rootCA string, servingCertifcateTTL time.Duration,
 	client cmclient.CertificateRequestInterface, issuerRef cmmeta.ObjectReference) (*Provider, error) {
 	p := &Provider{
 		log:                   log.WithField("module", "serving_certificate"),
 		servingCertificateTTL: servingCertifcateTTL,
+		customRootCA:          len(rootCA) > 0,
 		client:                client,
 		issuerRef:             issuerRef,
+		rootCA:                []byte(rootCA),
 	}
 
 	p.log.Info("fetching initial serving certificate")
@@ -174,12 +174,13 @@ func (p *Provider) fetchCertificate(ctx context.Context) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	p.rootCA = cr.Status.CA
+	if !p.customRootCA {
+		p.rootCA = cr.Status.CA
+	}
 
-	// TODO: define static rootCA
 	var rootCert *x509.Certificate
-	if len(cr.Status.CA) > 0 {
-		block, _ := pem.Decode(cr.Status.CA)
+	if len(p.rootCA) > 0 {
+		block, _ := pem.Decode(p.rootCA)
 		if block == nil {
 			return fmt.Errorf("failed to decode root cert PEM")
 		}
@@ -198,7 +199,7 @@ func (p *Provider) fetchCertificate(ctx context.Context) error {
 	}
 
 	rootCA := x509.NewCertPool()
-	rootCA.AppendCertsFromPEM(cr.Status.CA)
+	rootCA.AppendCertsFromPEM(p.rootCA)
 
 	p.tlsConfig = &tls.Config{
 		Certificates: []tls.Certificate{tlsCert},
