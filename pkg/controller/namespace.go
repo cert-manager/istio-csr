@@ -67,10 +67,11 @@ func (c *CARoot) Run(ctx context.Context, id string) {
 
 	cancel := func() {}
 	leaderelection.RunOrDie(ctx, leaderelection.LeaderElectionConfig{
-		Lock:          &rl,
-		LeaseDuration: 60 * time.Second,
-		RenewDeadline: 40 * time.Second,
-		RetryPeriod:   15 * time.Second,
+		ReleaseOnCancel: true,
+		Lock:            &rl,
+		LeaseDuration:   60 * time.Second,
+		RenewDeadline:   40 * time.Second,
+		RetryPeriod:     15 * time.Second,
 		Callbacks: leaderelection.LeaderCallbacks{
 			OnStartedLeading: func(ctx context.Context) {
 				c.log.Info("acquired leader election")
