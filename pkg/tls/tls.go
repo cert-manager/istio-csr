@@ -28,6 +28,7 @@ type Provider struct {
 	log *logrus.Entry
 
 	customRootCA          bool
+	preserveCRs           bool
 	servingCertificateTTL time.Duration
 	rootCA                []byte
 
@@ -38,13 +39,13 @@ type Provider struct {
 	tlsConfig *tls.Config
 }
 
-// TODO: add tls options struct
 func NewProvider(ctx context.Context, log *logrus.Entry, tlsOptions *options.TLSOptions,
 	kubeOptions *options.KubeOptions, cmOptions *options.CertManagerOptions) (*Provider, error) {
 
 	p := &Provider{
 		log:                   log.WithField("module", "serving_certificate"),
 		servingCertificateTTL: tlsOptions.ServingCertificateTTL,
+		preserveCRs:           cmOptions.PreserveCRs,
 		customRootCA:          len(tlsOptions.RootCACert) > 0,
 		client:                kubeOptions.CMClient,
 		issuerRef:             cmOptions.IssuerRef,
@@ -155,7 +156,7 @@ func (p *Provider) fetchCertificate(ctx context.Context) error {
 
 	log.Debug("created serving CertificateRequest")
 
-	cr, err = util.WaitForCertificateRequestReady(ctx, p.client, cr.Name, time.Minute)
+	cr, err = util.WaitForCertificateRequestReady(ctx, log, p.client, cr.Name, time.Minute)
 	if err != nil {
 		return fmt.Errorf("failed to wait for CertificateRequest %s/%s to become ready: %s",
 			cr.Namespace, cr.Name, err)
@@ -163,15 +164,16 @@ func (p *Provider) fetchCertificate(ctx context.Context) error {
 
 	log.Debug("serving CertificateRequest ready")
 
-	// TODO:
-	//go func() {
-	//	if err := p.client.Delete(ctx, cr.Name, metav1.DeleteOptions{}); err != nil {
-	//		log.Errorf("failed to delete serving CertificateRequest: %s", err)
-	//		return
-	//	}
+	if !p.preserveCRs {
+		go func() {
+			if err := p.client.Delete(ctx, cr.Name, metav1.DeleteOptions{}); err != nil {
+				log.Errorf("failed to delete serving CertificateRequest: %s", err)
+				return
+			}
 
-	//	log.Debug("deleted serving CertificateRequest")
-	//}()
+			log.Debug("deleted serving CertificateRequest")
+		}()
+	}
 
 	p.mu.Lock()
 	defer p.mu.Unlock()

@@ -40,9 +40,9 @@ type CertManagerOptions struct {
 	issuerKind  string
 	issuerGroup string
 
-	Namespace string
-	DeleteCRs bool
-	IssuerRef cmmeta.ObjectReference
+	Namespace   string
+	PreserveCRs bool
+	IssuerRef   cmmeta.ObjectReference
 }
 
 type TLSOptions struct {
@@ -174,10 +174,10 @@ func (c *CertManagerOptions) addFlags(fs *pflag.FlagSet) {
 		"issuer-group", "g", "cert-manager.io",
 		"Group of the issuer to sign istio workload certificates.")
 
-	fs.BoolVarP(&c.DeleteCRs,
-		"delete-certificate-requests", "d", true,
-		"If enabled, will deleted created certificate request once they are "+
-			"ready.")
+	fs.BoolVarP(&c.PreserveCRs,
+		"preserve-certificate-requests", "d", false,
+		"If enabled, will preserve created CertificateRequests, rather than "+
+			"deleting when they are ready.")
 
 	fs.StringVarP(&c.Namespace,
 		"certificate-namespace", "c", "istio-system",

@@ -30,15 +30,17 @@ type Server struct {
 	client cmclient.CertificateRequestInterface
 	auther authenticate.Authenticator
 
-	issuerRef cmmeta.ObjectReference
+	issuerRef   cmmeta.ObjectReference
+	preserveCRs bool
 }
 
 func New(log *logrus.Entry, cmOptions *options.CertManagerOptions, kubeOptions *options.KubeOptions) *Server {
 	return &Server{
-		log:       log.WithField("module", "certificate_provider"),
-		client:    kubeOptions.CMClient,
-		auther:    kubeOptions.Auther,
-		issuerRef: cmOptions.IssuerRef,
+		log:         log.WithField("module", "certificate_provider"),
+		client:      kubeOptions.CMClient,
+		auther:      kubeOptions.Auther,
+		issuerRef:   cmOptions.IssuerRef,
+		preserveCRs: cmOptions.PreserveCRs,
 	}
 }
 
@@ -103,7 +105,7 @@ func (s *Server) CreateCertificate(ctx context.Context, icr *securityapi.IstioCe
 
 	log := util.LogWithCertificateRequest(s.log, cr)
 
-	cr, err = util.WaitForCertificateRequestReady(ctx, s.client, cr.Name, time.Second*30)
+	cr, err = util.WaitForCertificateRequestReady(ctx, log, s.client, cr.Name, time.Second*30)
 	if err != nil {
 		return nil, status.Error(codes.DeadlineExceeded, "timeout exceeded waiting for certificate request to be signed")
 	}
@@ -118,17 +120,19 @@ func (s *Server) CreateCertificate(ctx context.Context, icr *securityapi.IstioCe
 
 	log.Debugf("workload CertificateRequest signed for %q", identities)
 
-	//go func() {
-	//	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-	//	defer cancel()
+	if !s.preserveCRs {
+		go func() {
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+			defer cancel()
 
-	//	if err := s.client.Delete(ctx, cr.Name, metav1.DeleteOptions{}); err != nil {
-	//		log.Errorf("failed to delete CertificateRequest %s/%s for %s: %s",
-	//			cr.Namespace, cr.Name, identities, err)
-	//		return
-	//	}
-	//	log.Debug("deleted workload CertificateRequest")
-	//}()
+			if err := s.client.Delete(ctx, cr.Name, metav1.DeleteOptions{}); err != nil {
+				log.Errorf("failed to delete CertificateRequest %s/%s for %s: %s",
+					cr.Namespace, cr.Name, identities, err)
+				return
+			}
+			log.Debug("deleted workload CertificateRequest")
+		}()
+	}
 
 	return response, nil
 }

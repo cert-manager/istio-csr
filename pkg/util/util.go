@@ -16,7 +16,7 @@ import (
 
 // WaitForCertificateRequestReady waits for the CertificateRequest resource to
 // enter a Ready state.
-func WaitForCertificateRequestReady(ctx context.Context, cmclient cmclient.CertificateRequestInterface,
+func WaitForCertificateRequestReady(ctx context.Context, log *logrus.Entry, cmclient cmclient.CertificateRequestInterface,
 	name string, timeout time.Duration) (*cmapi.CertificateRequest, error) {
 	var (
 		cr  *cmapi.CertificateRequest
@@ -40,8 +40,7 @@ func WaitForCertificateRequestReady(ctx context.Context, cmclient cmclient.Certi
 				Status: cmmeta.ConditionTrue,
 			})
 			if !isReady {
-				//TODO: log.Info().Msgf("CertificateRequest not ready %s/%s: %+v",
-				//	cm.namespace, name, cr.Status.Conditions)
+				log.Debugf("CertificateRequest %+v", cr.Status.Conditions)
 			}
 
 			return isReady, nil
