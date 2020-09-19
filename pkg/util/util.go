@@ -40,7 +40,7 @@ func WaitForCertificateRequestReady(ctx context.Context, log *logrus.Entry, cmcl
 				Status: cmmeta.ConditionTrue,
 			})
 			if !isReady {
-				log.Debugf("CertificateRequest %+v", cr.Status.Conditions)
+				log.Debugf("waiting for CertificateRequest to become ready: %+v", cr.Status.Conditions)
 			}
 
 			return isReady, nil

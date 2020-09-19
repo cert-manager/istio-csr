@@ -59,7 +59,7 @@ func (c *CARoot) Run(ctx context.Context, id string) {
 	rl := resourcelock.ConfigMapLock{
 		ConfigMapMeta: metav1.ObjectMeta{
 			Namespace: c.leaderElectionNamespace,
-			Name:      "cert-manager-istio-agent",
+			Name:      "cert-manager-istio-agent-election",
 		},
 		Client: c.client.CoreV1(),
 		LockConfig: resourcelock.ResourceLockConfig{
