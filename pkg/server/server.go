@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"fmt"
 	"net"
-	"strings"
 	"time"
 
 	cmapi "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1"
@@ -68,15 +67,10 @@ func (s *Server) Run(ctx context.Context, tlsConfig *tls.Config, listenAddress s
 }
 
 func (s *Server) CreateCertificate(ctx context.Context, icr *securityapi.IstioCertificateRequest) (*securityapi.IstioCertificateResponse, error) {
-	caller, err := s.auther.Authenticate(ctx)
-	if err != nil {
-		s.log.Errorf("failed to authenticate request (%s): %s", icr.GetMetadata(), err)
+	identities, ok := s.authRequest(ctx, []byte(icr.Csr))
+	if !ok {
 		return nil, status.Error(codes.Unauthenticated, "request authenticate failure")
 	}
-
-	// TODO: validate CSR matches identities
-
-	identities := strings.Join(caller.Identities, ",")
 
 	cr := &cmapi.CertificateRequest{
 		ObjectMeta: metav1.ObjectMeta{
@@ -96,7 +90,7 @@ func (s *Server) CreateCertificate(ctx context.Context, icr *securityapi.IstioCe
 		},
 	}
 
-	cr, err = s.client.Create(ctx, cr, metav1.CreateOptions{})
+	cr, err := s.client.Create(ctx, cr, metav1.CreateOptions{})
 	if err != nil {
 		s.log.Errorf("failed to create CertificateRequest for %q: %s",
 			identities, err)
@@ -136,10 +130,3 @@ func (s *Server) CreateCertificate(ctx context.Context, icr *securityapi.IstioCe
 
 	return response, nil
 }
-
-//func (s *Server) authorizeCSR(identities []string, csrPEM []byte) error {
-//	csr, err := pkiutil.ParsePemEncodedCSR(csrPEM)
-//	if err != nil {
-//		return fmt.Errorf("failed to decode requesting CSR: %s", err)
-//	}
-//}
