@@ -25,3 +25,15 @@ clean: ## clean up created files
 		$(BINDIR)
 
 all: test build docker ## runs test, build and docker
+
+demo: demo_cluster_create demo_image demo_deploy_demo ## create kind cluster and deploy demo
+
+demo_cluster_create: # create demo kind cluster
+	./demo/kind-with-registry.sh
+
+demo_image: build image # create agent image and push
+	docker push localhost:5000/cert-manager-istio-agent:v0.0.1
+
+demo_deploy_demo: # deploy demo manifests and install istio
+	./demo/deploy-demo.sh
+
