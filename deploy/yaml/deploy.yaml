@@ -1,0 +1,109 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cert-manager-istio-agent
+  namespace: cert-manager
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cert-manager-istio-agent
+  namespace: cert-manager
+  labels:
+    app: cert-manager-istio-agent
+spec:
+  selector:
+    app: cert-manager-istio-agent
+  ports:
+    - protocol: TCP
+      name: web
+      port: 443
+      targetPort: 443
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: cert-manager-istio-agent
+  name: cert-manager-istio-agent
+  namespace: cert-manager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cert-manager-istio-agent
+  template:
+    metadata:
+      labels:
+        app: cert-manager-istio-agent
+    spec:
+      serviceAccountName: cert-manager-istio-agent
+      containers:
+      - image: localhost:5000/cert-manager-istio-agent:v0.0.1
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 443
+        name: cert-manager-istio-agent
+        command: ["cert-manager-istio-agent"]
+        args:
+          - -v=debug
+          - -d
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: cert-manager-istio-agent
+  namespace: istio-system
+rules:
+- apiGroups: ["cert-manager.io"]
+  resources: ["certificaterequests"]
+  verbs: ["get", "create", "delete"]
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: cert-manager-istio-agent
+rules:
+- apiGroups:
+  - "authentication.k8s.io"
+  resources:
+  - "tokenreviews"
+  verbs:
+  - "create"
+- apiGroups:
+  - ""
+  resources:
+  - "configmaps"
+  verbs: ["get", "list", "create", "update", "watch"]
+- apiGroups:
+  - ""
+  resources:
+  - "namespaces"
+  verbs: ["get", "list", "watch"]
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: cert-manager-istio-agent
+  namespace: istio-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: cert-manager-istio-agent
+subjects:
+- kind: ServiceAccount
+  name: cert-manager-istio-agent
+  namespace: cert-manager
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: cert-manager-istio-agent
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cert-manager-istio-agent
+subjects:
+- kind: ServiceAccount
+  name: cert-manager-istio-agent
+  namespace: cert-manager
