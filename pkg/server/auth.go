@@ -25,8 +25,6 @@ func (s *Server) authRequest(ctx context.Context, csrPEM []byte) (string, bool) 
 
 	identities := strings.Join(caller.Identities, ",")
 
-	// TODO: validate CSR matches identities
-
 	csr, err := pkiutil.ParsePemEncodedCSR(csrPEM)
 	if err != nil {
 		s.log.Errorf("failed to decode CSR from %s: %s", identities, err)
