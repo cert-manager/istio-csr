@@ -23,6 +23,7 @@ import (
 	"github.com/jetstack/cert-manager-istio-agent/pkg/util"
 )
 
+// Server is the implementation of the istio CreateCertificate service
 type Server struct {
 	log *logrus.Entry
 
@@ -43,17 +44,22 @@ func New(log *logrus.Entry, cmOptions *options.CertManagerOptions, kubeOptions *
 	}
 }
 
+// Run is a blocking func that will run the client facing certificate service
 func (s *Server) Run(ctx context.Context, tlsConfig *tls.Config, listenAddress string) error {
+	// Setup the grpc server using the passed TLS config
 	creds := credentials.NewTLS(tlsConfig)
 	grpcServer := grpc.NewServer(grpc.Creds(creds))
 
+	// listen on the configured address
 	listener, err := net.Listen("tcp", listenAddress)
 	if err != nil {
 		return fmt.Errorf("failed to listen %s: %v", listenAddress, err)
 	}
 
+	// register certificate service grpc API
 	securityapi.RegisterIstioCertificateServiceServer(grpcServer, s)
 
+	// handle termination gracefully
 	go func() {
 		<-ctx.Done()
 		s.log.Info("shutting down grpc server")
@@ -66,21 +72,30 @@ func (s *Server) Run(ctx context.Context, tlsConfig *tls.Config, listenAddress s
 	return grpcServer.Serve(listener)
 }
 
+// CreateCertificate is the istio grpc API func, to authenticate, authorize,
+// and sign CSRs requests
 func (s *Server) CreateCertificate(ctx context.Context, icr *securityapi.IstioCertificateRequest) (*securityapi.IstioCertificateResponse, error) {
+	// authn incoming requests, and build concatenated identities for labelling
 	identities, ok := s.authRequest(ctx, []byte(icr.Csr))
 	if !ok {
 		return nil, status.Error(codes.Unauthenticated, "request authenticate failure")
 	}
 
+	// Build cert-manager CertificateRequest based on the configured issuer
 	cr := &cmapi.CertificateRequest{
 		ObjectMeta: metav1.ObjectMeta{
+			// Random non-conflicted name
 			GenerateName: "istio-",
 			Annotations: map[string]string{
+				// Label identities to resource for auditing
 				"istio.cert-manager.io/identities": identities,
 			},
 		},
 		Spec: cmapi.CertificateRequestSpec{
 			Duration: &metav1.Duration{
+				// Add during which was requested from the client.
+				// TODO: We should have a configurable maximum that the duration can
+				// be. Take smaller of the two.
 				Duration: time.Duration(icr.ValidityDuration) * time.Second,
 			},
 			IsCA:      false,
@@ -90,6 +105,7 @@ func (s *Server) CreateCertificate(ctx context.Context, icr *securityapi.IstioCe
 		},
 	}
 
+	// Create CertificateRequest and wait for it to become ready
 	cr, err := s.client.Create(ctx, cr, metav1.CreateOptions{})
 	if err != nil {
 		s.log.Errorf("failed to create CertificateRequest for %q: %s",
@@ -104,16 +120,22 @@ func (s *Server) CreateCertificate(ctx context.Context, icr *securityapi.IstioCe
 		return nil, status.Error(codes.DeadlineExceeded, "timeout exceeded waiting for certificate request to be signed")
 	}
 
+	// Parse returned signed certificate
 	respCertChain := []string{string(cr.Status.Certificate)}
 	if len(cr.Status.CA) > 0 {
+		// If the request returns a CA certificate, add to the response chain
 		respCertChain = append(respCertChain, string(cr.Status.CA))
 	}
+
+	// Build client response object
 	response := &securityapi.IstioCertificateResponse{
 		CertChain: respCertChain,
 	}
 
 	log.Debugf("workload CertificateRequest signed for %q", identities)
 
+	// If we are not preserving created CertificateRequests which have been
+	// successully signed, delete in Kubernetes
 	if !s.preserveCRs {
 		go func() {
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
@@ -128,5 +150,6 @@ func (s *Server) CreateCertificate(ctx context.Context, icr *securityapi.IstioCe
 		}()
 	}
 
+	// Return response to the client
 	return response, nil
 }
