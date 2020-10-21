@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "cert-manager-istio-agent.name" . }}
+  labels:
+    app: {{ include "cert-manager-istio-agent.name" . }}
+{{ include "cert-manager-istio-agent.labels" . | indent 4 }}
+spec:
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.agent.servingPort }}
+      protocol: TCP
+      name: web
+  selector:
+    app: {{ include "cert-manager-istio-agent.name" . }}

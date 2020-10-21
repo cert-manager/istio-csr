@@ -7,6 +7,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"sync"
 	"time"
 
@@ -52,10 +53,19 @@ func NewProvider(ctx context.Context, log *logrus.Entry, tlsOptions *options.TLS
 		log:                   log.WithField("module", "serving_certificate"),
 		servingCertificateTTL: tlsOptions.ServingCertificateTTL,
 		preserveCRs:           cmOptions.PreserveCRs,
-		customRootCA:          len(tlsOptions.RootCACert) > 0,
+		customRootCA:          len(tlsOptions.RootCACertFile) > 0,
 		client:                kubeOptions.CMClient,
 		issuerRef:             cmOptions.IssuerRef,
-		rootCA:                []byte(tlsOptions.RootCACert),
+	}
+
+	if len(tlsOptions.RootCACertFile) > 0 {
+		rootCA, err := ioutil.ReadFile(tlsOptions.RootCACertFile)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read root CA certificate file %s: %s",
+				tlsOptions.RootCACertFile, err)
+		}
+
+		p.rootCA = rootCA
 	}
 
 	p.log.Info("fetching initial serving certificate")
@@ -156,7 +166,7 @@ func (p *Provider) RootCA() []byte {
 func (p *Provider) fetchCertificate(ctx context.Context) error {
 	opts := pkiutil.CertOptions{
 		// TODO: allow configurable namespace and service
-		Host: "cert-manager-istio-agent.cert-manager.svc.cluster.local",
+		Host: "cert-manager-istio-agent.cert-manager.svc",
 		//Host:       "cert-manager-istio-agent.cert-manager.svc",
 		IsServer:   true,
 		TTL:        p.servingCertificateTTL,

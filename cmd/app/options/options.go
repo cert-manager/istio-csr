@@ -46,7 +46,7 @@ type CertManagerOptions struct {
 }
 
 type TLSOptions struct {
-	RootCACert            string
+	RootCACertFile        string
 	ServingAddress        string
 	ServingCertificateTTL time.Duration
 }
@@ -157,10 +157,11 @@ func (t *TLSOptions) addFlags(fs *pflag.FlagSet) {
 		"TTL duration of serving certificates. Will be renewed after 2/3 of the "+
 			"duration.")
 
-	fs.StringVar(&t.RootCACert,
+	fs.StringVar(&t.RootCACertFile,
 		"root-ca-cert", "",
-		"PEM encoded Root CA certificate to be used as root of trust for TLS. If "+
-			"empty, the CA returned from the cert-manager Issuer will be used.")
+		"File location of a PEM encoded Root CA certificate to be used as root of "+
+			"trust for TLS. If empty, the CA returned from the cert-manager Issuer will "+
+			"be used.")
 }
 
 func (c *CertManagerOptions) addFlags(fs *pflag.FlagSet) {

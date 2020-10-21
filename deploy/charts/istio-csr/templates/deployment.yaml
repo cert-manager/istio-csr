@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "cert-manager-istio-agent.name" . }}
+  labels:
+{{ include "cert-manager-istio-agent.labels" . | indent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "cert-manager-istio-agent.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "cert-manager-istio-agent.name" . }}
+    spec:
+      serviceAccountName: {{ include "cert-manager-istio-agent.name" . }}
+      containers:
+      - name: {{ include "cert-manager-istio-agent.name" . }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.agent.servingPort }}
+        command: ["cert-manager-istio-agent"]
+        args:
+          - "--log-level={{.Values.agent.logLevel}}"
+
+            ## TODO- "--root-ca-file=
+          - "--serving-address={{.Values.agent.servingAddress}}:{{.Values.agent.servingPort}}"
+          - "--serving-certificate-ttl={{.Values.agent.certificateTTL}}"
+
+          - "--certificate-namespace={{.Values.certificate.namespace}}"
+          - "--issuer-group={{.Values.certificate.group}}"
+          - "--issuer-kind={{.Values.certificate.kind}}"
+          - "--issuer-name={{.Values.certificate.name}}"
+          - "--preserve-certificate-requests={{.Values.certificate.preserveCertificateRequests}}"
+
+        resources:
+          {{- toYaml .Values.resources | nindent 12 }}

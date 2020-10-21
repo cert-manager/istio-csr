@@ -1,0 +1,8 @@
+apiVersion: v1
+appVersion: "v0.0.1"
+version: 0.0.1
+description: A Helm chart for istio-csr
+home: https://github.com/jetstack/istio-csr
+name: cert-manager-istio-agent
+maintainers:
+- name: joshvanl
