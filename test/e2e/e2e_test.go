@@ -35,7 +35,7 @@ func TestE2E(t *testing.T) {
 
 	gomega.RegisterFailHandler(ginkgo.Fail)
 
-	junitPath := "../../../artifacts"
+	junitPath := "../../_artifacts"
 	if path := os.Getenv("ARTIFACTS"); path != "" {
 		junitPath = path
 	}
