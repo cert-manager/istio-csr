@@ -160,7 +160,7 @@ func (t *TLSOptions) addFlags(fs *pflag.FlagSet) {
 	fs.StringVar(&t.RootCACertFile,
 		"root-ca-cert", "",
 		"File location of a PEM encoded Root CA certificate to be used as root of "+
-			"trust for TLS. If empty, the CA returned from the cert-manager Issuer will "+
+			"trust for TLS. If empty, the CA returned from the cert-manager issuer will "+
 			"be used.")
 }
 

@@ -23,8 +23,6 @@ import (
 	"github.com/jetstack/cert-manager-istio-agent/pkg/util"
 )
 
-type GetConfigForClientFunc func(*tls.ClientHelloInfo) (*tls.Config, error)
-
 // Provider is used to provide a tls config containing an automatically renewed
 // private key and certificate. The provider will continue to renew the signed
 // certificate and private in the background, while consumers can transparently

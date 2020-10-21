@@ -1,4 +1,7 @@
 #!/bin/sh
+
+docker stop kind-registry
+
 set -o errexit
 
 kind delete cluster --name istio-demo
@@ -9,7 +12,7 @@ reg_port='5000'
 running="$(docker inspect -f '{{.State.Running}}' "${reg_name}" 2>/dev/null || true)"
 if [ "${running}" != 'true' ]; then
   docker run \
-    -d --restart=always -p "${reg_port}:5000" --name "${reg_name}" \
+    -d -p "${reg_port}:5000" --name "${reg_name}" --rm \
     registry:2
 fi
 

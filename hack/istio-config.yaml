@@ -6,11 +6,13 @@ spec:
   profile: "demo"
   values:
     global:
+      # Change certificate provider to cert-manager istio agent for istio agent
       caAddress: cert-manager-istio-agent.cert-manager.svc:443
   components:
     pilot:
       k8s:
         env:
+          # Disable istiod CA Sever functionality
         - name: ENABLE_CA_SERVER
           value: "false"
         overlays:
@@ -18,6 +20,7 @@ spec:
           name: istiod
           patches:
 
+            # Mount istiod serving and webhook certificate from Secret mount
           - path: spec.template.spec.containers.[name:discovery].args[8]
             value: "--caCertFile=/etc/cert-manager/ca.crt"
           - path: spec.template.spec.containers.[name:discovery].args[9]

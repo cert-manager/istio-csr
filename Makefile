@@ -1,5 +1,7 @@
 BINDIR ?= $(CURDIR)/bin
 ARCH   ?= amd64
+ISTIO_VERSION ?= 1.7.3
+DEMO_MANIFEST_URL ?= https://raw.githubusercontent.com/istio/istio/master/samples/bookinfo/platform/kube/bookinfo.yaml
 
 help:  ## display this help
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n\nTargets:\n"} /^[a-zA-Z0-9_-]+:.*?##/ { printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
@@ -26,14 +28,18 @@ clean: ## clean up created files
 
 all: test build docker ## runs test, build and docker
 
-demo: demo_cluster_create demo_image demo_deploy_demo ## create kind cluster and deploy demo
-
-demo_cluster_create: # create demo kind cluster
-	./demo/kind-with-registry.sh
+demo: depend ## create kind cluster and deploy demo
+	./hack/demo/deploy-demo.sh
+	kubectl label namespace default istio-injection=enabled
+	kubectl apply -f $(DEMO_MANIFEST_URL)
 
 demo_image: build image # create agent image and push
 	docker push localhost:5000/cert-manager-istio-agent:v0.0.1
 
-demo_deploy_demo: # deploy demo manifests and install istio
-	./demo/deploy-demo.sh
+depend: bin/istioctl
 
+bin/istioctl:
+	mkdir -p $(BINDIR)
+	curl -L https://istio.io/downloadIstio | ISTIO_VERSION=$(ISTIO_VERSION) sh -
+	mv istio-$(ISTIO_VERSION)/bin/istioctl $(BINDIR)/.
+	rm -r istio-$(ISTIO_VERSION)
