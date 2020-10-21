@@ -73,7 +73,7 @@ func (s *Server) Run(ctx context.Context, tlsConfig *tls.Config, listenAddress s
 }
 
 // CreateCertificate is the istio grpc API func, to authenticate, authorize,
-// and sign CSRs requests
+// and sign CSRs requests from istio clients.
 func (s *Server) CreateCertificate(ctx context.Context, icr *securityapi.IstioCertificateRequest) (*securityapi.IstioCertificateResponse, error) {
 	// authn incoming requests, and build concatenated identities for labelling
 	identities, ok := s.authRequest(ctx, []byte(icr.Csr))

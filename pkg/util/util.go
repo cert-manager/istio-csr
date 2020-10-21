@@ -51,6 +51,8 @@ func WaitForCertificateRequestReady(ctx context.Context, log *logrus.Entry, cmcl
 	return cr, err
 }
 
+// LogWithCertificateRequest will create a log entry with details about the
+// given CertificateRequest
 func LogWithCertificateRequest(log *logrus.Entry, cr *cmapi.CertificateRequest) *logrus.Entry {
 	return log.WithField("name", cr.Name).WithField("namespace", cr.Namespace)
 }

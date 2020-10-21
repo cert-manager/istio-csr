@@ -17,6 +17,7 @@ const (
 	helpOutput = "cert-manager istio agent for signing istio agent certificate signing requests through cert-manager"
 )
 
+// NewCommand will return a new command instance for the istio agent.
 func NewCommand(ctx context.Context) *cobra.Command {
 	opts := options.New()
 
@@ -29,23 +30,29 @@ func NewCommand(ctx context.Context) *cobra.Command {
 				return err
 			}
 
+			// Create a new TLS provider for the serving certificate and private key.
 			tlsProvider, err := agenttls.NewProvider(ctx, opts.Logr, opts.TLSOptions,
 				opts.KubeOptions, opts.CertManagerOptions)
 			if err != nil {
 				return err
 			}
 
-			server := server.New(opts.Logr, opts.CertManagerOptions, opts.KubeOptions)
-
-			tlsConfig, err := tlsProvider.GetConfigForClient(nil)
+			// Fetch a TLS config which will be renewed transparently
+			tlsConfig, err := tlsProvider.TLSConfig()
 			if err != nil {
 				return err
 			}
 
+			// Create an new server instance that implements the certificate signing API
+			server := server.New(opts.Logr, opts.CertManagerOptions, opts.KubeOptions)
+
+			// Build the data which should be present in the well-known configmap in
+			// all namespaces.
 			rootCAConfigData := map[string]string{
 				"root-cert.pem": fmt.Sprintf("%s", tlsProvider.RootCA()),
 			}
 
+			// Build and run the namespace controller to distribute the root CA
 			rootCAController := controller.NewCARootController(opts.Logr, opts.KubeOptions,
 				opts.Namespace, "istio-ca-root-cert", rootCAConfigData)
 
@@ -55,6 +62,7 @@ func NewCommand(ctx context.Context) *cobra.Command {
 			}
 			go rootCAController.Run(ctx, id)
 
+			// Run the istio agent certificate signing service
 			return server.Run(ctx, tlsConfig, opts.ServingAddress)
 		},
 	}
