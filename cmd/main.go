@@ -9,7 +9,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/jetstack/cert-manager-istio-agent/cmd/app"
+	"github.com/cert-manager/istio-csr/cmd/app"
 )
 
 func main() {

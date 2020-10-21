@@ -7,10 +7,10 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/jetstack/cert-manager-istio-agent/cmd/app/options"
-	"github.com/jetstack/cert-manager-istio-agent/pkg/controller"
-	"github.com/jetstack/cert-manager-istio-agent/pkg/server"
-	agenttls "github.com/jetstack/cert-manager-istio-agent/pkg/tls"
+	"github.com/cert-manager/istio-csr/cmd/app/options"
+	"github.com/cert-manager/istio-csr/pkg/controller"
+	"github.com/cert-manager/istio-csr/pkg/server"
+	agenttls "github.com/cert-manager/istio-csr/pkg/tls"
 )
 
 const (

@@ -18,7 +18,7 @@ import (
 	"k8s.io/client-go/tools/leaderelection/resourcelock"
 	"k8s.io/client-go/util/workqueue"
 
-	"github.com/jetstack/cert-manager-istio-agent/cmd/app/options"
+	"github.com/cert-manager/istio-csr/cmd/app/options"
 )
 
 const (

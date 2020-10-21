@@ -19,8 +19,8 @@ import (
 	"istio.io/istio/security/pkg/server/ca/authenticate"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/jetstack/cert-manager-istio-agent/cmd/app/options"
-	"github.com/jetstack/cert-manager-istio-agent/pkg/util"
+	"github.com/cert-manager/istio-csr/cmd/app/options"
+	"github.com/cert-manager/istio-csr/pkg/util"
 )
 
 // Server is the implementation of the istio CreateCertificate service
