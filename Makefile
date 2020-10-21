@@ -28,18 +28,21 @@ clean: ## clean up created files
 
 all: test build docker ## runs test, build and docker
 
-demo: depend ## create kind cluster and deploy demo
+demo: depend build test ## create kind cluster and deploy demo
 	./hack/demo/deploy-demo.sh
 	kubectl label namespace default istio-injection=enabled
-	kubectl apply -f $(DEMO_MANIFEST_URL)
 
-demo_image: build image # create agent image and push
-	docker push localhost:5000/cert-manager-istio-agent:v0.0.1
+e2e: demo ## build demo cluster and runs end to end tests
+	kind get kubeconfig --name istio-demo > kubeconfig.yaml
+	$(BINDIR)/ginkgo -nodes 1 test/e2e/ -- --kubeconfig $(shell pwd)/kubeconfig.yaml
 
-depend: bin/istioctl
+depend: $(BINDIR)/istioctl $(BINDIR)/ginko
 
-bin/istioctl:
+$(BINDIR)/istioctl:
 	mkdir -p $(BINDIR)
 	curl -L https://istio.io/downloadIstio | ISTIO_VERSION=$(ISTIO_VERSION) sh -
 	mv istio-$(ISTIO_VERSION)/bin/istioctl $(BINDIR)/.
 	rm -r istio-$(ISTIO_VERSION)
+
+$(BINDIR)/ginko:
+	go build -o $(BINDIR)/ginkgo github.com/onsi/ginkgo/ginkgo

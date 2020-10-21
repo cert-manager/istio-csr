@@ -25,7 +25,7 @@ spec:
         args:
           - "--log-level={{.Values.agent.logLevel}}"
 
-            ## TODO- "--root-ca-file=
+            ## TODO: allow for mounting custom root CA- "--root-ca-file=
           - "--serving-address={{.Values.agent.servingAddress}}:{{.Values.agent.servingPort}}"
           - "--serving-certificate-ttl={{.Values.agent.certificateTTL}}"
 
