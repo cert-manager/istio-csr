@@ -164,8 +164,7 @@ func (p *Provider) RootCA() []byte {
 func (p *Provider) fetchCertificate(ctx context.Context) error {
 	opts := pkiutil.CertOptions{
 		// TODO: allow configurable namespace and service
-		Host: "cert-manager-istio-agent.cert-manager.svc",
-		//Host:       "cert-manager-istio-agent.cert-manager.svc",
+		Host:       "cert-manager-istio-agent.cert-manager.svc",
 		IsServer:   true,
 		TTL:        p.servingCertificateTTL,
 		RSAKeySize: 2048,
