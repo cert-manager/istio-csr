@@ -7,6 +7,8 @@ image:
 
 service:
   port: 443
+  type: NodePort
+  nodePort: 30443
 
 agent:
   logLevel: debug
@@ -15,7 +17,7 @@ agent:
   servingPort: 6443
 
   rootCAFile: ""
-  certificateTTL: 24h
+  certificateTTL: 5s
 
 certificate:
   namespace: istio-system

@@ -33,8 +33,7 @@ demo: depend build test ## create kind cluster and deploy demo
 	kubectl label namespace default istio-injection=enabled
 
 e2e: demo ## build demo cluster and runs end to end tests
-	kind get kubeconfig --name istio-demo > kubeconfig.yaml
-	$(BINDIR)/ginkgo -nodes 1 test/e2e/ -- --kubeconfig $(shell pwd)/kubeconfig.yaml
+	./hack/run-e2e.sh
 
 depend: $(BINDIR)/istioctl $(BINDIR)/ginko
 

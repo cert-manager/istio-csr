@@ -23,6 +23,10 @@ import (
 	"github.com/cert-manager/istio-csr/pkg/util"
 )
 
+const (
+	IdentitiesAnnotationKey = "istio.cert-manager.io/identities"
+)
+
 // Server is the implementation of the istio CreateCertificate service
 type Server struct {
 	log *logrus.Entry
@@ -88,7 +92,7 @@ func (s *Server) CreateCertificate(ctx context.Context, icr *securityapi.IstioCe
 			GenerateName: "istio-",
 			Annotations: map[string]string{
 				// Label identities to resource for auditing
-				"istio.cert-manager.io/identities": identities,
+				IdentitiesAnnotationKey: identities,
 			},
 		},
 		Spec: cmapi.CertificateRequestSpec{

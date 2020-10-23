@@ -20,6 +20,13 @@ fi
 cat <<EOF | kind create cluster --name istio-demo --config=-
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+- role: control-plane
+  extraPortMappings:
+  - containerPort: 30443
+    hostPort: 30443
+    listenAddress: "0.0.0.0"
+    protocol: tcp
 containerdConfigPatches:
 - |-
   [plugins."io.containerd.grpc.v1.cri".registry.mirrors."localhost:${reg_port}"]
