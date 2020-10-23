@@ -39,7 +39,7 @@ certificates and keys are mounted in from the Certificate created earlier.
 The cert-manager istio agent implements the gRPC istio certificate service,
 which authenticates, authorizes, and signs incoming certificate signing requests
 from istio workloads. This matches the behaviour of istiod in a typical
-installation, however enabled these certificates to be signed through
+installation, however enables these certificates to be signed through
 cert-manager.
 
 ---
