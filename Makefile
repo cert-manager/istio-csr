@@ -19,8 +19,7 @@ verify: test build ## tests and builds cert-manager-istio-agent
 
 image: ## build docker image
 	GOARCH=$(ARCH) GOOS=linux CGO_ENABLED=0 go build -o ./bin/cert-manager-istio-agent-linux  ./cmd/.
-	docker build -t localhost:5000/cert-manager-istio-agent:v0.0.1 .
-	#docker build -t quay.io/jetstack/cert-manager-istio-agent :v0.0.1 .
+	docker build -t quay.io/jetstack/cert-manager-istio-agent :v0.0.1 .
 
 clean: ## clean up created files
 	rm -rf \
