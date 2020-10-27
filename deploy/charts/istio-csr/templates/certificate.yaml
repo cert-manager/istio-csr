@@ -4,7 +4,6 @@ metadata:
   name: istiod
   namespace: istio-system
 spec:
-  isCA: false
   duration: 24h
   renewBefore: 12h
   secretName: istiod-tls
