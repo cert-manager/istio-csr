@@ -142,7 +142,7 @@ func (p *Provider) TLSConfig() (*tls.Config, error) {
 	}, nil
 }
 
-// hetConfigForClient will return a TLS config based upon the current signed
+// getConfigForClient will return a TLS config based upon the current signed
 // certificate and private key the provider holds.
 func (p *Provider) getConfigForClient(_ *tls.ClientHelloInfo) (*tls.Config, error) {
 	p.mu.RLock()

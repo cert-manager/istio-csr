@@ -1,6 +1,6 @@
 # istio-csr
 
-cert-manager-istio-agent is an agent which allows for [istio](istio.io) workload
+cert-manager-istio-agent is an agent which allows for [istio](https://istio.io) workload
 and control plane components to be secured using
 [cert-manager](https://cert-manager.io). Certificates facilitating mTLS, inter
 and intra cluster, will be signed, delivered and renewed using [cert-manager
