@@ -6,7 +6,7 @@ DEMO_MANIFEST_URL ?= https://raw.githubusercontent.com/istio/istio/master/sample
 help:  ## display this help
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n\nTargets:\n"} /^[a-zA-Z0-9_-]+:.*?##/ { printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
 
-.PHONY: help build docker all clean
+.PHONY: help test build verify image clean all demo docker e2e depend
 
 test: ## test cert-manager-istio-agent
 	go test ./...
