@@ -20,7 +20,8 @@ istiod Certificate configuration can be found in
 [`./hack/demo/cert-manager-bootstrap-resources.yaml`](./hack/demo/cert-manager-bootstrap-resources.yaml).
 
 Next, install the cert-manager-istio-agent into the cluster, configured to use
-the Issuer deployed.
+the Issuer deployed. The Issuer must reside in the same namespace as that
+configured by `-c, --certificate-namespace`, which is `istio-system` by default.
 
 ```bash
 $ helm install cert-manager-istio-demo ./deploy/charts/istio-csr -n cert-manager
