@@ -107,7 +107,7 @@ func (s *Server) CreateCertificate(ctx context.Context, icr *securityapi.IstioCe
 		},
 		Spec: cmapi.CertificateRequestSpec{
 			Duration: &metav1.Duration{
-				// Add during which was requested from the client.
+				// Add duration which was requested from the client.
 				Duration: duration,
 			},
 			IsCA:      false,
