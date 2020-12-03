@@ -1,0 +1,41 @@
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+metadata:
+  namespace: istio-system
+spec:
+  profile: "demo"
+  values:
+    global:
+      # Change certificate provider to cert-manager istio agent for istio agent
+      caAddress: cert-manager-istio-agent.cert-manager.svc:443
+  components:
+    pilot:
+      k8s:
+        env:
+          # Disable istiod CA Sever functionality
+        - name: ENABLE_CA_SERVER
+          value: "false"
+        overlays:
+        - kind: Deployment
+          name: istiod
+          patches:
+
+            # Mount istiod serving and webhook certificate from Secret mount
+          - path: spec.template.spec.containers.[name:discovery].args[8]
+            value: "--caCertFile=/etc/cert-manager/ca.crt"
+          - path: spec.template.spec.containers.[name:discovery].args[9]
+            value: "--tlsCertFile=/etc/cert-manager/tls.crt"
+          - path: spec.template.spec.containers.[name:discovery].args[10]
+            value: "--tlsKeyFile=/etc/cert-manager/tls.key"
+
+          - path: spec.template.spec.containers.[name:discovery].volumeMounts[6].mountPath
+            value: "/etc/cert-manager"
+          - path: spec.template.spec.containers.[name:discovery].volumeMounts[6].name
+            value: cert-manager
+          - path: spec.template.spec.containers.[name:discovery].volumeMounts[6].readOnly
+            value: true
+
+          - path: spec.template.spec.volumes[6].name
+            value: cert-manager
+          - path: spec.template.spec.volumes[6].secret.secretName
+            value: istiod-tls

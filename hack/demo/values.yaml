@@ -1,0 +1,29 @@
+replicaCount: 3
+
+image:
+  repository: localhost:5000/cert-manager-istio-agent
+  tag: v0.0.1
+  pullPolicy: Always
+
+service:
+  port: 443
+  type: NodePort
+  nodePort: 30443
+
+agent:
+  logLevel: debug
+
+  servingAddress: 0.0.0.0
+  servingPort: 6443
+
+  rootCAFile: ""
+  certificateTTL: 5s
+
+certificate:
+  namespace: istio-system
+  group: cert-manager.io
+  kind: Issuer
+  name: istio-ca
+  preserveCertificateRequests: true
+
+resources: {}

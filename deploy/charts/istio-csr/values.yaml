@@ -1,0 +1,39 @@
+# Default values for cert-manager-istio-agent.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: quay.io/jetstack/cert-manager-istio-agent
+  tag: v0.0.1
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 443
+
+agent:
+  logLevel: info # debug, info, warn, error, fatal, panic
+
+  servingAddress: 0.0.0.0
+  servingPort: 6443
+
+  rootCAFile: ""
+  certificateTTL: 24h
+
+certificate:
+  namespace: istio-system
+  group: cert-manager.io
+  kind: Issuer
+  name: istio-ca
+  preserveCertificateRequests: false
+
+resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+  #

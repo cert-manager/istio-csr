@@ -1,0 +1,17 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: istiod
+  namespace: istio-system
+spec:
+  duration: 24h
+  renewBefore: 12h
+  secretName: istiod-tls
+  dnsNames:
+  - istiod.istio-system.svc
+  uris:
+    - spiffe://cluster.local/ns/istio-system/sa/istiod-service-account
+  issuerRef:
+    group: {{ .Values.certificate.group }}
+    kind: {{ .Values.certificate.kind }}
+    name: {{ .Values.certificate.name }}
