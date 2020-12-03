@@ -2,10 +2,14 @@
 
 K8S_NAMESPACE="${K8S_NAMESPACE:-istio-system}"
 CERT_MANAGER_VERSION="${CERT_MANAGER_VERSION:-1.0.3}"
-ISTIO_AGENT_IMAGE="${CERT_MANAGER_ISTIO_AGENT_IMAGE:-localhost:5000/cert-manager-istio-agent:v0.0.1}"
+ISTIO_AGENT_IMAGE="${CERT_MANAGER_ISTIO_AGENT_IMAGE:-localhost:5000/cert-manager-istio-agent:v0.0.1-alpha.0}"
 
 ./hack/demo/kind-with-registry.sh
 
+echo ">> docker build -t ${ISTIO_AGENT_IMAGE} ."
+docker build -t ${ISTIO_AGENT_IMAGE} .
+
+echo ">> docker push ${ISTIO_AGENT_IMAGE}"
 docker push $ISTIO_AGENT_IMAGE
 
 apply_cert-manager_bootstrap_manifests() {

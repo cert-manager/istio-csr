@@ -9,7 +9,7 @@ help:  ## display this help
 .PHONY: help test build verify image clean all demo docker e2e depend
 
 test: ## test cert-manager-istio-agent
-	go test ./...
+	go test $$(go list ./pkg/... ./cmd/...)
 
 build: ## build cert-manager-istio-agent
 	mkdir -p $(BINDIR)
@@ -19,7 +19,7 @@ verify: test build ## tests and builds cert-manager-istio-agent
 
 image: ## build docker image
 	GOARCH=$(ARCH) GOOS=linux CGO_ENABLED=0 go build -o ./bin/cert-manager-istio-agent-linux  ./cmd/.
-	docker build -t quay.io/jetstack/cert-manager-istio-agent:v0.0.1 .
+	docker build -t quay.io/jetstack/cert-manager-istio-agent:v0.0.1-alpha.0 .
 
 clean: ## clean up created files
 	rm -rf \

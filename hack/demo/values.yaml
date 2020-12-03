@@ -2,7 +2,7 @@ replicaCount: 3
 
 image:
   repository: localhost:5000/cert-manager-istio-agent
-  tag: v0.0.1
+  tag: v0.0.1-alpha.0
   pullPolicy: Always
 
 service:
