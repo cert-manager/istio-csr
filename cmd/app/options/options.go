@@ -40,15 +40,17 @@ type CertManagerOptions struct {
 	issuerKind  string
 	issuerGroup string
 
+	MaximumClientCertificateDuration time.Duration
+
 	Namespace   string
 	PreserveCRs bool
 	IssuerRef   cmmeta.ObjectReference
 }
 
 type TLSOptions struct {
-	RootCACertFile        string
-	ServingAddress        string
-	ServingCertificateTTL time.Duration
+	RootCACertFile             string
+	ServingAddress             string
+	ServingCertificateDuration time.Duration
 }
 
 type KubeOptions struct {
@@ -152,10 +154,10 @@ func (t *TLSOptions) addFlags(fs *pflag.FlagSet) {
 		"serving-address", "a", "0.0.0.0:443",
 		"Address to serve certificates gRPC service.")
 
-	fs.DurationVarP(&t.ServingCertificateTTL,
-		"serving-certificate-ttl", "t", time.Hour*24,
-		"TTL duration of serving certificates. Will be renewed after 2/3 of the "+
-			"duration.")
+	fs.DurationVarP(&t.ServingCertificateDuration,
+		"serving-certificate-duration", "t", time.Hour*24,
+		"Certificate duration of serving certificates. Will be renewed after 2/3 of "+
+			"the duration.")
 
 	fs.StringVar(&t.RootCACertFile,
 		"root-ca-cert", "",
@@ -174,6 +176,11 @@ func (c *CertManagerOptions) addFlags(fs *pflag.FlagSet) {
 	fs.StringVarP(&c.issuerGroup,
 		"issuer-group", "g", "cert-manager.io",
 		"Group of the issuer to sign istio workload certificates.")
+
+	fs.DurationVarP(&c.MaximumClientCertificateDuration,
+		"max-client-certificate-duration", "m", time.Hour*24,
+		"Maximum duration a client certificate can be requested and valid for. Will "+
+			"override with this value if the requested duration is larger")
 
 	fs.BoolVarP(&c.PreserveCRs,
 		"preserve-certificate-requests", "d", false,

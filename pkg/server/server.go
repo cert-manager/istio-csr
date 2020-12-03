@@ -34,6 +34,8 @@ type Server struct {
 	client cmclient.CertificateRequestInterface
 	auther authenticate.Authenticator
 
+	maxDuration time.Duration
+
 	issuerRef   cmmeta.ObjectReference
 	preserveCRs bool
 }
@@ -43,6 +45,7 @@ func New(log *logrus.Entry, cmOptions *options.CertManagerOptions, kubeOptions *
 		log:         log.WithField("module", "certificate_provider"),
 		client:      kubeOptions.CMClient,
 		auther:      kubeOptions.Auther,
+		maxDuration: cmOptions.MaximumClientCertificateDuration,
 		issuerRef:   cmOptions.IssuerRef,
 		preserveCRs: cmOptions.PreserveCRs,
 	}
@@ -85,6 +88,13 @@ func (s *Server) CreateCertificate(ctx context.Context, icr *securityapi.IstioCe
 		return nil, status.Error(codes.Unauthenticated, "request authenticate failure")
 	}
 
+	// If requested duration is larger than the maximum value, override with the
+	// maxiumum value.
+	duration := time.Duration(icr.ValidityDuration) * time.Second
+	if duration > s.maxDuration {
+		duration = s.maxDuration
+	}
+
 	// Build cert-manager CertificateRequest based on the configured issuer
 	cr := &cmapi.CertificateRequest{
 		ObjectMeta: metav1.ObjectMeta{
@@ -98,9 +108,7 @@ func (s *Server) CreateCertificate(ctx context.Context, icr *securityapi.IstioCe
 		Spec: cmapi.CertificateRequestSpec{
 			Duration: &metav1.Duration{
 				// Add during which was requested from the client.
-				// TODO: We should have a configurable maximum that the duration can
-				// be. Take smaller of the two.
-				Duration: time.Duration(icr.ValidityDuration) * time.Second,
+				Duration: duration,
 			},
 			IsCA:      false,
 			Request:   []byte(icr.Csr),
@@ -109,7 +117,11 @@ func (s *Server) CreateCertificate(ctx context.Context, icr *securityapi.IstioCe
 		},
 	}
 
-	// Create CertificateRequest and wait for it to become ready
+	fmt.Printf("%#+v\n", cr.Spec)
+	fmt.Printf("%#+v\n", cr.Spec.Duration)
+	fmt.Printf("%#+v\n", cr.Spec.Duration.String())
+
+	// Create CertificateRequest
 	cr, err := s.client.Create(ctx, cr, metav1.CreateOptions{})
 	if err != nil {
 		s.log.Errorf("failed to create CertificateRequest for %q: %s",
@@ -119,7 +131,14 @@ func (s *Server) CreateCertificate(ctx context.Context, icr *securityapi.IstioCe
 
 	log := util.LogWithCertificateRequest(s.log, cr)
 
-	cr, err = util.WaitForCertificateRequestReady(ctx, log, s.client, cr.Name, time.Second*30)
+	// If we are not preserving created CertificateRequests which have either
+	// successully been signed or failed, delete in Kubernetes
+	defer func() {
+		go s.deleteOrPreserveCertificateRequest(log, cr)
+	}()
+
+	// Wait for a minute for the CertificateRequest to become ready
+	cr, err = util.WaitForCertificateRequestReady(ctx, log, s.client, cr.Name, time.Minute)
 	if err != nil {
 		return nil, status.Error(codes.DeadlineExceeded, "timeout exceeded waiting for certificate request to be signed")
 	}
@@ -138,22 +157,25 @@ func (s *Server) CreateCertificate(ctx context.Context, icr *securityapi.IstioCe
 
 	log.Debugf("workload CertificateRequest signed for %q", identities)
 
-	// If we are not preserving created CertificateRequests which have been
-	// successully signed, delete in Kubernetes
-	if !s.preserveCRs {
-		go func() {
-			ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-			defer cancel()
-
-			if err := s.client.Delete(ctx, cr.Name, metav1.DeleteOptions{}); err != nil {
-				log.Errorf("failed to delete CertificateRequest %s/%s for %s: %s",
-					cr.Namespace, cr.Name, identities, err)
-				return
-			}
-			log.Debug("deleted workload CertificateRequest")
-		}()
-	}
-
 	// Return response to the client
 	return response, nil
+}
+
+// deleteOrPreserveCertificateRequest will delete the given CertificateRequest
+// if server not configured to preserve. Exit early if server configured to
+// preserve, or passed CertificateRequest is nil.
+func (s *Server) deleteOrPreserveCertificateRequest(log *logrus.Entry, cr *cmapi.CertificateRequest) {
+	if s.preserveCRs || cr == nil {
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+
+	if err := s.client.Delete(ctx, cr.Name, metav1.DeleteOptions{}); err != nil {
+		log.Errorf("failed to delete CertificateRequest: %s", err)
+		return
+	}
+
+	log.Debug("deleted workload CertificateRequest")
 }
