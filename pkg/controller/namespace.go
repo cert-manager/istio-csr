@@ -108,8 +108,7 @@ func (c *CARoot) runController(ctx context.Context) error {
 		UpdateFunc: func(_, new interface{}) {
 			c.addNamespace(new)
 		},
-		// We do not want to sync if the namespace is deleted.
-		DeleteFunc: nil,
+		DeleteFunc: c.addNamespace,
 	})
 
 	c.configMapInformer = sharedInformerFactory.Core().V1().ConfigMaps().Informer()

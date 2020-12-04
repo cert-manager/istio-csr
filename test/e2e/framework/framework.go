@@ -50,7 +50,7 @@ func (f *Framework) BeforeEach() {
 	f.CMClientSet, err = cmversioned.NewForConfig(config)
 	Expect(err).NotTo(HaveOccurred())
 
-	f.helper = helper.NewHelper(f.CMClientSet)
+	f.helper = helper.NewHelper(f.CMClientSet, f.KubeClientSet)
 }
 
 func (f *Framework) Helper() *helper.Helper {

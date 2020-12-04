@@ -6,7 +6,7 @@ replicaCount: 1
 
 image:
   repository: quay.io/jetstack/cert-manager-istio-agent
-  tag: v0.0.1
+  tag: v0.0.1-alpha.0
   pullPolicy: IfNotPresent
 
 service:
@@ -20,13 +20,14 @@ agent:
   servingPort: 6443
 
   rootCAFile: ""
-  certificateTTL: 24h
+  certificateDuration: 24h
 
 certificate:
   namespace: istio-system
   group: cert-manager.io
   kind: Issuer
   name: istio-ca
+  maxDuration: 24h
   preserveCertificateRequests: false
 
 resources: {}

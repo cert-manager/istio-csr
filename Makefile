@@ -1,7 +1,15 @@
 BINDIR ?= $(CURDIR)/bin
-ARCH   ?= amd64
+ARCH   ?= $(shell go env GOARCH)
 ISTIO_VERSION ?= 1.7.3
 DEMO_MANIFEST_URL ?= https://raw.githubusercontent.com/istio/istio/master/samples/bookinfo/platform/kube/bookinfo.yaml
+
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Linux)
+	OS := linux
+endif
+ifeq ($(UNAME_S),Darwin)
+	OS := darwin
+endif
 
 help:  ## display this help
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n\nTargets:\n"} /^[a-zA-Z0-9_-]+:.*?##/ { printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
@@ -9,7 +17,7 @@ help:  ## display this help
 .PHONY: help test build verify image clean all demo docker e2e depend
 
 test: ## test cert-manager-istio-agent
-	go test ./...
+	go test $$(go list ./pkg/... ./cmd/...)
 
 build: ## build cert-manager-istio-agent
 	mkdir -p $(BINDIR)
@@ -17,9 +25,11 @@ build: ## build cert-manager-istio-agent
 
 verify: test build ## tests and builds cert-manager-istio-agent
 
-image: ## build docker image
+build_image_binary: ## builds image binary
 	GOARCH=$(ARCH) GOOS=linux CGO_ENABLED=0 go build -o ./bin/cert-manager-istio-agent-linux  ./cmd/.
-	docker build -t quay.io/jetstack/cert-manager-istio-agent:v0.0.1 .
+
+image: build_image_binary ## build docker image from binary
+	docker build -t quay.io/jetstack/cert-manager-istio-agent:v0.0.1-alpha.0 .
 
 clean: ## clean up created files
 	rm -rf \
@@ -27,14 +37,15 @@ clean: ## clean up created files
 
 all: test build docker ## runs test, build and docker
 
-demo: depend build test ## create kind cluster and deploy demo
+demo: depend build test build_image_binary ## create kind cluster and deploy demo
 	./hack/demo/deploy-demo.sh
-	kubectl label namespace default istio-injection=enabled
+	$(BINDIR)/kubectl label namespace default istio-injection=enabled
 
 e2e: demo ## build demo cluster and runs end to end tests
 	./hack/run-e2e.sh
+	./hack/demo/destroy-demo.sh
 
-depend: $(BINDIR)/istioctl $(BINDIR)/ginko
+depend: $(BINDIR)/istioctl $(BINDIR)/ginko $(BINDIR)/kubectl
 
 $(BINDIR)/istioctl:
 	mkdir -p $(BINDIR)
@@ -44,3 +55,7 @@ $(BINDIR)/istioctl:
 
 $(BINDIR)/ginko:
 	go build -o $(BINDIR)/ginkgo github.com/onsi/ginkgo/ginkgo
+
+$(BINDIR)/kubectl:
+	curl -o ./bin/kubectl -LO "https://storage.googleapis.com/kubernetes-release/release/$(shell curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/$(OS)/$(ARCH)/kubectl"
+	chmod +x ./bin/kubectl

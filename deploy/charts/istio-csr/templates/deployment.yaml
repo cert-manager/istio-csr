@@ -27,12 +27,13 @@ spec:
 
             ## TODO: allow for mounting custom root CA- "--root-ca-file=
           - "--serving-address={{.Values.agent.servingAddress}}:{{.Values.agent.servingPort}}"
-          - "--serving-certificate-ttl={{.Values.agent.certificateTTL}}"
+          - "--serving-certificate-duration={{.Values.agent.certificateDuration}}"
 
           - "--certificate-namespace={{.Values.certificate.namespace}}"
           - "--issuer-group={{.Values.certificate.group}}"
           - "--issuer-kind={{.Values.certificate.kind}}"
           - "--issuer-name={{.Values.certificate.name}}"
+          - "--max-client-certificate-duration={{.Values.certificate.maxDuration}}"
           - "--preserve-certificate-requests={{.Values.certificate.preserveCertificateRequests}}"
 
         resources:
