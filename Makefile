@@ -1,5 +1,5 @@
 BINDIR ?= $(CURDIR)/bin
-ARCH   ?= amd64
+ARCH   ?= $(shell go env GOARCH)
 ISTIO_VERSION ?= 1.7.3
 DEMO_MANIFEST_URL ?= https://raw.githubusercontent.com/istio/istio/master/samples/bookinfo/platform/kube/bookinfo.yaml
 
