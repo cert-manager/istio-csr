@@ -1,6 +1,7 @@
 #!/bin/bash
 
 BINDIR="${BINDIR:-$(pwd)/bin}"
+KUBECTL_BIN="${KUBECTL_BIN:-./bin/kind}"
 
-kind get kubeconfig --name istio-demo > kubeconfig.yaml
+${BINDIR}/kind get kubeconfig --name istio-demo > kubeconfig.yaml
 ${BINDIR}/ginkgo -nodes 1 test/e2e/ -- --kubeconfig $(pwd)/kubeconfig.yaml
