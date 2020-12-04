@@ -4,6 +4,7 @@ K8S_NAMESPACE="${K8S_NAMESPACE:-istio-system}"
 CERT_MANAGER_VERSION="${CERT_MANAGER_VERSION:-1.0.3}"
 ISTIO_AGENT_IMAGE="${CERT_MANAGER_ISTIO_AGENT_IMAGE:-localhost:5000/cert-manager-istio-agent:v0.0.1-alpha.0}"
 KUBECTL_BIN="${KUBECTL_BIN:-./bin/kubectl}"
+HELM_BIN="${HELM_BIN:-./bin/helm}"
 
 ./hack/demo/kind-with-registry.sh $1
 
@@ -50,7 +51,7 @@ done
 
 echo ">> installing cert-manager-istio-agent"
 
-helm install cert-manager-istio-agent ./deploy/charts/istio-csr -n cert-manager --values ./hack/demo/values.yaml
+$HELM_BIN install cert-manager-istio-agent ./deploy/charts/istio-csr -n cert-manager --values ./hack/demo/values.yaml
 
 echo ">> installing istio"
 

@@ -2,6 +2,7 @@ BINDIR ?= $(CURDIR)/bin
 ARCH   ?= $(shell go env GOARCH)
 ISTIO_VERSION ?= 1.7.3
 K8S_VERSION ?= 1.19.4
+HELM_VERSION ?= 3.4.1
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Linux)
@@ -45,7 +46,7 @@ e2e: demo ## build demo cluster and runs end to end tests
 	./hack/run-e2e.sh
 	./hack/demo/destroy-demo.sh
 
-depend: $(BINDIR)/istioctl $(BINDIR)/ginkgo $(BINDIR)/kubectl $(BINDIR)/kind
+depend: $(BINDIR)/istioctl $(BINDIR)/ginkgo $(BINDIR)/kubectl $(BINDIR)/kind $(BINDIR)/helm
 
 $(BINDIR)/istioctl:
 	mkdir -p $(BINDIR)
@@ -58,6 +59,12 @@ $(BINDIR)/ginkgo:
 
 $(BINDIR)/kind:
 	go build -o $(BINDIR)/kind sigs.k8s.io/kind
+
+$(BINDIR)/helm:
+	curl -o $(BINDIR)/helm.tar.gz -LO "https://get.helm.sh/helm-v$(HELM_VERSION)-$(OS)-$(ARCH).tar.gz"
+	tar -C $(BINDIR) -xzf $(BINDIR)/helm.tar.gz
+	cp $(BINDIR)/$(OS)-$(ARCH)/helm $(BINDIR)/helm
+	rm -r $(BINDIR)/$(OS)-$(ARCH) $(BINDIR)/helm.tar.gz
 
 $(BINDIR)/kubectl:
 	curl -o ./bin/kubectl -LO "https://storage.googleapis.com/kubernetes-release/release/$(shell curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/$(OS)/$(ARCH)/kubectl"
