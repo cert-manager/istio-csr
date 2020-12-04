@@ -17,13 +17,14 @@ agent:
   servingPort: 6443
 
   rootCAFile: ""
-  certificateTTL: 5s
+  certificateDuration: 20s
 
 certificate:
   namespace: istio-system
   group: cert-manager.io
   kind: Issuer
   name: istio-ca
+  maxDuration: 5m
   preserveCertificateRequests: true
 
 resources: {}
