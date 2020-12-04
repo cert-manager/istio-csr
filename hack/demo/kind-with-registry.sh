@@ -1,12 +1,14 @@
 #!/bin/sh
 
 KUBECTL_BIN="${KUBECTL_BIN:-./bin/kubectl}"
+KIND_BIN="${KIND_BIN:-./bin/kind}"
+KIND_IMAGE="${KIND_IMAGE:-kindest/node:v$1}"
 
 docker stop kind-registry
 
 set -o errexit
 
-kind delete cluster --name istio-demo
+$KIND_BIN delete cluster --name istio-demo
 
 # create registry container unless it already exists
 reg_name='kind-registry'
@@ -19,7 +21,7 @@ if [ "${running}" != 'true' ]; then
 fi
 
 # create a cluster with the local registry enabled in containerd
-cat <<EOF | kind create cluster --name istio-demo --config=-
+cat <<EOF | $KIND_BIN create cluster --image $KIND_IMAGE --name istio-demo --config=-
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
@@ -49,6 +51,6 @@ docker network connect "kind" "${reg_name}"
 
 # tell https://tilt.dev to use the registry
 # https://docs.tilt.dev/choosing_clusters.html#discovering-the-registry
-for node in $(kind get nodes); do
+for node in $($KIND_BIN get nodes); do
   $KUBECTL_BIN annotate node "${node}" "kind.x-k8s.io/registry=localhost:${reg_port}";
 done

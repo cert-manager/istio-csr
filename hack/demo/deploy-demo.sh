@@ -5,7 +5,7 @@ CERT_MANAGER_VERSION="${CERT_MANAGER_VERSION:-1.0.3}"
 ISTIO_AGENT_IMAGE="${CERT_MANAGER_ISTIO_AGENT_IMAGE:-localhost:5000/cert-manager-istio-agent:v0.0.1-alpha.0}"
 KUBECTL_BIN="${KUBECTL_BIN:-./bin/kubectl}"
 
-./hack/demo/kind-with-registry.sh
+./hack/demo/kind-with-registry.sh $1
 
 echo ">> docker build -t ${ISTIO_AGENT_IMAGE} ."
 docker build -t ${ISTIO_AGENT_IMAGE} .
