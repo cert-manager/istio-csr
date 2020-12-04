@@ -17,8 +17,10 @@ build: ## build cert-manager-istio-agent
 
 verify: test build ## tests and builds cert-manager-istio-agent
 
-image: ## build docker image
+build_image_binary: ## builds image binary
 	GOARCH=$(ARCH) GOOS=linux CGO_ENABLED=0 go build -o ./bin/cert-manager-istio-agent-linux  ./cmd/.
+
+image: build_image_binary ## build docker image from binary
 	docker build -t quay.io/jetstack/cert-manager-istio-agent:v0.0.1-alpha.0 .
 
 clean: ## clean up created files
@@ -27,14 +29,15 @@ clean: ## clean up created files
 
 all: test build docker ## runs test, build and docker
 
-demo: depend build test ## create kind cluster and deploy demo
+demo: depend build test build_image_binary ## create kind cluster and deploy demo
 	./hack/demo/deploy-demo.sh
-	kubectl label namespace default istio-injection=enabled
+	$(BINDIR)/kubectl label namespace default istio-injection=enabled
 
 e2e: demo ## build demo cluster and runs end to end tests
 	./hack/run-e2e.sh
+	./hack/demo/destroy-demo.sh
 
-depend: $(BINDIR)/istioctl $(BINDIR)/ginko
+depend: $(BINDIR)/istioctl $(BINDIR)/ginko $(BINDIR)/kubectl
 
 $(BINDIR)/istioctl:
 	mkdir -p $(BINDIR)
@@ -44,3 +47,7 @@ $(BINDIR)/istioctl:
 
 $(BINDIR)/ginko:
 	go build -o $(BINDIR)/ginkgo github.com/onsi/ginkgo/ginkgo
+
+$(BINDIR)/kubectl:
+	curl -o ./bin/kubectl -LO "https://storage.googleapis.com/kubernetes-release/release/$(shell curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl"
+	chmod +x ./bin/kubectl
