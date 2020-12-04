@@ -1,7 +1,7 @@
 BINDIR ?= $(CURDIR)/bin
 ARCH   ?= $(shell go env GOARCH)
 ISTIO_VERSION ?= 1.7.3
-DEMO_MANIFEST_URL ?= https://raw.githubusercontent.com/istio/istio/master/samples/bookinfo/platform/kube/bookinfo.yaml
+K8S_VERSION ?= 1.19.4
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Linux)
@@ -38,14 +38,14 @@ clean: ## clean up created files
 all: test build docker ## runs test, build and docker
 
 demo: depend build test build_image_binary ## create kind cluster and deploy demo
-	./hack/demo/deploy-demo.sh
+	./hack/demo/deploy-demo.sh $(K8S_VERSION)
 	$(BINDIR)/kubectl label namespace default istio-injection=enabled
 
 e2e: demo ## build demo cluster and runs end to end tests
 	./hack/run-e2e.sh
 	./hack/demo/destroy-demo.sh
 
-depend: $(BINDIR)/istioctl $(BINDIR)/ginko $(BINDIR)/kubectl
+depend: $(BINDIR)/istioctl $(BINDIR)/ginkgo $(BINDIR)/kubectl $(BINDIR)/kind
 
 $(BINDIR)/istioctl:
 	mkdir -p $(BINDIR)
@@ -53,8 +53,11 @@ $(BINDIR)/istioctl:
 	mv istio-$(ISTIO_VERSION)/bin/istioctl $(BINDIR)/.
 	rm -r istio-$(ISTIO_VERSION)
 
-$(BINDIR)/ginko:
+$(BINDIR)/ginkgo:
 	go build -o $(BINDIR)/ginkgo github.com/onsi/ginkgo/ginkgo
+
+$(BINDIR)/kind:
+	go build -o $(BINDIR)/kind sigs.k8s.io/kind
 
 $(BINDIR)/kubectl:
 	curl -o ./bin/kubectl -LO "https://storage.googleapis.com/kubernetes-release/release/$(shell curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/$(OS)/$(ARCH)/kubectl"
