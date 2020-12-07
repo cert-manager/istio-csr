@@ -117,10 +117,6 @@ func (s *Server) CreateCertificate(ctx context.Context, icr *securityapi.IstioCe
 		},
 	}
 
-	fmt.Printf("%#+v\n", cr.Spec)
-	fmt.Printf("%#+v\n", cr.Spec.Duration)
-	fmt.Printf("%#+v\n", cr.Spec.Duration.String())
-
 	// Create CertificateRequest
 	cr, err := s.client.Create(ctx, cr, metav1.CreateOptions{})
 	if err != nil {
