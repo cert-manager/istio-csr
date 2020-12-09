@@ -49,6 +49,7 @@ type CertManagerOptions struct {
 
 type TLSOptions struct {
 	RootCACertFile             string
+	RootCAConfigMapName        string
 	ServingAddress             string
 	ServingCertificateDuration time.Duration
 }
@@ -164,6 +165,10 @@ func (t *TLSOptions) addFlags(fs *pflag.FlagSet) {
 		"File location of a PEM encoded Root CA certificate to be used as root of "+
 			"trust for TLS. If empty, the CA returned from the cert-manager issuer will "+
 			"be used.")
+
+	fs.StringVar(&t.RootCAConfigMapName,
+		"root-ca-configmap-name", "istio-ca-root-cert",
+		"The ConfigMap name to store the root CA certificate in each namespace.")
 }
 
 func (c *CertManagerOptions) addFlags(fs *pflag.FlagSet) {

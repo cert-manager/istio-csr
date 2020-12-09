@@ -18,6 +18,7 @@ agent:
 
   rootCAFile: ""
   certificateDuration: 20s
+  rootCAConfigMapName: istio-ca-root-cert
 
 certificate:
   namespace: istio-system

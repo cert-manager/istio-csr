@@ -28,6 +28,7 @@ spec:
             ## TODO: allow for mounting custom root CA- "--root-ca-file=
           - "--serving-address={{.Values.agent.servingAddress}}:{{.Values.agent.servingPort}}"
           - "--serving-certificate-duration={{.Values.agent.certificateDuration}}"
+          - "--root-ca-configmap-name={{.Values.agent.rootCAConfigMapName}}"
 
           - "--certificate-namespace={{.Values.certificate.namespace}}"
           - "--issuer-group={{.Values.certificate.group}}"
