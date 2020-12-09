@@ -20,6 +20,7 @@ agent:
   servingPort: 6443
 
   rootCAFile: ""
+  rootCAConfigMapName: istio-ca-root-cert
   certificateDuration: 24h
 
 certificate:

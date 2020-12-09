@@ -54,7 +54,7 @@ func NewCommand(ctx context.Context) *cobra.Command {
 
 			// Build and run the namespace controller to distribute the root CA
 			rootCAController := controller.NewCARootController(opts.Logr, opts.KubeOptions,
-				opts.Namespace, "istio-ca-root-cert", rootCAConfigData)
+				opts.Namespace, opts.RootCAConfigMapName, rootCAConfigData)
 
 			id, err := os.Hostname()
 			if err != nil {
