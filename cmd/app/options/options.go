@@ -166,7 +166,7 @@ func (t *TLSOptions) addFlags(fs *pflag.FlagSet) {
 			"trust for TLS. If empty, the CA returned from the cert-manager issuer will "+
 			"be used.")
 
-	fs.StringVar(&t.RootCACertFile,
+	fs.StringVar(&t.RootCAConfigMapName,
 		"root-ca-configmap-name", "istio-ca-root-cert",
 		"The ConfigMap name to store the root CA certificate in each namespace.")
 }
