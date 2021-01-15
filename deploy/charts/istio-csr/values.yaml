@@ -22,7 +22,6 @@ agent:
   servingAddress: 0.0.0.0
   servingPort: 6443
 
-  rootCAFile: ""
   rootCAConfigMapName: istio-ca-root-cert
   certificateDuration: 24h
 
@@ -33,6 +32,9 @@ certificate:
   name: istio-ca
   maxDuration: 24h
   preserveCertificateRequests: false
+
+  rootCA: #|
+       #MyCACertificate
 
 resources: {}
   # limits:
