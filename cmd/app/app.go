@@ -11,6 +11,7 @@ import (
 	"github.com/cert-manager/istio-csr/pkg/controller"
 	"github.com/cert-manager/istio-csr/pkg/server"
 	agenttls "github.com/cert-manager/istio-csr/pkg/tls"
+	"github.com/cert-manager/istio-csr/pkg/util/healthz"
 )
 
 const (
@@ -30,9 +31,14 @@ func NewCommand(ctx context.Context) *cobra.Command {
 				return err
 			}
 
+			healthz := healthz.New(opts.Logr, opts.HealthzPort, opts.HealthzPath)
+			if err := healthz.Start(ctx); err != nil {
+				return err
+			}
+
 			// Create a new TLS provider for the serving certificate and private key.
 			tlsProvider, err := agenttls.NewProvider(ctx, opts.Logr, opts.TLSOptions,
-				opts.KubeOptions, opts.CertManagerOptions)
+				opts.KubeOptions, opts.CertManagerOptions, healthz.Register())
 			if err != nil {
 				return err
 			}
@@ -44,7 +50,9 @@ func NewCommand(ctx context.Context) *cobra.Command {
 			}
 
 			// Create an new server instance that implements the certificate signing API
-			server := server.New(opts.Logr, opts.CertManagerOptions, opts.KubeOptions)
+			server := server.New(opts.Logr,
+				opts.CertManagerOptions, opts.KubeOptions,
+				healthz.Register())
 
 			// Build the data which should be present in the well-known configmap in
 			// all namespaces.
