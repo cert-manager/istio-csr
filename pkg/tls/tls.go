@@ -21,6 +21,7 @@ import (
 
 	"github.com/cert-manager/istio-csr/cmd/app/options"
 	"github.com/cert-manager/istio-csr/pkg/util"
+	"github.com/cert-manager/istio-csr/pkg/util/healthz"
 )
 
 // Provider is used to provide a tls config containing an automatically renewed
@@ -40,12 +41,14 @@ type Provider struct {
 	issuerRef cmmeta.ObjectReference
 
 	mu        sync.RWMutex
+	healthz   *healthz.Check
 	tlsConfig *tls.Config
 }
 
 // NewProvider will return a new provider where a TLS config is ready to be fetched.
 func NewProvider(ctx context.Context, log *logrus.Entry, tlsOptions *options.TLSOptions,
-	kubeOptions *options.KubeOptions, cmOptions *options.CertManagerOptions) (*Provider, error) {
+	kubeOptions *options.KubeOptions, cmOptions *options.CertManagerOptions,
+	healthz *healthz.Check) (*Provider, error) {
 
 	p := &Provider{
 		log:                   log.WithField("module", "serving_certificate"),
@@ -54,6 +57,7 @@ func NewProvider(ctx context.Context, log *logrus.Entry, tlsOptions *options.TLS
 		customRootCA:          len(tlsOptions.RootCACertFile) > 0,
 		client:                kubeOptions.CMClient,
 		issuerRef:             cmOptions.IssuerRef,
+		healthz:               healthz,
 	}
 
 	if len(tlsOptions.RootCACertFile) > 0 {
@@ -82,6 +86,7 @@ func NewProvider(ctx context.Context, log *logrus.Entry, tlsOptions *options.TLS
 
 			select {
 			case <-ctx.Done():
+				p.healthz.Set(false)
 				p.log.Infof("closing renewal: %s", ctx.Err())
 				timer.Stop()
 				return
@@ -95,6 +100,8 @@ func NewProvider(ctx context.Context, log *logrus.Entry, tlsOptions *options.TLS
 			p.mustFetchCertificate(ctx)
 		}
 	}()
+
+	p.healthz.Set(true)
 
 	return p, nil
 }

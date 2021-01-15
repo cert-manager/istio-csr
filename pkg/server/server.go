@@ -21,6 +21,7 @@ import (
 
 	"github.com/cert-manager/istio-csr/cmd/app/options"
 	"github.com/cert-manager/istio-csr/pkg/util"
+	"github.com/cert-manager/istio-csr/pkg/util/healthz"
 )
 
 const (
@@ -38,9 +39,15 @@ type Server struct {
 
 	issuerRef   cmmeta.ObjectReference
 	preserveCRs bool
+
+	healthz *healthz.Check
 }
 
-func New(log *logrus.Entry, cmOptions *options.CertManagerOptions, kubeOptions *options.KubeOptions) *Server {
+func New(log *logrus.Entry,
+	cmOptions *options.CertManagerOptions,
+	kubeOptions *options.KubeOptions,
+	healthz *healthz.Check,
+) *Server {
 	return &Server{
 		log:         log.WithField("module", "certificate_provider"),
 		client:      kubeOptions.CMClient,
@@ -48,6 +55,7 @@ func New(log *logrus.Entry, cmOptions *options.CertManagerOptions, kubeOptions *
 		maxDuration: cmOptions.MaximumClientCertificateDuration,
 		issuerRef:   cmOptions.IssuerRef,
 		preserveCRs: cmOptions.PreserveCRs,
+		healthz:     healthz,
 	}
 }
 
@@ -69,12 +77,14 @@ func (s *Server) Run(ctx context.Context, tlsConfig *tls.Config, listenAddress s
 	// handle termination gracefully
 	go func() {
 		<-ctx.Done()
+		s.healthz.Set(false)
 		s.log.Info("shutting down grpc server")
 		grpcServer.GracefulStop()
 		s.log.Info("grpc server stopped")
 	}()
 
 	s.log.Infof("grpc serving on %s", listener.Addr())
+	s.healthz.Set(true)
 
 	return grpcServer.Serve(listener)
 }

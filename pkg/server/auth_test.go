@@ -142,8 +142,8 @@ func TestAuthRequest(t *testing.T) {
 		"if auth returns identities, but given csr has dns, error": {
 			authn: newMockAuthn([]string{"spiffe://foo", "spiffe://bar"}, ""),
 			inpCSR: genCSR(t,
-				gen.SetIdentities([]string{"spiffe://foo", "spiffe://bar"}),
-				gen.SetDNS([]string{"example.com", "jetstack.io"}),
+				gen.SetCSRIdentities([]string{"spiffe://foo", "spiffe://bar"}),
+				gen.SetCSRDNS([]string{"example.com", "jetstack.io"}),
 			),
 			expIdenties: "spiffe://foo,spiffe://bar",
 			expAuth:     false,
@@ -151,8 +151,8 @@ func TestAuthRequest(t *testing.T) {
 		"if auth returns identities, but given csr has ips, error": {
 			authn: newMockAuthn([]string{"spiffe://foo", "spiffe://bar"}, ""),
 			inpCSR: genCSR(t,
-				gen.SetIdentities([]string{"spiffe://foo", "spiffe://bar"}),
-				gen.SetIPs([]string{"8.8.8.8"}),
+				gen.SetCSRIdentities([]string{"spiffe://foo", "spiffe://bar"}),
+				gen.SetCSRIPs([]string{"8.8.8.8"}),
 			),
 			expIdenties: "spiffe://foo,spiffe://bar",
 			expAuth:     false,
@@ -160,8 +160,8 @@ func TestAuthRequest(t *testing.T) {
 		"if auth returns identities, but given csr has common name, error": {
 			authn: newMockAuthn([]string{"spiffe://foo", "spiffe://bar"}, ""),
 			inpCSR: genCSR(t,
-				gen.SetIdentities([]string{"spiffe://foo", "spiffe://bar"}),
-				gen.SetCommonName("jetstack.io"),
+				gen.SetCSRIdentities([]string{"spiffe://foo", "spiffe://bar"}),
+				gen.SetCSRCommonName("jetstack.io"),
 			),
 			expIdenties: "spiffe://foo,spiffe://bar",
 			expAuth:     false,
@@ -169,8 +169,8 @@ func TestAuthRequest(t *testing.T) {
 		"if auth returns identities, but given csr has email addresses, error": {
 			authn: newMockAuthn([]string{"spiffe://foo", "spiffe://bar"}, ""),
 			inpCSR: genCSR(t,
-				gen.SetIdentities([]string{"spiffe://foo", "spiffe://bar"}),
-				gen.SetEmails([]string{"joshua.vanleeuwen@jetstack.io"}),
+				gen.SetCSRIdentities([]string{"spiffe://foo", "spiffe://bar"}),
+				gen.SetCSREmails([]string{"joshua.vanleeuwen@jetstack.io"}),
 			),
 			expIdenties: "spiffe://foo,spiffe://bar",
 			expAuth:     false,
@@ -178,7 +178,7 @@ func TestAuthRequest(t *testing.T) {
 		"if auth returns identities, but given csr has miss matched identities, error": {
 			authn: newMockAuthn([]string{"spiffe://foo", "spiffe://bar"}, ""),
 			inpCSR: genCSR(t,
-				gen.SetIdentities([]string{"spiffe://josh", "spiffe://bar"}),
+				gen.SetCSRIdentities([]string{"spiffe://josh", "spiffe://bar"}),
 			),
 			expIdenties: "spiffe://foo,spiffe://bar",
 			expAuth:     false,
@@ -186,7 +186,7 @@ func TestAuthRequest(t *testing.T) {
 		"if auth returns identities, but given csr has subset of identities, error": {
 			authn: newMockAuthn([]string{"spiffe://foo", "spiffe://bar"}, ""),
 			inpCSR: genCSR(t,
-				gen.SetIdentities([]string{"spiffe://bar"}),
+				gen.SetCSRIdentities([]string{"spiffe://bar"}),
 			),
 			expIdenties: "spiffe://foo,spiffe://bar",
 			expAuth:     false,
@@ -194,7 +194,7 @@ func TestAuthRequest(t *testing.T) {
 		"if auth returns identities, but given csr has more identities, error": {
 			authn: newMockAuthn([]string{"spiffe://foo", "spiffe://bar"}, ""),
 			inpCSR: genCSR(t,
-				gen.SetIdentities([]string{"spiffe://foo", "spiffe://bar", "spiffe://joshua.vanleeuwen"}),
+				gen.SetCSRIdentities([]string{"spiffe://foo", "spiffe://bar", "spiffe://joshua.vanleeuwen"}),
 			),
 			expIdenties: "spiffe://foo,spiffe://bar",
 			expAuth:     false,
@@ -202,7 +202,7 @@ func TestAuthRequest(t *testing.T) {
 		"if auth returns identities, and given csr matches identities, return true": {
 			authn: newMockAuthn([]string{"spiffe://foo", "spiffe://bar"}, ""),
 			inpCSR: genCSR(t,
-				gen.SetIdentities([]string{"spiffe://foo", "spiffe://bar"}),
+				gen.SetCSRIdentities([]string{"spiffe://foo", "spiffe://bar"}),
 			),
 			expIdenties: "spiffe://foo,spiffe://bar",
 			expAuth:     true,
@@ -210,7 +210,7 @@ func TestAuthRequest(t *testing.T) {
 		"if auth returns single id, and given csr matches id, return true": {
 			authn: newMockAuthn([]string{"spiffe://foo"}, ""),
 			inpCSR: genCSR(t,
-				gen.SetIdentities([]string{"spiffe://foo"}),
+				gen.SetCSRIdentities([]string{"spiffe://foo"}),
 			),
 			expIdenties: "spiffe://foo",
 			expAuth:     true,
