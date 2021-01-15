@@ -33,6 +33,9 @@ type Options struct {
 type AppOptions struct {
 	logLevel string
 	Logr     *logrus.Entry
+
+	HealthzPort int
+	HealthzPath string
 }
 
 type CertManagerOptions struct {
@@ -144,10 +147,17 @@ func (o *Options) addFlags(cmd *cobra.Command) {
 }
 
 func (a *AppOptions) addFlags(fs *pflag.FlagSet) {
-
 	fs.StringVarP(&a.logLevel,
 		"log-level", "v", "info",
 		"Log level (debug, info, warn, error, fatal, panic).")
+
+	fs.IntVar(&a.HealthzPort,
+		"healthz-port", 8080,
+		"Port to expose the readiness probe.")
+
+	fs.StringVar(&a.HealthzPath,
+		"healthz-path", "/healthz",
+		"HTTP path to expose the readiness probe server.")
 }
 
 func (t *TLSOptions) addFlags(fs *pflag.FlagSet) {
