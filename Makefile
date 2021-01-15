@@ -39,20 +39,21 @@ clean: ## clean up created files
 all: test build docker ## runs test, build and docker
 
 demo: depend build test build_image_binary ## create kind cluster and deploy demo
-	./hack/demo/deploy-demo.sh $(K8S_VERSION)
+	./hack/demo/deploy-demo.sh $(K8S_VERSION) $(ISTIO_VERSION)
 	$(BINDIR)/kubectl label namespace default istio-injection=enabled
 
 e2e: demo ## build demo cluster and runs end to end tests
 	./hack/run-e2e.sh
 	./hack/demo/destroy-demo.sh
 
-depend: $(BINDIR)/istioctl $(BINDIR)/ginkgo $(BINDIR)/kubectl $(BINDIR)/kind $(BINDIR)/helm
+depend: $(BINDIR)/istioctl-$(ISTIO_VERSION) $(BINDIR)/ginkgo $(BINDIR)/kubectl $(BINDIR)/kind $(BINDIR)/helm
 
-$(BINDIR)/istioctl:
+$(BINDIR)/istioctl-$(ISTIO_VERSION):
 	mkdir -p $(BINDIR)
 	curl -L https://istio.io/downloadIstio | ISTIO_VERSION=$(ISTIO_VERSION) sh -
-	mv istio-$(ISTIO_VERSION)/bin/istioctl $(BINDIR)/.
+	mv istio-$(ISTIO_VERSION)/bin/istioctl $(BINDIR)/istioctl-$(ISTIO_VERSION)-tmp
 	rm -r istio-$(ISTIO_VERSION)
+	mv $(BINDIR)/istioctl-$(ISTIO_VERSION)-tmp $(BINDIR)/istioctl-$(ISTIO_VERSION)
 
 $(BINDIR)/ginkgo:
 	go build -o $(BINDIR)/ginkgo github.com/onsi/ginkgo/ginkgo
