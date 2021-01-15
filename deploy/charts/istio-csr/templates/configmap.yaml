@@ -1,0 +1,7 @@
+{{- if .Values.certificate.rootCA }}
+kind: ConfigMap
+metadata:
+  name: cert-manager-istio-agent
+data:
+  ca.pem: {{.Values.certificate.rootCA | b64enc}}
+{{- end }}

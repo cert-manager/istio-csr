@@ -33,7 +33,6 @@ spec:
           - "--healthz-port={{.Values.agent.readinessProbe.port}}"
           - "--healthz-path={{.Values.agent.readinessProbe.path}}"
 
-            ## TODO: allow for mounting custom root CA- "--root-ca-file=
           - "--serving-address={{.Values.agent.servingAddress}}:{{.Values.agent.servingPort}}"
           - "--serving-certificate-duration={{.Values.agent.certificateDuration}}"
           - "--root-ca-configmap-name={{.Values.agent.rootCAConfigMapName}}"
@@ -45,6 +44,25 @@ spec:
           - "--max-client-certificate-duration={{.Values.certificate.maxDuration}}"
           - "--preserve-certificate-requests={{.Values.certificate.preserveCertificateRequests}}"
 
+        {{- if .Values.certificate.rootCA }}
+          - "--root-ca-file=/etc/cert-manager-istio-agent"
+
+        volumeMounts:
+          - name: root-ca
+            mountPath: /etc/cert-manager-istio-agent
+        {{- end  }}
 
         resources:
           {{- toYaml .Values.resources | nindent 12 }}
+
+      {{- if .Values.certificate.rootCA }}
+      volumes:
+        - name: root-ca
+          configMap:
+            name: cert-manager-isto-agent
+            items:
+            - key: ca.pem
+              path: ca.pem
+      {{- end  }}
+
+
