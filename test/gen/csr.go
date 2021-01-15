@@ -65,31 +65,31 @@ func CSR(mods ...CSRModifier) ([]byte, error) {
 	return pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE REQUEST", Bytes: csrBytes}), nil
 }
 
-func SetIdentities(ids []string) CSRModifier {
+func SetCSRIdentities(ids []string) CSRModifier {
 	return func(csr *CSRBuilder) {
 		csr.ids = ids
 	}
 }
 
-func SetDNS(dns []string) CSRModifier {
+func SetCSRDNS(dns []string) CSRModifier {
 	return func(csr *CSRBuilder) {
 		csr.dns = dns
 	}
 }
 
-func SetIPs(ips []string) CSRModifier {
+func SetCSRIPs(ips []string) CSRModifier {
 	return func(csr *CSRBuilder) {
 		csr.ips = ips
 	}
 }
 
-func SetEmails(emails []string) CSRModifier {
+func SetCSREmails(emails []string) CSRModifier {
 	return func(csr *CSRBuilder) {
 		csr.emails = emails
 	}
 }
 
-func SetCommonName(cn string) CSRModifier {
+func SetCSRCommonName(cn string) CSRModifier {
 	return func(csr *CSRBuilder) {
 		csr.cn = cn
 	}

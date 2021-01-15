@@ -95,7 +95,7 @@ var _ = framework.CasesDescribe("Request Authentication", func() {
 
 	It("should reject a request with a bad service account token", func() {
 		csr, err := gen.CSR(
-			gen.SetIdentities([]string{fmt.Sprintf("spiffe://cluster.local/ns/%s/sa/%s", namespace, saName)}),
+			gen.SetCSRIdentities([]string{fmt.Sprintf("spiffe://cluster.local/ns/%s/sa/%s", namespace, saName)}),
 		)
 		Expect(err).NotTo(HaveOccurred())
 		_, err = client.CSRSign(context.TODO(), "", csr, "bad token", 100)
@@ -110,8 +110,8 @@ var _ = framework.CasesDescribe("Request Authentication", func() {
 	It("should reject a request with dns", func() {
 		id := fmt.Sprintf("spiffe://cluster.local/ns/%s/sa/%s", namespace, saName)
 		csr, err := gen.CSR(
-			gen.SetIdentities([]string{id}),
-			gen.SetDNS([]string{"example.com", "jetstack.io"}),
+			gen.SetCSRIdentities([]string{id}),
+			gen.SetCSRDNS([]string{"example.com", "jetstack.io"}),
 		)
 		Expect(err).NotTo(HaveOccurred())
 
@@ -122,8 +122,8 @@ var _ = framework.CasesDescribe("Request Authentication", func() {
 	It("should reject a request with ips", func() {
 		id := fmt.Sprintf("spiffe://cluster.local/ns/%s/sa/%s", namespace, saName)
 		csr, err := gen.CSR(
-			gen.SetIdentities([]string{id}),
-			gen.SetIPs([]string{"8.8.8.8"}),
+			gen.SetCSRIdentities([]string{id}),
+			gen.SetCSRIPs([]string{"8.8.8.8"}),
 		)
 		Expect(err).NotTo(HaveOccurred())
 
@@ -134,8 +134,8 @@ var _ = framework.CasesDescribe("Request Authentication", func() {
 	It("should reject a request with emails", func() {
 		id := fmt.Sprintf("spiffe://cluster.local/ns/%s/sa/%s", namespace, saName)
 		csr, err := gen.CSR(
-			gen.SetIdentities([]string{id}),
-			gen.SetEmails([]string{"joshua.vanleeuwen@jetstack.io"}),
+			gen.SetCSRIdentities([]string{id}),
+			gen.SetCSREmails([]string{"joshua.vanleeuwen@jetstack.io"}),
 		)
 		Expect(err).NotTo(HaveOccurred())
 
@@ -146,8 +146,8 @@ var _ = framework.CasesDescribe("Request Authentication", func() {
 	It("should reject a request with emails", func() {
 		id := fmt.Sprintf("spiffe://cluster.local/ns/%s/sa/%s", namespace, saName)
 		csr, err := gen.CSR(
-			gen.SetIdentities([]string{id}),
-			gen.SetEmails([]string{"joshua.vanleeuwen@jetstack.io"}),
+			gen.SetCSRIdentities([]string{id}),
+			gen.SetCSREmails([]string{"joshua.vanleeuwen@jetstack.io"}),
 		)
 		Expect(err).NotTo(HaveOccurred())
 
@@ -157,7 +157,7 @@ var _ = framework.CasesDescribe("Request Authentication", func() {
 
 	It("should reject a request with wrong ids", func() {
 		csr, err := gen.CSR(
-			gen.SetIdentities([]string{"spiffe://josh", "spiffe://bar"}),
+			gen.SetCSRIdentities([]string{"spiffe://josh", "spiffe://bar"}),
 		)
 		Expect(err).NotTo(HaveOccurred())
 
@@ -168,7 +168,7 @@ var _ = framework.CasesDescribe("Request Authentication", func() {
 	It("should reject a request with more ids", func() {
 		id := fmt.Sprintf("spiffe://cluster.local/ns/%s/sa/%s", namespace, saName)
 		csr, err := gen.CSR(
-			gen.SetIdentities([]string{id, "spiffe://bar"}),
+			gen.SetCSRIdentities([]string{id, "spiffe://bar"}),
 		)
 		Expect(err).NotTo(HaveOccurred())
 
@@ -181,7 +181,7 @@ var _ = framework.CasesDescribe("Request Authentication", func() {
 
 		id := fmt.Sprintf("spiffe://cluster.local/ns/%s/sa/%s", namespace, saName)
 		csr, err := gen.CSR(
-			gen.SetIdentities([]string{id}),
+			gen.SetCSRIdentities([]string{id}),
 		)
 		Expect(err).NotTo(HaveOccurred())
 		certs, err := client.CSRSign(context.TODO(), "", csr, saToken, 100)
