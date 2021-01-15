@@ -21,9 +21,17 @@ spec:
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         ports:
         - containerPort: {{ .Values.agent.servingPort }}
+        readinessProbe:
+          httpGet:
+            port: {{.Values.agent.readinessProbe.port}}
+            path: {{.Values.agent.readinessProbe.path}}
+          initialDelaySeconds: 3
+          periodSeconds: 7
         command: ["cert-manager-istio-agent"]
         args:
           - "--log-level={{.Values.agent.logLevel}}"
+          - "--healthz-port={{.Values.agent.readinessProbe.port}}"
+          - "--healthz-path={{.Values.agent.readinessProbe.path}}"
 
             ## TODO: allow for mounting custom root CA- "--root-ca-file=
           - "--serving-address={{.Values.agent.servingAddress}}:{{.Values.agent.servingPort}}"
@@ -36,6 +44,7 @@ spec:
           - "--issuer-name={{.Values.certificate.name}}"
           - "--max-client-certificate-duration={{.Values.certificate.maxDuration}}"
           - "--preserve-certificate-requests={{.Values.certificate.preserveCertificateRequests}}"
+
 
         resources:
           {{- toYaml .Values.resources | nindent 12 }}

@@ -15,6 +15,9 @@ service:
 
 agent:
   logLevel: info # debug, info, warn, error, fatal, panic
+  readinessProbe:
+    port: 8080
+    path: "/healthz"
 
   servingAddress: 0.0.0.0
   servingPort: 6443
