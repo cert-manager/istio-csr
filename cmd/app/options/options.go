@@ -34,8 +34,8 @@ type AppOptions struct {
 	logLevel string
 	Logr     *logrus.Entry
 
-	HealthzPort int
-	HealthzPath string
+	ReadyzPort int
+	ReadyzPath string
 }
 
 type CertManagerOptions struct {
@@ -151,12 +151,12 @@ func (a *AppOptions) addFlags(fs *pflag.FlagSet) {
 		"log-level", "v", "info",
 		"Log level (debug, info, warn, error, fatal, panic).")
 
-	fs.IntVar(&a.HealthzPort,
-		"healthz-port", 8080,
+	fs.IntVar(&a.ReadyzPort,
+		"readiness-probe-port", 8080,
 		"Port to expose the readiness probe.")
 
-	fs.StringVar(&a.HealthzPath,
-		"healthz-path", "/healthz",
+	fs.StringVar(&a.ReadyzPath,
+		"readiness-probe-path", "/readyz",
 		"HTTP path to expose the readiness probe server.")
 }
 

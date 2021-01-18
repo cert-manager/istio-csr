@@ -30,8 +30,8 @@ spec:
         command: ["cert-manager-istio-agent"]
         args:
           - "--log-level={{.Values.agent.logLevel}}"
-          - "--healthz-port={{.Values.agent.readinessProbe.port}}"
-          - "--healthz-path={{.Values.agent.readinessProbe.path}}"
+          - "--readiness-probe-port={{.Values.agent.readinessProbe.port}}"
+          - "--readiness-probe-path={{.Values.agent.readinessProbe.path}}"
 
           - "--serving-address={{.Values.agent.servingAddress}}:{{.Values.agent.servingPort}}"
           - "--serving-certificate-duration={{.Values.agent.certificateDuration}}"
