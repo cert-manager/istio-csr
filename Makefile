@@ -34,7 +34,8 @@ image: build_image_binary ## build docker image from binary
 
 clean: ## clean up created files
 	rm -rf \
-		$(BINDIR)
+		$(BINDIR) \
+		_artifacts
 
 all: test build docker ## runs test, build and docker
 

@@ -77,7 +77,15 @@ var _ = framework.CasesDescribe("mTLS correctness", func() {
 
 		for _, ns := range namespaces {
 			By(fmt.Sprintf("waiting for pods in %q namespace to become ready", ns.name))
-			Expect(f.Helper().WaitForPodsReady(ns.name, time.Minute*3)).NotTo(HaveOccurred())
+			err := f.Helper().WaitForPodsReady(ns.name, time.Minute*3)
+			if err != nil {
+				cmd := exec.Command(kubectlBin, "describe", "-n"+ns.name, "pods")
+				cmd.Stdout = GinkgoWriter
+				cmd.Stderr = GinkgoWriter
+				Expect(cmd.Run()).NotTo(HaveOccurred())
+
+				Expect(err).NotTo(HaveOccurred())
+			}
 		}
 	})
 
