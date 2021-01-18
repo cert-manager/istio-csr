@@ -40,13 +40,13 @@ type Server struct {
 	issuerRef   cmmeta.ObjectReference
 	preserveCRs bool
 
-	healthz *healthz.Check
+	readyz *healthz.Check
 }
 
 func New(log *logrus.Entry,
 	cmOptions *options.CertManagerOptions,
 	kubeOptions *options.KubeOptions,
-	healthz *healthz.Check,
+	readyz *healthz.Check,
 ) *Server {
 	return &Server{
 		log:         log.WithField("module", "certificate_provider"),
@@ -55,7 +55,7 @@ func New(log *logrus.Entry,
 		maxDuration: cmOptions.MaximumClientCertificateDuration,
 		issuerRef:   cmOptions.IssuerRef,
 		preserveCRs: cmOptions.PreserveCRs,
-		healthz:     healthz,
+		readyz:      readyz,
 	}
 }
 
@@ -77,14 +77,14 @@ func (s *Server) Run(ctx context.Context, tlsConfig *tls.Config, listenAddress s
 	// handle termination gracefully
 	go func() {
 		<-ctx.Done()
-		s.healthz.Set(false)
+		s.readyz.Set(false)
 		s.log.Info("shutting down grpc server")
 		grpcServer.GracefulStop()
 		s.log.Info("grpc server stopped")
 	}()
 
 	s.log.Infof("grpc serving on %s", listener.Addr())
-	s.healthz.Set(true)
+	s.readyz.Set(true)
 
 	return grpcServer.Serve(listener)
 }
