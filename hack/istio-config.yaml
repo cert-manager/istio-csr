@@ -4,6 +4,7 @@ metadata:
   namespace: istio-system
 spec:
   profile: "demo"
+  hub: gcr.io/istio-release
   values:
     global:
       # Change certificate provider to cert-manager istio agent for istio agent
