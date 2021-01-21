@@ -16,7 +16,7 @@ service:
 agent:
   logLevel: info # debug, info, warn, error, fatal, panic
   readinessProbe:
-    port: 8080
+    port: 6060
     path: "/readyz"
 
   servingAddress: 0.0.0.0

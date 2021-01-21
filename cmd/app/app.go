@@ -3,7 +3,6 @@ package app
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
 
@@ -31,10 +30,7 @@ func NewCommand(ctx context.Context) *cobra.Command {
 				return err
 			}
 
-			readyz := healthz.New(opts.Logr, opts.ReadyzPort, opts.ReadyzPath)
-			if err := readyz.Start(ctx); err != nil {
-				return err
-			}
+			readyz := healthz.New()
 
 			// Create a new TLS provider for the serving certificate and private key.
 			tlsProvider, err := agenttls.NewProvider(ctx, opts.Logr, opts.TLSOptions,
@@ -61,14 +57,12 @@ func NewCommand(ctx context.Context) *cobra.Command {
 			}
 
 			// Build and run the namespace controller to distribute the root CA
-			rootCAController := controller.NewCARootController(opts.Logr, opts.KubeOptions,
-				opts.Namespace, opts.RootCAConfigMapName, rootCAConfigData)
-
-			id, err := os.Hostname()
+			rootCAController, err := controller.NewCARootController(opts, rootCAConfigData, readyz.Check)
 			if err != nil {
-				return fmt.Errorf("failed to get hostname for leader election id: %s", err)
+				return fmt.Errorf("failed to create new controller: %s", err)
 			}
-			go rootCAController.Run(ctx, id)
+
+			go rootCAController.Run(ctx)
 
 			// Run the istio agent certificate signing service
 			return server.Run(ctx, tlsConfig, opts.ServingAddress)

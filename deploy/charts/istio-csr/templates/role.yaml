@@ -16,3 +16,13 @@ rules:
   - "create"
   - "update"
   - "delete"
+- apiGroups:
+  - "coordination.k8s.io"
+  resources:
+  - "leases"
+  verbs:
+  - "get"
+  - "create"
+  - "update"
+  - "watch"
+  - "list"
