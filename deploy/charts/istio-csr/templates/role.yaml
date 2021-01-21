@@ -2,8 +2,8 @@ kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   labels:
-{{ include "cert-manager-istio-agent.labels" . | indent 4 }}
-  name: {{ include "cert-manager-istio-agent.name" . }}
+{{ include "cert-manager-istio-csr.labels" . | indent 4 }}
+  name: {{ include "cert-manager-istio-csr.name" . }}
   namespace: {{ .Values.certificate.namespace }}
 rules:
 - apiGroups:

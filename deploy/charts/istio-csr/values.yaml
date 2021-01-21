@@ -1,12 +1,12 @@
-# Default values for cert-manager-istio-agent.
+# Default values for cert-manager-istio-csr.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
 replicaCount: 1
 
 image:
-  repository: quay.io/jetstack/cert-manager-istio-agent
-  tag: v0.0.1-alpha.0
+  repository: quay.io/jetstack/cert-manager-istio-csr
+  tag: v0.0.1-alpha.1
   pullPolicy: IfNotPresent
 
 service:

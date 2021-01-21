@@ -51,7 +51,7 @@ var _ = framework.CasesDescribe("Request Authentication", func() {
 
 		ns, err := f.KubeClientSet.CoreV1().Namespaces().Create(context.TODO(), &corev1.Namespace{
 			ObjectMeta: metav1.ObjectMeta{
-				GenerateName: "cert-manager-istio-agent-e2e-",
+				GenerateName: "cert-manager-istio-csr-e2e-",
 			},
 		}, metav1.CreateOptions{})
 		Expect(err).NotTo(HaveOccurred())
@@ -60,7 +60,7 @@ var _ = framework.CasesDescribe("Request Authentication", func() {
 
 		sa, err := f.KubeClientSet.CoreV1().ServiceAccounts(namespace).Create(context.TODO(), &corev1.ServiceAccount{
 			ObjectMeta: metav1.ObjectMeta{
-				GenerateName: "cert-manager-istio-agent-e2e-",
+				GenerateName: "cert-manager-istio-csr-e2e-",
 			},
 		}, metav1.CreateOptions{})
 		Expect(err).NotTo(HaveOccurred())

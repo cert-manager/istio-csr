@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "cert-manager-istio-agent.name" . }}
+  name: {{ include "cert-manager-istio-csr.name" . }}
   labels:
-{{ include "cert-manager-istio-agent.labels" . | indent 4 }}
+{{ include "cert-manager-istio-csr.labels" . | indent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: {{ include "cert-manager-istio-agent.name" . }}
+      app: {{ include "cert-manager-istio-csr.name" . }}
   template:
     metadata:
       labels:
-        app: {{ include "cert-manager-istio-agent.name" . }}
+        app: {{ include "cert-manager-istio-csr.name" . }}
     spec:
-      serviceAccountName: {{ include "cert-manager-istio-agent.name" . }}
+      serviceAccountName: {{ include "cert-manager-istio-csr.name" . }}
       containers:
-      - name: {{ include "cert-manager-istio-agent.name" . }}
+      - name: {{ include "cert-manager-istio-csr.name" . }}
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         ports:
@@ -27,7 +27,7 @@ spec:
             path: {{.Values.agent.readinessProbe.path}}
           initialDelaySeconds: 3
           periodSeconds: 7
-        command: ["cert-manager-istio-agent"]
+        command: ["cert-manager-istio-csr"]
         args:
           - "--log-level={{.Values.agent.logLevel}}"
           - "--readiness-probe-port={{.Values.agent.readinessProbe.port}}"
@@ -45,11 +45,11 @@ spec:
           - "--preserve-certificate-requests={{.Values.certificate.preserveCertificateRequests}}"
 
         {{- if .Values.certificate.rootCA }}
-          - "--root-ca-file=/etc/cert-manager-istio-agent"
+          - "--root-ca-file=/etc/cert-manager-istio-csr"
 
         volumeMounts:
           - name: root-ca
-            mountPath: /etc/cert-manager-istio-agent
+            mountPath: /etc/cert-manager-istio-csr
         {{- end  }}
 
         resources:

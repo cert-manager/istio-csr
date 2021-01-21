@@ -23,7 +23,7 @@ func NewCommand(ctx context.Context) *cobra.Command {
 	opts := options.New()
 
 	cmd := &cobra.Command{
-		Use:   "cert-manager-istio-agent",
+		Use:   "cert-manager-istio-csr",
 		Short: helpOutput,
 		Long:  helpOutput,
 		RunE: func(cmd *cobra.Command, args []string) error {

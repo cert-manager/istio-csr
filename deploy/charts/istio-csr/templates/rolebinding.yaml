@@ -1,15 +1,15 @@
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: {{ include "cert-manager-istio-agent.name" . }}
+  name: {{ include "cert-manager-istio-csr.name" . }}
   namespace: {{ .Values.certificate.namespace }}
   labels:
-{{ include "cert-manager-istio-agent.labels" . | indent 4 }}
+{{ include "cert-manager-istio-csr.labels" . | indent 4 }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: {{ include "cert-manager-istio-agent.name" . }}
+  name: {{ include "cert-manager-istio-csr.name" . }}
 subjects:
 - kind: ServiceAccount
-  name: {{ include "cert-manager-istio-agent.name" . }}
+  name: {{ include "cert-manager-istio-csr.name" . }}
   namespace: {{ .Release.Namespace }}

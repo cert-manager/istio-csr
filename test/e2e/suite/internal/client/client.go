@@ -53,7 +53,7 @@ func NewCertManagerClient(endpoint string, tls bool, rootCert []byte, clusterID 
 	return c, nil
 }
 
-// CSR Sign calls cert-manager istio-agent to sign a CSR.
+// CSR Sign calls cert-manager istio-csr to sign a CSR.
 func (c *certmanagerClient) CSRSign(ctx context.Context, reqID string, csrPEM []byte, token string,
 	certValidTTLInSec int64) ([]string /*PEM-encoded certificate chain*/, error) {
 	req := &securityapi.IstioCertificateRequest{
@@ -119,7 +119,7 @@ func (c *certmanagerClient) getTLSDialOption() (grpc.DialOption, error) {
 
 	// For debugging on localhost (with port forward)
 	if strings.Contains(c.caEndpoint, "localhost") {
-		config.ServerName = "cert-manager-istio-agent.cert-manager.svc"
+		config.ServerName = "cert-manager-istio-csr.cert-manager.svc"
 	}
 
 	transportCreds := credentials.NewTLS(&config)
