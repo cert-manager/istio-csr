@@ -2,7 +2,7 @@ replicaCount: 3
 
 image:
   repository: localhost:5000/cert-manager-istio-csr
-  tag: v0.0.1-alpha.0
+  tag: v0.0.1-alpha.1
   pullPolicy: Always
 
 service:
