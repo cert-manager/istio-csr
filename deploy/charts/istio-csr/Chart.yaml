@@ -1,6 +1,6 @@
 apiVersion: v2
 
-name: cert-manager-istio-agent
+name: cert-manager-istio-csr
 type: application
 description: A Helm chart for istio-csr
 

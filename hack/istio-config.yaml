@@ -8,7 +8,7 @@ spec:
   values:
     global:
       # Change certificate provider to cert-manager istio agent for istio agent
-      caAddress: cert-manager-istio-agent.cert-manager.svc:443
+      caAddress: cert-manager-istio-csr.cert-manager.svc:443
   components:
     pilot:
       k8s:

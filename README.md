@@ -1,6 +1,6 @@
 # istio-csr
 
-cert-manager-istio-agent is an agent which allows for [istio](https://istio.io) workload
+cert-manager-istio-csr is an agent which allows for [istio](https://istio.io) workload
 and control plane components to be secured using
 [cert-manager](https://cert-manager.io). Certificates facilitating mTLS, inter
 and intra cluster, will be signed, delivered and renewed using [cert-manager
@@ -19,7 +19,7 @@ workloads, as well a ready Certificate to serve istiod. Example Issuer and
 istiod Certificate configuration can be found in
 [`./hack/demo/cert-manager-bootstrap-resources.yaml`](./hack/demo/cert-manager-bootstrap-resources.yaml).
 
-Next, install the cert-manager-istio-agent into the cluster, configured to use
+Next, install the cert-manager-istio-csr into the cluster, configured to use
 the Issuer deployed. The Issuer must reside in the same namespace as that
 configured by `-c, --certificate-namespace`, which is `istio-system` by default.
 

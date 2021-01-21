@@ -22,7 +22,7 @@ import (
 	cliflag "k8s.io/component-base/cli/flag"
 )
 
-// Options is a struct to hold options for cert-manager-istio-agent
+// Options is a struct to hold options for cert-manager-istio-csr
 type Options struct {
 	*AppOptions
 	*CertManagerOptions

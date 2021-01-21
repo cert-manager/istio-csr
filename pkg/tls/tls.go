@@ -171,7 +171,7 @@ func (p *Provider) RootCA() []byte {
 func (p *Provider) fetchCertificate(ctx context.Context) error {
 	opts := pkiutil.CertOptions{
 		// TODO: allow configurable namespace and service
-		Host:       "cert-manager-istio-agent.cert-manager.svc",
+		Host:       "cert-manager-istio-csr.cert-manager.svc",
 		IsServer:   true,
 		TTL:        p.servingCertificateTTL,
 		RSAKeySize: 2048,
@@ -187,9 +187,9 @@ func (p *Provider) fetchCertificate(ctx context.Context) error {
 	// using the configured issuer.
 	cr := &cmapi.CertificateRequest{
 		ObjectMeta: metav1.ObjectMeta{
-			GenerateName: "cert-manager-istio-agent-",
+			GenerateName: "cert-manager-istio-csr-",
 			Annotations: map[string]string{
-				"istio.cert-manager.io/identities": "cert-manager-istio-agent",
+				"istio.cert-manager.io/identities": "cert-manager-istio-csr",
 			},
 		},
 		Spec: cmapi.CertificateRequestSpec{

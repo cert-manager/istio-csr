@@ -20,7 +20,7 @@ var _ = framework.CasesDescribe("CA Root Controller", func() {
 	f := framework.NewDefaultFramework("ca-root-controller")
 
 	var (
-		testName    = "cert-manager-istio-agent-e2e-root-ca"
+		testName    = "cert-manager-istio-csr-e2e-root-ca"
 		cmNamespace = "istio-system"
 		ctx         = context.Background()
 		rootCA      []byte
@@ -32,7 +32,7 @@ var _ = framework.CasesDescribe("CA Root Controller", func() {
 		// Get root CA from a dummy Certificate using configured issuer
 		cert := &cmapi.Certificate{
 			ObjectMeta: metav1.ObjectMeta{
-				GenerateName: "cert-manager-istio-agent-e2e-",
+				GenerateName: "cert-manager-istio-csr-e2e-",
 				Namespace:    cmNamespace,
 			},
 			Spec: cmapi.CertificateSpec{
@@ -72,7 +72,7 @@ var _ = framework.CasesDescribe("CA Root Controller", func() {
 		By("ensure a newly namespace is propagated")
 		ns := &corev1.Namespace{
 			ObjectMeta: metav1.ObjectMeta{
-				GenerateName: "cert-manager-istio-agent-e2e-",
+				GenerateName: "cert-manager-istio-csr-e2e-",
 			},
 		}
 

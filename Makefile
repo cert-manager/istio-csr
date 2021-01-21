@@ -17,20 +17,20 @@ help:  ## display this help
 
 .PHONY: help test build verify image clean all demo docker e2e depend
 
-test: ## test cert-manager-istio-agent
+test: ## test cert-manager-istio-csr
 	go test $$(go list ./pkg/... ./cmd/...)
 
-build: ## build cert-manager-istio-agent
+build: ## build cert-manager-istio-csr
 	mkdir -p $(BINDIR)
-	CGO_ENABLED=0 go build -o ./bin/cert-manager-istio-agent  ./cmd/.
+	CGO_ENABLED=0 go build -o ./bin/cert-manager-istio-csr  ./cmd/.
 
-verify: test build ## tests and builds cert-manager-istio-agent
+verify: test build ## tests and builds cert-manager-istio-csr
 
 build_image_binary: ## builds image binary
-	GOARCH=$(ARCH) GOOS=linux CGO_ENABLED=0 go build -o ./bin/cert-manager-istio-agent-linux  ./cmd/.
+	GOARCH=$(ARCH) GOOS=linux CGO_ENABLED=0 go build -o ./bin/cert-manager-istio-csr-linux  ./cmd/.
 
 image: build_image_binary ## build docker image from binary
-	docker build -t quay.io/jetstack/cert-manager-istio-agent:v0.0.1-alpha.0 .
+	docker build -t quay.io/jetstack/cert-manager-istio-csr:v0.0.1-alpha.0 .
 
 clean: ## clean up created files
 	rm -rf \
