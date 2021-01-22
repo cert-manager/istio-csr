@@ -38,12 +38,12 @@ type namespace struct {
 }
 
 type configmap struct {
-	log    *logrus.Entry
 	client client.Client
 	*enforcer
 }
 
 type enforcer struct {
+	log           *logrus.Entry
 	client        client.Client
 	data          map[string]string
 	configMapName string
@@ -85,6 +85,7 @@ func NewCARootController(opts *options.Options, data map[string]string, healthz 
 		client:        mgr.GetClient(),
 		data:          data,
 		configMapName: opts.RootCAConfigMapName,
+		log:           log,
 	}
 
 	namespace := &namespace{
@@ -93,7 +94,6 @@ func NewCARootController(opts *options.Options, data map[string]string, healthz 
 		enforcer: enforcer,
 	}
 	configmap := &configmap{
-		log:      log,
 		client:   mgr.GetClient(),
 		enforcer: enforcer,
 	}
@@ -133,15 +133,7 @@ func (c *CARoot) Run(ctx context.Context) error {
 // well known name in the target Kubernetes cluster. Reconcile will ensure that
 // the ConfigMap exists, and the CA root bundle is present.
 func (c *configmap) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	// Attempt to get the synced ConfigMap. If it doesn't exist, we will need to
-	// create it.
-	err := c.client.Get(ctx, req.NamespacedName, new(corev1.ConfigMap))
-	if err != nil && !apierrors.IsNotFound(err) {
-		return ctrl.Result{}, fmt.Errorf("failed to get %q: %s", req.NamespacedName, err)
-	}
-
-	log := c.log.WithField("namespace", req.Namespace)
-	if err := c.configmap(ctx, log, req.NamespacedName.Namespace); err != nil {
+	if err := c.configmap(ctx, req.NamespacedName.Namespace); err != nil {
 		return ctrl.Result{}, err
 	}
 
@@ -152,20 +144,25 @@ func (c *configmap) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resul
 // cluster. If the resource exists, Reconcile will ensure that the ConfigMap
 // exists, CA root bundle is present.
 func (n *namespace) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	log := n.log.WithField("namespace", req.NamespacedName)
+	ns := new(corev1.Namespace)
 
 	// Attempt to get the synced Namespace. If the resource no longer
 	// exists, we can ignore it.
-	err := n.client.Get(ctx, req.NamespacedName, new(corev1.Namespace))
+	err := n.client.Get(ctx, req.NamespacedName, ns)
 	if apierrors.IsNotFound(err) {
-		log.Debug("namespace doesn't exist, ignoring")
+		n.log.WithField("namespace", req.Name).Debug("namespace doesn't exist, ignoring")
 		return ctrl.Result{}, nil
 	}
 	if err != nil {
 		return ctrl.Result{}, fmt.Errorf("failed to get %q: %s", req.NamespacedName, err)
 	}
 
-	if err := n.configmap(ctx, log, req.Name); err != nil {
+	// If the namespace is terminating, we should reconcile configmap
+	if ns.Status.Phase == corev1.NamespaceTerminating {
+		return ctrl.Result{}, nil
+	}
+
+	if err := n.configmap(ctx, ns.Name); err != nil {
 		return ctrl.Result{}, err
 	}
 
@@ -174,7 +171,7 @@ func (n *namespace) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resul
 
 // configmap will ensure that the provided namespace has the correct ConfigMap,
 // with the correct data and label.
-func (e *enforcer) configmap(ctx context.Context, log *logrus.Entry, namespace string) error {
+func (e *enforcer) configmap(ctx context.Context, namespace string) error {
 	var (
 		namespacedName = types.NamespacedName{
 			Name:      e.configMapName,
@@ -183,7 +180,7 @@ func (e *enforcer) configmap(ctx context.Context, log *logrus.Entry, namespace s
 		cm = new(corev1.ConfigMap)
 	)
 
-	log = log.WithField("configmap", namespacedName.String())
+	log := e.log.WithField("configmap", namespacedName.String())
 	err := e.client.Get(ctx, namespacedName, cm)
 	if apierrors.IsNotFound(err) {
 		log.Debug("configmap doesn't exist, creating")
