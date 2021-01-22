@@ -7,7 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/sirupsen/logrus"
+	"k8s.io/klog/v2"
 
 	"github.com/cert-manager/istio-csr/cmd/app"
 )
@@ -33,11 +33,11 @@ func signalHandler() context.Context {
 		cancel()
 
 		for i := 0; i < 3; i++ {
-			logrus.Warnf("received signal %s, shutting down gracefully...", sig)
+			klog.Warningf("received signal %s, shutting down gracefully...", sig)
 			sig = <-ch
 		}
 
-		logrus.Errorf("received signal %s, force closing", sig)
+		klog.Errorf("received signal %s, force closing", sig)
 
 		os.Exit(1)
 	}()

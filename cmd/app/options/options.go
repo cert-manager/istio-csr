@@ -1,14 +1,14 @@
 package options
 
 import (
+	"flag"
 	"fmt"
-	"os"
 	"time"
 
+	"github.com/go-logr/logr"
 	cmmeta "github.com/jetstack/cert-manager/pkg/apis/meta/v1"
 	cmversioned "github.com/jetstack/cert-manager/pkg/client/clientset/versioned"
 	cmclient "github.com/jetstack/cert-manager/pkg/client/clientset/versioned/typed/certmanager/v1"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"istio.io/istio/pkg/jwt"
@@ -21,6 +21,8 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth/openstack"
 	"k8s.io/client-go/rest"
 	cliflag "k8s.io/component-base/cli/flag"
+	"k8s.io/klog/v2"
+	"k8s.io/klog/v2/klogr"
 )
 
 // Options is a struct to hold options for cert-manager-istio-csr
@@ -33,7 +35,7 @@ type Options struct {
 
 type AppOptions struct {
 	logLevel string
-	Logr     *logrus.Entry
+	Logr     logr.Logger
 
 	ReadyzPort int
 	ReadyzPath string
@@ -82,17 +84,12 @@ func (o *Options) Prepare(cmd *cobra.Command) *Options {
 }
 
 func (o *Options) Complete() error {
-	logLevel, err := logrus.ParseLevel(o.logLevel)
-	if err != nil {
-		return fmt.Errorf("failed to parse --log-level %q: %s",
-			o.logLevel, err)
-	}
+	klog.InitFlags(nil)
+	log := klogr.New()
+	flag.Set("v", o.logLevel)
+	o.Logr = log
 
-	logr := logrus.New()
-	logr.SetOutput(os.Stdout)
-	logr.SetLevel(logLevel)
-	o.Logr = logrus.NewEntry(logr)
-
+	var err error
 	o.RestConfig, err = o.kubeConfigFlags.ToRESTConfig()
 	if err != nil {
 		return fmt.Errorf("failed to build kubernetes rest config: %s", err)
@@ -150,8 +147,8 @@ func (o *Options) addFlags(cmd *cobra.Command) {
 
 func (a *AppOptions) addFlags(fs *pflag.FlagSet) {
 	fs.StringVarP(&a.logLevel,
-		"log-level", "v", "info",
-		"Log level (debug, info, warn, error, fatal, panic).")
+		"log-level", "v", "1",
+		"Log level (1-5).")
 
 	fs.IntVar(&a.ReadyzPort,
 		"readiness-probe-port", 6060,

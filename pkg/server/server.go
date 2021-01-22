@@ -7,10 +7,10 @@ import (
 	"net"
 	"time"
 
+	"github.com/go-logr/logr"
 	cmapi "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1"
 	cmmeta "github.com/jetstack/cert-manager/pkg/apis/meta/v1"
 	cmclient "github.com/jetstack/cert-manager/pkg/client/clientset/versioned/typed/certmanager/v1"
-	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
@@ -30,7 +30,7 @@ const (
 
 // Server is the implementation of the istio CreateCertificate service
 type Server struct {
-	log *logrus.Entry
+	log logr.Logger
 
 	client cmclient.CertificateRequestInterface
 	auther authenticate.Authenticator
@@ -43,13 +43,13 @@ type Server struct {
 	readyz *healthz.Check
 }
 
-func New(log *logrus.Entry,
+func New(log logr.Logger,
 	cmOptions *options.CertManagerOptions,
 	kubeOptions *options.KubeOptions,
 	readyz *healthz.Check,
 ) *Server {
 	return &Server{
-		log:         log.WithField("module", "certificate_provider"),
+		log:         log.WithName("certificate-provider"),
 		client:      kubeOptions.CMClient,
 		auther:      kubeOptions.Auther,
 		maxDuration: cmOptions.MaximumClientCertificateDuration,
@@ -83,7 +83,7 @@ func (s *Server) Run(ctx context.Context, tlsConfig *tls.Config, listenAddress s
 		s.log.Info("grpc server stopped")
 	}()
 
-	s.log.Infof("grpc serving on %s", listener.Addr())
+	s.log.Info("grpc serving", "address", listener.Addr().String())
 	s.readyz.Set(true)
 
 	return grpcServer.Serve(listener)
@@ -130,12 +130,11 @@ func (s *Server) CreateCertificate(ctx context.Context, icr *securityapi.IstioCe
 	// Create CertificateRequest
 	cr, err := s.client.Create(ctx, cr, metav1.CreateOptions{})
 	if err != nil {
-		s.log.Errorf("failed to create CertificateRequest for %q: %s",
-			identities, err)
+		s.log.Error(err, "failed to create CertificateRequest for %q", identities)
 		return nil, status.Error(codes.Internal, "failed to sign certificate request")
 	}
 
-	log := util.LogWithCertificateRequest(s.log, cr)
+	log := s.log.WithValues("namespace", cr.Namespace, "name", cr.Name)
 
 	// If we are not preserving created CertificateRequests which have either
 	// successully been signed or failed, delete in Kubernetes
@@ -161,7 +160,7 @@ func (s *Server) CreateCertificate(ctx context.Context, icr *securityapi.IstioCe
 		CertChain: respCertChain,
 	}
 
-	log.Debugf("workload CertificateRequest signed for %q", identities)
+	log.V(3).Info("workload CertificateRequest signed", "identities", identities)
 
 	// Return response to the client
 	return response, nil
@@ -170,7 +169,7 @@ func (s *Server) CreateCertificate(ctx context.Context, icr *securityapi.IstioCe
 // deleteOrPreserveCertificateRequest will delete the given CertificateRequest
 // if server not configured to preserve. Exit early if server configured to
 // preserve, or passed CertificateRequest is nil.
-func (s *Server) deleteOrPreserveCertificateRequest(log *logrus.Entry, cr *cmapi.CertificateRequest) {
+func (s *Server) deleteOrPreserveCertificateRequest(log logr.Logger, cr *cmapi.CertificateRequest) {
 	if s.preserveCRs || cr == nil {
 		return
 	}
@@ -179,9 +178,9 @@ func (s *Server) deleteOrPreserveCertificateRequest(log *logrus.Entry, cr *cmapi
 	defer cancel()
 
 	if err := s.client.Delete(ctx, cr.Name, metav1.DeleteOptions{}); err != nil {
-		log.Errorf("failed to delete CertificateRequest: %s", err)
+		log.Error(err, "failed to delete CertificateRequest")
 		return
 	}
 
-	log.Debug("deleted workload CertificateRequest")
+	log.V(3).Info("deleted workload CertificateRequest")
 }

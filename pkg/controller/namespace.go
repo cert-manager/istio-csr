@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/sirupsen/logrus"
+	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -27,18 +27,18 @@ const (
 
 // CARoot manages reconciles a configmap in each namespace with a desired set of data.
 type CARoot struct {
-	log *logrus.Entry
+	log logr.Logger
 	mgr manager.Manager
 }
 
 type namespace struct {
-	log    *logrus.Entry
+	log    logr.Logger
 	client client.Client
 	*enforcer
 }
 
 type configmap struct {
-	log    *logrus.Entry
+	log    logr.Logger
 	client client.Client
 	*enforcer
 }
@@ -50,7 +50,7 @@ type enforcer struct {
 }
 
 func NewCARootController(opts *options.Options, data map[string]string, healthz healthz.Checker) (*CARoot, error) {
-	log := opts.Logr.WithField("module", "ca-root-controller")
+	log := opts.Logr.WithName("ca-root-controller").WithValues("configmap-name", opts.RootCAConfigMapName)
 
 	scheme := runtime.NewScheme()
 	if err := k8sscheme.AddToScheme(scheme); err != nil {
@@ -70,8 +70,7 @@ func NewCARootController(opts *options.Options, data map[string]string, healthz 
 		LeaderElectionID:        hostname,
 		ReadinessEndpointName:   opts.ReadyzPath,
 		HealthProbeBindAddress:  fmt.Sprintf("0.0.0.0:%d", opts.ReadyzPort),
-		// TODO: fix logger
-		//Logger:                  log.Logger,
+		Logger:                  log,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("unable to start manager: %s", err)
@@ -140,7 +139,7 @@ func (c *configmap) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resul
 		return ctrl.Result{}, fmt.Errorf("failed to get %q: %s", req.NamespacedName, err)
 	}
 
-	log := c.log.WithField("namespace", req.Namespace)
+	log := c.log.WithValues("namespace", req.Namespace)
 	if err := c.configmap(ctx, log, req.NamespacedName.Namespace); err != nil {
 		return ctrl.Result{}, err
 	}
@@ -152,17 +151,22 @@ func (c *configmap) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resul
 // cluster. If the resource exists, Reconcile will ensure that the ConfigMap
 // exists, CA root bundle is present.
 func (n *namespace) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	log := n.log.WithField("namespace", req.NamespacedName)
+	log := n.log.WithValues("namespace", req.NamespacedName)
+	ns := new(corev1.Namespace)
 
 	// Attempt to get the synced Namespace. If the resource no longer
 	// exists, we can ignore it.
-	err := n.client.Get(ctx, req.NamespacedName, new(corev1.Namespace))
+	err := n.client.Get(ctx, req.NamespacedName, ns)
 	if apierrors.IsNotFound(err) {
-		log.Debug("namespace doesn't exist, ignoring")
+		log.V(3).Info("namespace doesn't exist, ignoring")
 		return ctrl.Result{}, nil
 	}
 	if err != nil {
 		return ctrl.Result{}, fmt.Errorf("failed to get %q: %s", req.NamespacedName, err)
+	}
+
+	if ns.Status.Phase == corev1.NamespaceTerminating {
+		return ctrl.Result{}, nil
 	}
 
 	if err := n.configmap(ctx, log, req.Name); err != nil {
@@ -174,7 +178,7 @@ func (n *namespace) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resul
 
 // configmap will ensure that the provided namespace has the correct ConfigMap,
 // with the correct data and label.
-func (e *enforcer) configmap(ctx context.Context, log *logrus.Entry, namespace string) error {
+func (e *enforcer) configmap(ctx context.Context, log logr.Logger, namespace string) error {
 	var (
 		namespacedName = types.NamespacedName{
 			Name:      e.configMapName,
@@ -183,10 +187,10 @@ func (e *enforcer) configmap(ctx context.Context, log *logrus.Entry, namespace s
 		cm = new(corev1.ConfigMap)
 	)
 
-	log = log.WithField("configmap", namespacedName.String())
+	log = log.WithValues("configmap", namespacedName.String())
 	err := e.client.Get(ctx, namespacedName, cm)
 	if apierrors.IsNotFound(err) {
-		log.Debug("configmap doesn't exist, creating")
+		log.V(3).Info("configmap doesn't exist, creating")
 
 		return e.client.Create(ctx, &corev1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
@@ -199,6 +203,7 @@ func (e *enforcer) configmap(ctx context.Context, log *logrus.Entry, namespace s
 			Data: e.data,
 		})
 	}
+
 	if err != nil {
 		return fmt.Errorf("failed to get %q: %s", namespacedName, err)
 	}
@@ -226,7 +231,7 @@ func (e *enforcer) configmap(ctx context.Context, log *logrus.Entry, namespace s
 
 		cm.Labels[IstioConfigLabelKey] = "true"
 
-		log.Debugf("updating configmap %q", namespacedName)
+		log.V(3).Info("updating configmap")
 		if err := e.client.Update(ctx, cm); err != nil {
 			return err
 		}

@@ -5,11 +5,11 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	k8sscheme "k8s.io/client-go/kubernetes/scheme"
+	"k8s.io/klog/v2/klogr"
 	fakeclient "sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	"github.com/cert-manager/istio-csr/test/gen"
@@ -243,7 +243,7 @@ func TestConfigMap(t *testing.T) {
 				configMapName: testNamespacedName.Name,
 			}
 
-			err := enforcer.configmap(context.TODO(), logrus.NewEntry(logrus.New()), testNamespacedName.Namespace)
+			err := enforcer.configmap(context.TODO(), klogr.New(), testNamespacedName.Namespace)
 			if err != nil {
 				t.Errorf("unexpected error: %s", err)
 			}
