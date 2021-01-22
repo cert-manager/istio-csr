@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/go-logr/logr"
 	cmapi "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1"
 	cmmeta "github.com/jetstack/cert-manager/pkg/apis/meta/v1"
 	cmclient "github.com/jetstack/cert-manager/pkg/client/clientset/versioned/typed/certmanager/v1"
-	"github.com/sirupsen/logrus"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -16,7 +16,7 @@ import (
 
 // WaitForCertificateRequestReady waits for the CertificateRequest resource to
 // enter a Ready state.
-func WaitForCertificateRequestReady(ctx context.Context, log *logrus.Entry, cmclient cmclient.CertificateRequestInterface,
+func WaitForCertificateRequestReady(ctx context.Context, log logr.Logger, cmclient cmclient.CertificateRequestInterface,
 	name string, timeout time.Duration) (*cmapi.CertificateRequest, error) {
 	var (
 		cr  *cmapi.CertificateRequest
@@ -40,7 +40,8 @@ func WaitForCertificateRequestReady(ctx context.Context, log *logrus.Entry, cmcl
 				Status: cmmeta.ConditionTrue,
 			})
 			if !isReady {
-				log.Debugf("waiting for CertificateRequest to become ready: %+v", cr.Status.Conditions)
+				log.V(3).Info("waiting for CertificateRequest to become ready",
+					"conditions", fmt.Sprintf("%#+v", cr.Status.Conditions))
 			}
 
 			return isReady, nil
@@ -49,12 +50,6 @@ func WaitForCertificateRequestReady(ctx context.Context, log *logrus.Entry, cmcl
 
 	// return certificate even when error to use for debugging
 	return cr, err
-}
-
-// LogWithCertificateRequest will create a log entry with details about the
-// given CertificateRequest
-func LogWithCertificateRequest(log *logrus.Entry, cr *cmapi.CertificateRequest) *logrus.Entry {
-	return log.WithField("name", cr.Name).WithField("namespace", cr.Namespace)
 }
 
 // certificateRequestHasCondition will return true if the given

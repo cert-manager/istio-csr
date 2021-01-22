@@ -5,12 +5,12 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	k8sscheme "k8s.io/client-go/kubernetes/scheme"
+	"k8s.io/klog/v2/klogr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	fakeclient "sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -49,13 +49,13 @@ func TestConfigMapReconcile(t *testing.T) {
 			client := buildClient(t, test)
 
 			c := &configmap{
+				log:    klogr.New(),
 				client: client,
 				enforcer: &enforcer{
 					client: client,
 					data: map[string]string{
 						"foo": "bar",
 					},
-					log:           logrus.NewEntry(logrus.New()),
 					configMapName: testNamespacedName.Name,
 				},
 			}
@@ -133,11 +133,10 @@ func TestNamespaceReconcile(t *testing.T) {
 			client := buildClient(t, test)
 
 			ns := &namespace{
-				log:    logrus.NewEntry(logrus.New()),
+				log:    klogr.New(),
 				client: client,
 				enforcer: &enforcer{
 					client: client,
-					log:    logrus.NewEntry(logrus.New()),
 					data: map[string]string{
 						"foo": "bar",
 					},
@@ -170,14 +169,13 @@ func TestEnforcerConfigMap(t *testing.T) {
 			client := buildClient(t, test)
 			enforcer := &enforcer{
 				client: client,
-				log:    logrus.NewEntry(logrus.New()),
 				data: map[string]string{
 					"foo": "bar",
 				},
 				configMapName: testNamespacedName.Name,
 			}
 
-			err := enforcer.configmap(context.TODO(), testNamespacedName.Namespace)
+			err := enforcer.configmap(context.TODO(), klogr.New(), testNamespacedName.Namespace)
 			if err != nil {
 				t.Errorf("unexpected error: %s", err)
 			}

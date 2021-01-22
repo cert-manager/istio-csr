@@ -11,7 +11,7 @@ service:
   nodePort: 30443
 
 agent:
-  logLevel: debug
+  logLevel: 5
 
   servingAddress: 0.0.0.0
   servingPort: 6443
