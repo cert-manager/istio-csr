@@ -7,7 +7,6 @@ require (
 	github.com/jetstack/cert-manager v1.1.0
 	github.com/onsi/ginkgo v1.14.1
 	github.com/onsi/gomega v1.10.4
-	github.com/sirupsen/logrus v1.6.0
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
 	google.golang.org/grpc v1.33.2
