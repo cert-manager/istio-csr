@@ -14,7 +14,7 @@ service:
   port: 443
 
 agent:
-  logLevel: info # debug, info, warn, error, fatal, panic
+  logLevel: 1 # 1-5
   readinessProbe:
     port: 6060
     path: "/readyz"
