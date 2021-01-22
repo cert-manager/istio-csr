@@ -19,6 +19,7 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/oidc"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/openstack"
+	"k8s.io/client-go/rest"
 	cliflag "k8s.io/component-base/cli/flag"
 )
 
@@ -60,8 +61,9 @@ type TLSOptions struct {
 type KubeOptions struct {
 	kubeConfigFlags *genericclioptions.ConfigFlags
 
-	CMClient   cmclient.CertificateRequestInterface
+	RestConfig *rest.Config
 	KubeClient kubernetes.Interface
+	CMClient   cmclient.CertificateRequestInterface
 	Auther     authenticate.Authenticator
 }
 
@@ -91,19 +93,19 @@ func (o *Options) Complete() error {
 	logr.SetLevel(logLevel)
 	o.Logr = logrus.NewEntry(logr)
 
-	restConfig, err := o.kubeConfigFlags.ToRESTConfig()
+	o.RestConfig, err = o.kubeConfigFlags.ToRESTConfig()
 	if err != nil {
 		return fmt.Errorf("failed to build kubernetes rest config: %s", err)
 	}
 
-	o.KubeClient, err = kubernetes.NewForConfig(restConfig)
+	o.KubeClient, err = kubernetes.NewForConfig(o.RestConfig)
 	if err != nil {
 		return fmt.Errorf("failed to build kubernetes client: %s", err)
 	}
 
 	o.Auther = authenticate.NewKubeJWTAuthenticator(o.KubeClient, "Kubernetes", nil, spiffe.GetTrustDomain(), jwt.PolicyThirdParty)
 
-	cmClient, err := cmversioned.NewForConfig(restConfig)
+	cmClient, err := cmversioned.NewForConfig(o.RestConfig)
 	if err != nil {
 		return fmt.Errorf("failed to build cert-manager client: %s", err)
 	}
@@ -152,7 +154,7 @@ func (a *AppOptions) addFlags(fs *pflag.FlagSet) {
 		"Log level (debug, info, warn, error, fatal, panic).")
 
 	fs.IntVar(&a.ReadyzPort,
-		"readiness-probe-port", 8080,
+		"readiness-probe-port", 6060,
 		"Port to expose the readiness probe.")
 
 	fs.StringVar(&a.ReadyzPath,
