@@ -11,10 +11,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/go-logr/logr"
 	cmapi "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1"
 	cmmeta "github.com/jetstack/cert-manager/pkg/apis/meta/v1"
 	cmclient "github.com/jetstack/cert-manager/pkg/client/clientset/versioned/typed/certmanager/v1"
-	"github.com/sirupsen/logrus"
 	"istio.io/istio/pkg/spiffe"
 	pkiutil "istio.io/istio/security/pkg/pki/util"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -30,7 +30,7 @@ import (
 // use an exposed TLS config. Consumers *MUST* using this config as is, in
 // order for the certificate and private key be renewed transparently.
 type Provider struct {
-	log *logrus.Entry
+	log logr.Logger
 
 	customRootCA          bool
 	preserveCRs           bool
@@ -46,12 +46,13 @@ type Provider struct {
 }
 
 // NewProvider will return a new provider where a TLS config is ready to be fetched.
-func NewProvider(ctx context.Context, log *logrus.Entry, tlsOptions *options.TLSOptions,
+func NewProvider(ctx context.Context, log logr.Logger, tlsOptions *options.TLSOptions,
 	kubeOptions *options.KubeOptions, cmOptions *options.CertManagerOptions,
 	readyz *healthz.Check) (*Provider, error) {
 
 	p := &Provider{
-		log:                   log.WithField("module", "serving_certificate"),
+		log: log.WithName("serving_certificate"),
+
 		servingCertificateTTL: tlsOptions.ServingCertificateDuration,
 		preserveCRs:           cmOptions.PreserveCRs,
 		customRootCA:          len(tlsOptions.RootCACertFile) > 0,
@@ -82,12 +83,12 @@ func NewProvider(ctx context.Context, log *logrus.Entry, tlsOptions *options.TLS
 			renewalTime := (2 * p.servingCertificateTTL) / 3
 			timer := time.NewTimer(renewalTime)
 
-			p.log.Infof("renewing serving certificate in %s", renewalTime)
+			p.log.Info("renewing serving certificate", "renewal-time", renewalTime)
 
 			select {
 			case <-ctx.Done():
 				p.readyz.Set(false)
-				p.log.Infof("closing renewal: %s", ctx.Err())
+				p.log.Info("closing renewal", "ctx", ctx.Err())
 				timer.Stop()
 				return
 			case <-timer.C:
@@ -117,7 +118,7 @@ func (p *Provider) mustFetchCertificate(ctx context.Context) {
 	for {
 		// Fetch a new serving certificate, signed by cert-manager.
 		if err := p.fetchCertificate(ctx); err != nil {
-			p.log.Errorf("failed to fetch new serving certificate: %s, retrying", err)
+			p.log.Error(err, "failed to fetch new serving certificate, retrying")
 
 			// Cancel if the context has been canceled. Retry after tick.
 			select {
@@ -209,9 +210,8 @@ func (p *Provider) fetchCertificate(ctx context.Context) error {
 		return fmt.Errorf("failed to create serving CertificateRequest: %s", err)
 	}
 
-	log := util.LogWithCertificateRequest(p.log, cr)
-
-	log.Debug("created serving CertificateRequest")
+	log := p.log.WithValues("namespace", cr.Namespace, "name", cr.Name)
+	log.Info("created serving CertificateRequest")
 
 	cr, err = util.WaitForCertificateRequestReady(ctx, log, p.client, cr.Name, time.Minute)
 	if err != nil {
@@ -219,17 +219,17 @@ func (p *Provider) fetchCertificate(ctx context.Context) error {
 			cr.Namespace, cr.Name, err)
 	}
 
-	log.Debug("serving CertificateRequest ready")
+	log.Info("serving CertificateRequest ready")
 
 	// If we are no preserving CertificateRequests, delete from Kubernetes
 	if !p.preserveCRs {
 		go func() {
 			if err := p.client.Delete(ctx, cr.Name, metav1.DeleteOptions{}); err != nil {
-				log.Errorf("failed to delete serving CertificateRequest: %s", err)
+				log.Error(err, "failed to delete serving CertificateRequest")
 				return
 			}
 
-			log.Debug("deleted serving CertificateRequest")
+			log.Info("deleted serving CertificateRequest")
 		}()
 	}
 
@@ -278,7 +278,7 @@ func (p *Provider) fetchCertificate(ctx context.Context) error {
 		VerifyPeerCertificate: func(rawCerts [][]byte, verifiedChains [][]*x509.Certificate) error {
 			err := peerCertVerifier.VerifyPeerCert(rawCerts, verifiedChains)
 			if err != nil {
-				log.Infof("Could not verify certificate: %v", err)
+				log.Error(err, "could not verify certificate")
 			}
 			return err
 		},

@@ -6,8 +6,8 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/sirupsen/logrus"
 	"istio.io/istio/security/pkg/server/ca/authenticate"
+	"k8s.io/klog/v2/klogr"
 
 	"github.com/cert-manager/istio-csr/test/gen"
 )
@@ -220,7 +220,7 @@ func TestAuthRequest(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			s := &Server{
-				log:    logrus.NewEntry(logrus.New()),
+				log:    klogr.New(),
 				auther: test.authn,
 			}
 

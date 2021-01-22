@@ -3,10 +3,11 @@ module github.com/cert-manager/istio-csr
 go 1.15
 
 require (
+	github.com/go-logr/logr v0.3.0
 	github.com/jetstack/cert-manager v1.1.0
 	github.com/onsi/ginkgo v1.14.1
 	github.com/onsi/gomega v1.10.4
-	github.com/sirupsen/logrus v1.7.0
+	github.com/sirupsen/logrus v1.6.0
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
 	google.golang.org/grpc v1.33.2
@@ -18,6 +19,7 @@ require (
 	k8s.io/cli-runtime v0.20.1
 	k8s.io/client-go v0.20.1
 	k8s.io/component-base v0.20.1
+	k8s.io/klog/v2 v2.4.0
 	sigs.k8s.io/controller-runtime v0.8.0
 	sigs.k8s.io/kind v0.9.0
 )
