@@ -30,7 +30,7 @@ build_image_binary: ## builds image binary
 	GOARCH=$(ARCH) GOOS=linux CGO_ENABLED=0 go build -o ./bin/cert-manager-istio-csr-linux  ./cmd/.
 
 image: build_image_binary ## build docker image from binary
-	docker build -t quay.io/jetstack/cert-manager-istio-csr:v0.0.1-alpha.2 .
+	docker build -t quay.io/jetstack/cert-manager-istio-csr:v0.0.1-alpha.3 .
 
 clean: ## clean up created files
 	rm -rf \
