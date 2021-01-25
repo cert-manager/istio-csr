@@ -1,4 +1,5 @@
 {{- if .Values.certificate.rootCA }}
+apiVersion: v1
 kind: ConfigMap
 metadata:
   name: cert-manager-istio-csr
