@@ -59,7 +59,7 @@ spec:
       volumes:
         - name: root-ca
           configMap:
-            name: cert-manager-isto-agent
+            name: cert-manager-istio-csr-root-ca
             items:
             - key: ca.pem
               path: ca.pem
