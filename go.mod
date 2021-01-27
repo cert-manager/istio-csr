@@ -20,5 +20,5 @@ require (
 	k8s.io/component-base v0.20.1
 	k8s.io/klog/v2 v2.4.0
 	sigs.k8s.io/controller-runtime v0.8.0
-	sigs.k8s.io/kind v0.9.0
+	sigs.k8s.io/kind v0.10.0
 )

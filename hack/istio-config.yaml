@@ -17,26 +17,39 @@ spec:
         - name: ENABLE_CA_SERVER
           value: "false"
         overlays:
-        - kind: Deployment
+        - apiVersion: apps/v1
+          kind: Deployment
           name: istiod
           patches:
 
             # Mount istiod serving and webhook certificate from Secret mount
+          - path: spec.template.spec.containers.[name:discovery].args[7]
+            value: "--tlsCertFile=/etc/cert-manager/tls/tls.crt"
           - path: spec.template.spec.containers.[name:discovery].args[8]
-            value: "--caCertFile=/etc/cert-manager/ca.crt"
+            value: "--tlsKeyFile=/etc/cert-manager/tls/tls.key"
           - path: spec.template.spec.containers.[name:discovery].args[9]
-            value: "--tlsCertFile=/etc/cert-manager/tls.crt"
-          - path: spec.template.spec.containers.[name:discovery].args[10]
-            value: "--tlsKeyFile=/etc/cert-manager/tls.key"
+            value: "--caCertFile=/etc/cert-manager/ca/root-cert.pem"
 
-          - path: spec.template.spec.containers.[name:discovery].volumeMounts[6].mountPath
-            value: "/etc/cert-manager"
-          - path: spec.template.spec.containers.[name:discovery].volumeMounts[6].name
-            value: cert-manager
-          - path: spec.template.spec.containers.[name:discovery].volumeMounts[6].readOnly
-            value: true
+          - path: spec.template.spec.containers.[name:discovery].volumeMounts[6]
+            value:
+              name: cert-manager
+              mountPath: "/etc/cert-manager/tls"
+              readOnly: true
+          - path: spec.template.spec.containers.[name:discovery].volumeMounts[7]
+            value:
+              name: ca-root-cert
+              mountPath: "/etc/cert-manager/ca"
+              readOnly: true
 
-          - path: spec.template.spec.volumes[6].name
-            value: cert-manager
-          - path: spec.template.spec.volumes[6].secret.secretName
-            value: istiod-tls
+          - path: spec.template.spec.volumes[6]
+            value:
+              name: cert-manager
+              secret:
+                secretName: istiod-tls
+          - path: spec.template.spec.volumes[7]
+            value:
+              name: ca-root-cert
+              configMap:
+                secretName: istiod-tls
+                defaultMode: 420
+                name: istio-ca-root-cert
