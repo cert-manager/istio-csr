@@ -25,7 +25,7 @@ IMAGES=("quay.io/joshvanl_jetstack/httpbin:latest" "quay.io/joshvanl_jetstack/cu
 IMAGES+=("gcr.io/istio-release/pilot:$2" "gcr.io/istio-release/proxyv2:$2")
 for image in ${IMAGES[@]}; do
   docker pull $image
-  $KIND_BIN load docker-image $image
+  $KIND_BIN load docker-image $image --name istio-demo
 done
 
 echo ">> installing cert-manager"
