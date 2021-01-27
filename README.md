@@ -29,6 +29,9 @@ $ helm repo update
 $ helm install -n cert-manager cert-manager-istio-csr
 ```
 
+All helm value options can be found in
+[here](./deploy/charts/istio-csr/README.md).
+
 Finally, install istio. Istio must be installed using the IstioOperator
 configuration changes within
 [`./hack/istio-config.yaml`](./hack/istio-config.yaml). These changes are
