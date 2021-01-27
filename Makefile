@@ -1,3 +1,17 @@
+# Copyright 2021 The cert-manager Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 BINDIR ?= $(CURDIR)/bin
 ARCH   ?= $(shell go env GOARCH)
 ISTIO_VERSION ?= 1.7.3
@@ -17,8 +31,11 @@ help:  ## display this help
 
 .PHONY: help test build verify image clean all demo docker e2e depend
 
-test: ## test cert-manager-istio-csr
+test: lint ## test cert-manager-istio-csr
 	go test $$(go list ./pkg/... ./cmd/...)
+
+lint:
+	./hack/verify-boilerplate.sh
 
 build: ## build cert-manager-istio-csr
 	mkdir -p $(BINDIR)
