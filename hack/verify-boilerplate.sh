@@ -1,4 +1,6 @@
-# Copyright 2021 The cert-manager Authors.
+#!/bin/bash
+
+# Copyright 2014 The Kubernetes Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,9 +14,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM gcr.io/distroless/static@sha256:3cd546c0b3ddcc8cae673ed078b59067e22dea676c66bd5ca8d302aef2c6e845
-LABEL description="istio certificate agent to serve certificate signing requests via cert-manager"
+set -o errexit
+set -o nounset
+set -o pipefail
 
-COPY ./bin/cert-manager-istio-csr-linux /usr/bin/cert-manager-istio-csr
+KUBE_ROOT=$(dirname "${BASH_SOURCE}")/..
 
-ENTRYPOINT ["/usr/bin/cert-manager-istio-csr"]
+boilerDir="${KUBE_ROOT}/hack/boilerplate"
+boiler="${boilerDir}/boilerplate.py"
+
+files_need_boilerplate=($(${boiler} "$@"))
+
+# Run boilerplate check
+if [[ ${#files_need_boilerplate[@]} -gt 0 ]]; then
+  for file in "${files_need_boilerplate[@]}"; do
+    echo "Boilerplate header is wrong for: ${file}"
+  done
+
+  exit 1
+fi

@@ -1,5 +1,7 @@
 /*
-Copyright 2021 The cert-manager Authors.
+Copyright 2014 The Kubernetes Authors.
+
+fail
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,10 +16,4 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package suite
-
-import (
-	_ "github.com/cert-manager/istio-csr/test/e2e/suite/mtls"
-	_ "github.com/cert-manager/istio-csr/test/e2e/suite/namespace"
-	_ "github.com/cert-manager/istio-csr/test/e2e/suite/request"
-)
+package main
