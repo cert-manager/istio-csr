@@ -6,7 +6,7 @@ and control plane components to be secured using
 and intra cluster, will be signed, delivered and renewed using [cert-manager
 issuers](https://cert-manager.io/docs/concepts/issuer).
 
-Currently supports istio v1.7
+Currently supports istio versions v1.6, v1.7, v1.8
 
 ---
 
@@ -24,7 +24,9 @@ the Issuer deployed. The Issuer must reside in the same namespace as that
 configured by `-c, --certificate-namespace`, which is `istio-system` by default.
 
 ```bash
-$ helm install cert-manager-istio-demo ./deploy/charts/istio-csr -n cert-manager
+$ helm repo add https://chart.jetstack.io
+$ helm repo update
+$ helm install -n cert-manager cert-manager-istio-csr
 ```
 
 Finally, install istio. Istio must be installed using the IstioOperator
