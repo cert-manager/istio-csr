@@ -64,7 +64,7 @@ $HELM_BIN install cert-manager-istio-csr ./deploy/charts/istio-csr -n cert-manag
 
 echo ">> installing istio"
 
-./bin/istioctl-$2 install -y -f ./hack/istio-config.yaml
+./bin/istioctl-$2 install -y -f ./hack/istio-config-$2.yaml
 
 echo ">> enforcing mTLS everywhere"
 
