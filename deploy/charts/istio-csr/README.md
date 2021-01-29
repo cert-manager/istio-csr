@@ -1,6 +1,6 @@
 # cert-manager-istio-csr
 
-![Version: v0.0.1-alpha.4](https://img.shields.io/badge/Version-v0.0.1--alpha.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.0.1-alpha.4](https://img.shields.io/badge/AppVersion-v0.0.1--alpha.4-informational?style=flat-square)
+![Version: v0.1.0](https://img.shields.io/badge/Version-v0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.1.0](https://img.shields.io/badge/AppVersion-v0.1.0-informational?style=flat-square)
 
 A Helm chart for istio-csr
 
@@ -34,10 +34,10 @@ A Helm chart for istio-csr
 | certificate.namespace | string | `"istio-system"` | Namespace to create CertificateRequests from incoming gRPC CSRs. |
 | certificate.preserveCertificateRequests | bool | `false` | Don't delete created CertificateRequests once they have been signed. |
 | certificate.rootCA | string | `nil` | An optional PEM encoded root CA that the root CA ConfigMap in all namespaces will be populated with. If empty, the CA returned from cert-manager for the serving certificate will be used. |
-| image.pullPolicy | string | `"IfNotPresent"` | Kubernetes imagePullPolicy on Deployment |
-| image.repository | string | `"quay.io/jetstack/cert-manager-istio-csr"` | Target image repository |
-| image.tag | string | `"v0.0.1-alpha.4"` | Target image version tag |
-| replicaCount | int | `1` |  |
+| image.pullPolicy | string | `"IfNotPresent"` | Kubernetes imagePullPolicy on Deployment. |
+| image.repository | string | `"quay.io/jetstack/cert-manager-istio-csr"` | Target image repository. |
+| image.tag | string | `"v0.1.0"` | Target image version tag. |
+| replicaCount | int | `1` | Number of replicas of istio-csr to run. |
 | resources | object | `{}` |  |
 | service.port | int | `443` | Service port to expose istio-csr gRPC service. |
 | service.type | string | `"ClusterIP"` | Service type to expose istio-csr gRPC service. |
