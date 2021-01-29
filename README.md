@@ -29,7 +29,7 @@ $ helm install cert-manager-istio-demo ./deploy/charts/istio-csr -n cert-manager
 
 Finally, install istio. Istio must be installed using the IstioOperator
 configuration changes within
-[`./hack/istio-config.yaml`](./hack/istio-config.yaml). These changes are
+[`./hack/istio-config-x.yaml`](./hack/istio-config-1.8.2.yaml). These changes are
 required in order for the CA Server to be disabled in istiod, ensure istio
 workloads request certificates from the cert-manager agent, and the istiod
 certificates and keys are mounted in from the Certificate created earlier.

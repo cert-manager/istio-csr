@@ -5,6 +5,7 @@ CERT_MANAGER_VERSION="${CERT_MANAGER_VERSION:-1.0.3}"
 ISTIO_AGENT_IMAGE="${CERT_MANAGER_ISTIO_AGENT_IMAGE:-localhost:5000/cert-manager-istio-csr:v0.0.1-alpha.4}"
 KUBECTL_BIN="${KUBECTL_BIN:-./bin/kubectl}"
 HELM_BIN="${HELM_BIN:-./bin/helm}"
+KIND_BIN="${KIND_BIN:-./bin/kind}"
 
 ./hack/demo/kind-with-registry.sh $1
 
@@ -18,6 +19,14 @@ apply_cert-manager_bootstrap_manifests() {
   $KUBECTL_BIN apply -n $K8S_NAMESPACE -f ./hack/demo/cert-manager-bootstrap-resources.yaml
   return $?
 }
+
+echo ">> loading demo container images into kind"
+IMAGES=("quay.io/joshvanl_jetstack/httpbin:latest" "quay.io/joshvanl_jetstack/curl")
+IMAGES+=("gcr.io/istio-release/pilot:$2" "gcr.io/istio-release/proxyv2:$2")
+for image in ${IMAGES[@]}; do
+  docker pull $image
+  $KIND_BIN load docker-image $image --name istio-demo
+done
 
 echo ">> installing cert-manager"
 $KUBECTL_BIN apply -f https://github.com/jetstack/cert-manager/releases/download/v$CERT_MANAGER_VERSION/cert-manager.yaml
@@ -55,7 +64,7 @@ $HELM_BIN install cert-manager-istio-csr ./deploy/charts/istio-csr -n cert-manag
 
 echo ">> installing istio"
 
-./bin/istioctl-$2 install -f ./hack/istio-config.yaml
+./bin/istioctl-$2 install -y -f ./hack/istio-config-$2.yaml
 
 echo ">> enforcing mTLS everywhere"
 
