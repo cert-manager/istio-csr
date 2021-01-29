@@ -1,46 +1,70 @@
-# Default values for cert-manager-istio-csr.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
-
+# -- Number of replicas of istio-csr to run.
 replicaCount: 1
 
 image:
+  # -- Target image repository.
   repository: quay.io/jetstack/cert-manager-istio-csr
+  # -- Target image version tag.
   tag: v0.0.1-alpha.4
+  # -- Kubernetes imagePullPolicy on Deployment.
   pullPolicy: IfNotPresent
 
 service:
+  # -- Service type to expose istio-csr gRPC service.
   type: ClusterIP
+  # -- Service port to expose istio-csr gRPC service.
   port: 443
 
 agent:
+  # -- Verbosity of istio-csr logging.
   logLevel: 1 # 1-5
   readinessProbe:
+    # -- Container port to expose istio-csr HTTP readiness probe on default network interface.
     port: 6060
+    # -- Path to expose istio-csr HTTP readiness probe on default network interface.
     path: "/readyz"
 
+  # -- Container address to serve istio-csr gRPC service.
   servingAddress: 0.0.0.0
+  # -- Container port to serve istio-csr gRPC service.
   servingPort: 6443
 
+  # -- Name of ConfigMap that should contain the root CA in all namespaces.
   rootCAConfigMapName: istio-ca-root-cert
+
+  # -- Requested duration of gRPC serving certificate. Will be automatically renewed.
   certificateDuration: 24h
 
 certificate:
+  # -- Namespace to create CertificateRequests from incoming gRPC CSRs.
   namespace: istio-system
+  # -- Issuer group name set on created CertificateRequests from incoming gRPC CSRs.
   group: cert-manager.io
+  # -- Issuer kind set on created CertificateRequests from incoming gRPC CSRs.
   kind: Issuer
+  # -- Issuer name set on created CertificateRequests from incoming gRPC CSRs.
   name: istio-ca
+
+  # -- Maximum validity duration that can be requested for a certificate.
+  # istio-csr will request a duration of the smaller of this value, and that of
+  # the incoming gRPC CSR.
   maxDuration: 24h
+
+  # -- Don't delete created CertificateRequests once they have been signed.
   preserveCertificateRequests: false
 
+  # -- An optional PEM encoded root CA that the root CA ConfigMap in all
+  # namespaces will be populated with. If empty, the CA returned from
+  # cert-manager for the serving certificate will be used.
   rootCA: #|
        #MyCACertificate
 
 resources: {}
+  # -- Kubernetes pod resource limits for istio-csr.
   # limits:
   #   cpu: 100m
   #   memory: 128Mi
+  # -- Kubernetes pod memory resource requests for istio-csr.
   # requests:
   #   cpu: 100m
   #   memory: 128Mi
-  #
