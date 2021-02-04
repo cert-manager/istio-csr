@@ -74,6 +74,8 @@ type TLSOptions struct {
 	RootCAConfigMapName        string
 	ServingAddress             string
 	ServingCertificateDuration time.Duration
+
+	ClusterID string
 }
 
 type KubeOptions struct {
@@ -116,7 +118,7 @@ func (o *Options) Complete() error {
 		return fmt.Errorf("failed to build kubernetes client: %s", err)
 	}
 
-	o.Auther = authenticate.NewKubeJWTAuthenticator(o.KubeClient, "Kubernetes", nil, spiffe.GetTrustDomain(), jwt.PolicyThirdParty)
+	o.Auther = authenticate.NewKubeJWTAuthenticator(o.KubeClient, o.ClusterID, nil, spiffe.GetTrustDomain(), jwt.PolicyThirdParty)
 
 	cmClient, err := cmversioned.NewForConfig(o.RestConfig)
 	if err != nil {
@@ -194,6 +196,9 @@ func (t *TLSOptions) addFlags(fs *pflag.FlagSet) {
 	fs.StringVar(&t.RootCAConfigMapName,
 		"root-ca-configmap-name", "istio-ca-root-cert",
 		"The ConfigMap name to store the root CA certificate in each namespace.")
+
+	fs.StringVar(&t.ClusterID, "cluster-id", "Kubernetes",
+		"The ID of the istio cluster to verify.")
 }
 
 func (c *CertManagerOptions) addFlags(fs *pflag.FlagSet) {

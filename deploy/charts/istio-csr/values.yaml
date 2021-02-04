@@ -24,6 +24,9 @@ agent:
     # -- Path to expose istio-csr HTTP readiness probe on default network interface.
     path: "/readyz"
 
+  # -- The istio cluster ID to verify incoming CSRs.
+  clusterID: "Kubernetes"
+
   # -- Container address to serve istio-csr gRPC service.
   servingAddress: 0.0.0.0
   # -- Container port to serve istio-csr gRPC service.

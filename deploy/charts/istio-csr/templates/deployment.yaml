@@ -33,6 +33,8 @@ spec:
           - "--readiness-probe-port={{.Values.agent.readinessProbe.port}}"
           - "--readiness-probe-path={{.Values.agent.readinessProbe.path}}"
 
+          - "--cluster-id={{.Values.agent.clusterID}}"
+
           - "--serving-address={{.Values.agent.servingAddress}}:{{.Values.agent.servingPort}}"
           - "--serving-certificate-duration={{.Values.agent.certificateDuration}}"
           - "--root-ca-configmap-name={{.Values.agent.rootCAConfigMapName}}"
