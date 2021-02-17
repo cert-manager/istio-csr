@@ -24,9 +24,9 @@ the Issuer deployed. The Issuer must reside in the same namespace as that
 configured by `-c, --certificate-namespace`, which is `istio-system` by default.
 
 ```bash
-$ helm repo add https://chart.jetstack.io
+$ helm repo add jetstack https://charts.jetstack.io
 $ helm repo update
-$ helm install -n cert-manager cert-manager-istio-csr
+$ helm install -n cert-manager cert-manager-istio-csr jetstack/cert-manager-istio-csr
 ```
 
 All helm value options can be found in
