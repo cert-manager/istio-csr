@@ -6,7 +6,7 @@ and control plane components to be secured using
 and intra cluster, will be signed, delivered and renewed using [cert-manager
 issuers](https://cert-manager.io/docs/concepts/issuer).
 
-Currently supports istio versions v1.7 and v1.8
+Currently supports istio versions v1.7+
 
 ---
 
