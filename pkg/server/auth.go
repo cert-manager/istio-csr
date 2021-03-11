@@ -18,12 +18,15 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/url"
 	"sort"
 	"strings"
 
 	pkiutil "istio.io/istio/security/pkg/pki/util"
+
+	"github.com/cert-manager/istio-csr/pkg/server/internal/extensions"
 )
 
 // authRequest will authenticate the request and authorize the CSR is valid for
@@ -38,34 +41,46 @@ func (s *Server) authRequest(ctx context.Context, csrPEM []byte) (string, bool) 
 
 	// request authentication has no identities, so error
 	if len(caller.Identities) == 0 {
-		s.log.Error(fmt.Errorf("%s", caller.Identities), "request sent with no identity")
+		s.log.Error(errors.New("request sent with no identity"), "")
 		return "", false
 	}
 
 	// return concatenated list of verified ids
 	identities := strings.Join(caller.Identities, ",")
+	log := s.log.WithValues("identities", identities)
 
 	csr, err := pkiutil.ParsePemEncodedCSR(csrPEM)
 	if err != nil {
-		s.log.Error(err, "failed to decode CSR from %s")
+		log.Error(err, "failed to decode CSR")
+		return identities, false
+	}
+
+	if err := csr.CheckSignature(); err != nil {
+		log.Error(err, "CSR failed signature check")
 		return identities, false
 	}
 
 	// if the csr contains any other options set, error
 	if len(csr.DNSNames) > 0 || len(csr.IPAddresses) > 0 ||
 		len(csr.Subject.CommonName) > 0 || len(csr.EmailAddresses) > 0 {
-		msg := fmt.Sprintf("DNS=%v IPs=%v CN=%s EMAIL=%v",
-			csr.DNSNames, csr.IPAddresses,
-			csr.Subject.CommonName, csr.EmailAddresses)
+		log.Error(errors.New("forbidden extensions"), "",
+			"dns", csr.DNSNames,
+			"ips", csr.IPAddresses,
+			"common-name", csr.Subject.CommonName,
+			"emails", csr.EmailAddresses)
 
-		s.log.Error(fmt.Errorf("bad request from %s", identities), msg)
+		return identities, false
+	}
 
+	// ensure csr extensions are valid
+	if err := extensions.ValidateCSRExtentions(csr); err != nil {
+		log.Error(err, "forbidden extensions")
 		return identities, false
 	}
 
 	// ensure identity matches requests URIs
 	if !identitiesMatch(caller.Identities, csr.URIs) {
-		s.log.Error(fmt.Errorf("%v != %v", caller.Identities, csr.URIs), "failed to match URIs with identities")
+		log.Error(fmt.Errorf("%v != %v", caller.Identities, csr.URIs), "failed to match URIs with identities")
 		return identities, false
 	}
 

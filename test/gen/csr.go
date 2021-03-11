@@ -17,22 +17,47 @@ limitations under the License.
 package gen
 
 import (
+	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
 	"net"
 	"net/url"
+	"testing"
 
 	pkiutil "istio.io/istio/security/pkg/pki/util"
 )
 
+var (
+	// shared signer to reduce testing time
+	sk crypto.Signer
+)
+
+func init() {
+	var err error
+	sk, err = rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		panic(err)
+	}
+}
+
 type CSRBuilder struct {
 	ids, dns, ips, emails []string
 	cn                    string
+	usages                []x509.KeyUsage
 }
 
 type CSRModifier func(*CSRBuilder)
+
+func MustCSR(t *testing.T, mods ...CSRModifier) []byte {
+	csr, err := CSR(mods...)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return csr
+}
 
 func CSR(mods ...CSRModifier) ([]byte, error) {
 	csrBuilder := new(CSRBuilder)
@@ -67,11 +92,6 @@ func CSR(mods ...CSRModifier) ([]byte, error) {
 	csr.DNSNames = csrBuilder.dns
 	csr.EmailAddresses = csrBuilder.emails
 	csr.Subject.CommonName = csrBuilder.cn
-
-	sk, err := rsa.GenerateKey(rand.Reader, 2048)
-	if err != nil {
-		return nil, err
-	}
 
 	csrBytes, err := x509.CreateCertificateRequest(rand.Reader, csr, sk)
 	if err != nil {

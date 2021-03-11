@@ -114,23 +114,14 @@ func (authn *mockAuthenticator) Authenticate(ctx context.Context) (*authenticate
 	}, nil
 }
 
-func genCSR(t *testing.T, mods ...gen.CSRModifier) []byte {
-	csr, err := gen.CSR(mods...)
-	if err != nil {
-		t.Fatal(err)
+func newMockAuthn(ids []string, errMsg string) *mockAuthenticator {
+	return &mockAuthenticator{
+		identities: ids,
+		errMsg:     errMsg,
 	}
-
-	return csr
 }
 
 func TestAuthRequest(t *testing.T) {
-	newMockAuthn := func(ids []string, errMsg string) *mockAuthenticator {
-		return &mockAuthenticator{
-			identities: ids,
-			errMsg:     errMsg,
-		}
-	}
-
 	tests := map[string]struct {
 		authn       *mockAuthenticator
 		inpCSR      []byte
@@ -157,7 +148,7 @@ func TestAuthRequest(t *testing.T) {
 		},
 		"if auth returns identities, but given csr has dns, error": {
 			authn: newMockAuthn([]string{"spiffe://foo", "spiffe://bar"}, ""),
-			inpCSR: genCSR(t,
+			inpCSR: gen.MustCSR(t,
 				gen.SetCSRIdentities([]string{"spiffe://foo", "spiffe://bar"}),
 				gen.SetCSRDNS([]string{"example.com", "jetstack.io"}),
 			),
@@ -166,7 +157,7 @@ func TestAuthRequest(t *testing.T) {
 		},
 		"if auth returns identities, but given csr has ips, error": {
 			authn: newMockAuthn([]string{"spiffe://foo", "spiffe://bar"}, ""),
-			inpCSR: genCSR(t,
+			inpCSR: gen.MustCSR(t,
 				gen.SetCSRIdentities([]string{"spiffe://foo", "spiffe://bar"}),
 				gen.SetCSRIPs([]string{"8.8.8.8"}),
 			),
@@ -175,7 +166,7 @@ func TestAuthRequest(t *testing.T) {
 		},
 		"if auth returns identities, but given csr has common name, error": {
 			authn: newMockAuthn([]string{"spiffe://foo", "spiffe://bar"}, ""),
-			inpCSR: genCSR(t,
+			inpCSR: gen.MustCSR(t,
 				gen.SetCSRIdentities([]string{"spiffe://foo", "spiffe://bar"}),
 				gen.SetCSRCommonName("jetstack.io"),
 			),
@@ -184,7 +175,7 @@ func TestAuthRequest(t *testing.T) {
 		},
 		"if auth returns identities, but given csr has email addresses, error": {
 			authn: newMockAuthn([]string{"spiffe://foo", "spiffe://bar"}, ""),
-			inpCSR: genCSR(t,
+			inpCSR: gen.MustCSR(t,
 				gen.SetCSRIdentities([]string{"spiffe://foo", "spiffe://bar"}),
 				gen.SetCSREmails([]string{"joshua.vanleeuwen@jetstack.io"}),
 			),
@@ -193,7 +184,7 @@ func TestAuthRequest(t *testing.T) {
 		},
 		"if auth returns identities, but given csr has miss matched identities, error": {
 			authn: newMockAuthn([]string{"spiffe://foo", "spiffe://bar"}, ""),
-			inpCSR: genCSR(t,
+			inpCSR: gen.MustCSR(t,
 				gen.SetCSRIdentities([]string{"spiffe://josh", "spiffe://bar"}),
 			),
 			expIdenties: "spiffe://foo,spiffe://bar",
@@ -201,7 +192,7 @@ func TestAuthRequest(t *testing.T) {
 		},
 		"if auth returns identities, but given csr has subset of identities, error": {
 			authn: newMockAuthn([]string{"spiffe://foo", "spiffe://bar"}, ""),
-			inpCSR: genCSR(t,
+			inpCSR: gen.MustCSR(t,
 				gen.SetCSRIdentities([]string{"spiffe://bar"}),
 			),
 			expIdenties: "spiffe://foo,spiffe://bar",
@@ -209,7 +200,7 @@ func TestAuthRequest(t *testing.T) {
 		},
 		"if auth returns identities, but given csr has more identities, error": {
 			authn: newMockAuthn([]string{"spiffe://foo", "spiffe://bar"}, ""),
-			inpCSR: genCSR(t,
+			inpCSR: gen.MustCSR(t,
 				gen.SetCSRIdentities([]string{"spiffe://foo", "spiffe://bar", "spiffe://joshua.vanleeuwen"}),
 			),
 			expIdenties: "spiffe://foo,spiffe://bar",
@@ -217,7 +208,7 @@ func TestAuthRequest(t *testing.T) {
 		},
 		"if auth returns identities, and given csr matches identities, return true": {
 			authn: newMockAuthn([]string{"spiffe://foo", "spiffe://bar"}, ""),
-			inpCSR: genCSR(t,
+			inpCSR: gen.MustCSR(t,
 				gen.SetCSRIdentities([]string{"spiffe://foo", "spiffe://bar"}),
 			),
 			expIdenties: "spiffe://foo,spiffe://bar",
@@ -225,7 +216,7 @@ func TestAuthRequest(t *testing.T) {
 		},
 		"if auth returns single id, and given csr matches id, return true": {
 			authn: newMockAuthn([]string{"spiffe://foo"}, ""),
-			inpCSR: genCSR(t,
+			inpCSR: gen.MustCSR(t,
 				gen.SetCSRIdentities([]string{"spiffe://foo"}),
 			),
 			expIdenties: "spiffe://foo",
