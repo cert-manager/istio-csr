@@ -41,7 +41,7 @@ const (
 )
 
 var (
-	// Copied from x509.go
+	// Copied from https://github.com/golang/go/blob/dev.boringcrypto.go1.16/src/crypto/x509/x509.go
 	oidExtensionKeyUsage         = asn1.ObjectIdentifier{2, 5, 29, 15}
 	oidExtensionExtendedKeyUsage = asn1.ObjectIdentifier{2, 5, 29, 37}
 	oidExtensionSubjectAltName   = asn1.ObjectIdentifier{2, 5, 29, 17}
@@ -66,14 +66,14 @@ func ValidateCSRExtentions(csr *x509.CertificateRequest) error {
 	}
 
 	for _, extension := range csr.Extensions {
-		switch extension.Id.String() {
-		case oidExtensionSubjectAltName.String():
-			el = append(el, validateExtensionURI(extension))
+		switch {
+		case extension.Id.Equal(oidExtensionSubjectAltName):
+			el = append(el, validateSubjectAltNameExtension(extension))
 
-		case oidExtensionKeyUsage.String():
+		case extension.Id.Equal(oidExtensionKeyUsage):
 			el = append(el, validateKeyUsageExtension(extension.Value))
 
-		case oidExtensionExtendedKeyUsage.String():
+		case extension.Id.Equal(oidExtensionExtendedKeyUsage):
 			el = append(el, validateExtendedKeyUsageExtension(extension))
 
 		default:
@@ -93,12 +93,15 @@ func validateKeyUsageExtension(value []byte) error {
 
 	extValue := make([]byte, len(value))
 	copy(extValue, value)
+
+	// Clear allowed usages bits from value
 	for _, usage := range allowedKeyUsages {
 		for i, b := range usage {
 			extValue[i] = extValue[i] &^ b
 		}
 	}
 
+	// If usage bits are not empty, forbidden usages used
 	if !bytes.Equal(extValue, []byte{0, 0, 0, 0}) {
 		return fmt.Errorf("forbidden key usage: %v", value)
 	}
@@ -129,12 +132,13 @@ func validateExtendedKeyUsageExtension(extension pkix.Extension) error {
 	return utilerrors.NewAggregate(el)
 }
 
-// validateExtensionURI validates that the passed extension is a correctly
-// encoded URI SAN
-func validateExtensionURI(ext pkix.Extension) error {
+// validateSubjectAltNameExtension validates that the passed extension is a
+// correctly encoded URI SAN, and is no other SAN type
+func validateSubjectAltNameExtension(ext pkix.Extension) error {
 	if !ext.Id.Equal(oidExtensionSubjectAltName) {
 		return fmt.Errorf("extension is not a SAN type: %s", ext.Id)
 	}
+
 	var sequence asn1.RawValue
 	if rest, err := asn1.Unmarshal(ext.Value, &sequence); err != nil {
 		return fmt.Errorf("failed to unmarshal san extension: %v", err)
@@ -158,6 +162,7 @@ func validateExtensionURI(ext pkix.Extension) error {
 			return err
 		}
 
+		// Only URI SANs are permitted for istio certificates
 		if rawValue.Tag != asn1TagURI {
 			return fmt.Errorf("non uri san extension given: %s", rawValue.Bytes)
 		}
