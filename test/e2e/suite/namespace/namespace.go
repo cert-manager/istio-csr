@@ -28,6 +28,7 @@ import (
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/wait"
 
 	"github.com/cert-manager/istio-csr/test/e2e/framework"
 )
@@ -76,12 +77,27 @@ var _ = framework.CasesDescribe("CA Root Controller", func() {
 
 	It("all namespaces should have valid configs in", func() {
 		By("ensure all existing namespaces have the correct root CA")
-		nss, err := f.KubeClientSet.CoreV1().Namespaces().List(ctx, metav1.ListOptions{})
-		Expect(err).NotTo(HaveOccurred())
 
-		for _, ns := range nss.Items {
-			Expect(expectRootCAExists(ctx, f, ns.Name, rootCA)).NotTo(HaveOccurred())
-		}
+		err := wait.PollImmediate(time.Second, time.Second*30,
+			func() (bool, error) {
+				nss, err := f.KubeClientSet.CoreV1().Namespaces().List(ctx, metav1.ListOptions{})
+				if err != nil {
+					return false, err
+				}
+
+				for _, ns := range nss.Items {
+					err = expectRootCAExists(ctx, f, ns.Name, rootCA)
+					if err != nil {
+						By(fmt.Sprintf("rootCA not yet propagated: %s", err))
+						return false, nil
+					}
+				}
+
+				return true, nil
+			},
+		)
+
+		Expect(err).NotTo(HaveOccurred())
 	})
 
 	It("should correctly update when a namespace updates and config map changes", func() {
