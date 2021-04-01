@@ -32,10 +32,15 @@ $ helm install -n cert-manager cert-manager-istio-csr jetstack/cert-manager-isti
 All helm value options can be found in
 [here](./deploy/charts/istio-csr/README.md).
 
+If you are running Openshift, prepare the cluster for Istio. 
+Follow instructions from Istio [platform setup guide](https://istio.io/latest/docs/setup/platform-setup/openshift/)
+
 Finally, install istio. Istio must be installed using the IstioOperator
 configuration changes within
-[`./hack/istio-config-x.yaml`](./hack/istio-config-1.8.2.yaml). These changes are
-required in order for the CA Server to be disabled in istiod, ensure istio
+[`./hack/istio-config-x.yaml`](./hack/istio-config-1.9.1.yaml). 
+For OpenShift set the profile as `--set profile=openshift` 
+
+These changes are required in order for the CA Server to be disabled in istiod, ensure istio
 workloads request certificates from the cert-manager agent, and the istiod
 certificates and keys are mounted in from the Certificate created earlier.
 
