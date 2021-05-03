@@ -5,8 +5,21 @@ metadata:
 spec:
   profile: "demo"
   hub: gcr.io/istio-release
+  meshConfig:
+    # Change the following lines to configure the trust domain of the Istio
+    # cluster. There are 3 places that need to be updated in versions of Istio
+    # prior to 1.8.0:
+    # - meshConfig.trustDomain
+    # - values.global.trustDomain
+    # - meshConfig.defaultConfig.proxyMetadata.TRUST_DOMAIN (which creates an
+    # env var in every istio-proxy deployment called TRUST_DOMAIN)
+    trustDomain: foo.bar
+    defaultConfig:
+      proxyMetadata:
+        TRUST_DOMAIN: foo.bar
   values:
     global:
+      trustDomain: foo.bar
       # Change certificate provider to cert-manager istio agent for istio agent
       caAddress: cert-manager-istio-csr.cert-manager.svc:443
   components:

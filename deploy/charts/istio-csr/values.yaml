@@ -27,6 +27,9 @@ agent:
   # -- The istio cluster ID to verify incoming CSRs.
   clusterID: "Kubernetes"
 
+  # -- The Istio cluster's trust domain.
+  trustDomain: "cluster.local"
+
   # -- Container address to serve istio-csr gRPC service.
   servingAddress: 0.0.0.0
   # -- Container port to serve istio-csr gRPC service.
