@@ -43,6 +43,7 @@ spec:
           - "--issuer-group={{.Values.certificate.group}}"
           - "--issuer-kind={{.Values.certificate.kind}}"
           - "--issuer-name={{.Values.certificate.name}}"
+          - "--trust-domain={{.Values.agent.trustDomain}}"
           - "--max-client-certificate-duration={{.Values.certificate.maxDuration}}"
           - "--preserve-certificate-requests={{.Values.certificate.preserveCertificateRequests}}"
 

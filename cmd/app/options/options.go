@@ -75,7 +75,8 @@ type TLSOptions struct {
 	ServingAddress             string
 	ServingCertificateDuration time.Duration
 
-	ClusterID string
+	ClusterID   string
+	TrustDomain string
 }
 
 type KubeOptions struct {
@@ -106,6 +107,11 @@ func (o *Options) Complete() error {
 	log := klogr.New()
 	flag.Set("v", o.logLevel)
 	o.Logr = log
+
+	// Set the trust domain before the Auther and tls Provider are created to
+	// ensure the trust domain is set correctly before being used to
+	// authenticate requests
+	spiffe.SetTrustDomain(o.TLSOptions.TrustDomain)
 
 	var err error
 	o.RestConfig, err = o.kubeConfigFlags.ToRESTConfig()
@@ -199,6 +205,10 @@ func (t *TLSOptions) addFlags(fs *pflag.FlagSet) {
 
 	fs.StringVar(&t.ClusterID, "cluster-id", "Kubernetes",
 		"The ID of the istio cluster to verify.")
+
+	fs.StringVar(&t.TrustDomain,
+		"trust-domain", "cluster.local",
+		"The Istio cluster's trust domain.")
 }
 
 func (c *CertManagerOptions) addFlags(fs *pflag.FlagSet) {
