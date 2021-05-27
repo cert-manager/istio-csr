@@ -24,6 +24,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"strings"
 	"sync"
 	"time"
 
@@ -51,6 +52,7 @@ type Provider struct {
 	customRootCA          bool
 	preserveCRs           bool
 	servingCertificateTTL time.Duration
+	dnsNames              []string
 	rootCA                []byte
 
 	client    cmclient.CertificateRequestInterface
@@ -70,6 +72,7 @@ func NewProvider(ctx context.Context, log logr.Logger, tlsOptions *options.TLSOp
 		log: log.WithName("serving_certificate"),
 
 		servingCertificateTTL: tlsOptions.ServingCertificateDuration,
+		dnsNames:              tlsOptions.DNSNames,
 		preserveCRs:           cmOptions.PreserveCRs,
 		customRootCA:          len(tlsOptions.RootCACertFile) > 0,
 		client:                kubeOptions.CMClient,
@@ -187,8 +190,7 @@ func (p *Provider) RootCA() []byte {
 // fails, returns error.
 func (p *Provider) fetchCertificate(ctx context.Context) error {
 	opts := pkiutil.CertOptions{
-		// TODO: allow configurable namespace and service
-		Host:       "cert-manager-istio-csr.cert-manager.svc",
+		Host:       strings.Join(p.dnsNames, ","),
 		IsServer:   true,
 		TTL:        p.servingCertificateTTL,
 		RSAKeySize: 2048,

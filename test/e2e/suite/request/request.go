@@ -98,7 +98,7 @@ var _ = framework.CasesDescribe("Request Authentication", func() {
 
 		saTokenBytes, ok := secret.Data[corev1.ServiceAccountTokenKey]
 		if !ok {
-			Expect(secret, "epected Service Account token present in secret").NotTo(HaveOccurred())
+			Expect(secret, "expected Service Account token present in secret").NotTo(HaveOccurred())
 		}
 		saToken = string(saTokenBytes)
 	})

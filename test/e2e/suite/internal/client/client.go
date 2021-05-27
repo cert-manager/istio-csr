@@ -135,7 +135,7 @@ func (c *certmanagerClient) getTLSDialOption() (grpc.DialOption, error) {
 
 	// For debugging on localhost (with port forward)
 	if strings.Contains(c.caEndpoint, "localhost") {
-		config.ServerName = "cert-manager-istio-csr.cert-manager.svc"
+		config.ServerName = "istio-csr.cert-manager.svc"
 	}
 
 	transportCreds := credentials.NewTLS(&config)

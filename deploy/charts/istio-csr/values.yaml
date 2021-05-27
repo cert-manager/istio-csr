@@ -14,6 +14,9 @@ service:
   type: ClusterIP
   # -- Service port to expose istio-csr gRPC service.
   port: 443
+  # -- The names used when sending requests to istio-csr
+  dnsNames:
+  - cert-manager-istio-csr.cert-manager.svc
 
 agent:
   # -- Verbosity of istio-csr logging.

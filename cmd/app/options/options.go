@@ -74,6 +74,7 @@ type TLSOptions struct {
 	RootCAConfigMapName        string
 	ServingAddress             string
 	ServingCertificateDuration time.Duration
+	DNSNames                   []string
 
 	ClusterID   string
 	TrustDomain string
@@ -192,6 +193,10 @@ func (t *TLSOptions) addFlags(fs *pflag.FlagSet) {
 		"serving-certificate-duration", "t", time.Hour*24,
 		"Certificate duration of serving certificates. Will be renewed after 2/3 of "+
 			"the duration.")
+
+	fs.StringSliceVar(&t.DNSNames,
+		"dns-names", []string{"cert-manager-istio-csr.cert-manager.svc"},
+		"A list of names used to route requests to Istio CSR.")
 
 	fs.StringVar(&t.RootCACertFile,
 		"root-ca-file", "",
