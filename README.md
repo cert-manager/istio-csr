@@ -37,7 +37,7 @@ Follow instructions from Istio [platform setup guide](https://istio.io/latest/do
 
 Finally, install istio. Istio must be installed using the IstioOperator
 configuration changes within
-[`./hack/istio-config-x.yaml`](./hack/istio-config-1.9.1.yaml). 
+[`./hack/istio-config-x.yaml`](./hack/istio-config-1.10.0.yaml). 
 For OpenShift set the profile as `--set profile=openshift` 
 
 These changes are required in order for the CA Server to be disabled in istiod, ensure istio
