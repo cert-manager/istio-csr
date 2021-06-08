@@ -14,11 +14,11 @@ require (
 	istio.io/istio v0.0.0-20200903155103-cf61d6c8ad52
 	istio.io/pkg v0.0.0-20200807223740-7c8bbc23c476
 	k8s.io/api v0.20.1
-	k8s.io/apimachinery v0.20.1
+	k8s.io/apimachinery v0.20.2
 	k8s.io/cli-runtime v0.20.1
 	k8s.io/client-go v0.20.1
 	k8s.io/component-base v0.20.1
 	k8s.io/klog/v2 v2.4.0
 	sigs.k8s.io/controller-runtime v0.8.0
-	sigs.k8s.io/kind v0.10.0
+	sigs.k8s.io/kind v0.11.1
 )
