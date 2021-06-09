@@ -74,6 +74,7 @@ type TLSOptions struct {
 	RootCAConfigMapName        string
 	ServingAddress             string
 	ServingCertificateDuration time.Duration
+	ServingCertificateDNSNames []string
 
 	ClusterID   string
 	TrustDomain string
@@ -107,6 +108,12 @@ func (o *Options) Complete() error {
 	log := klogr.New()
 	flag.Set("v", o.logLevel)
 	o.Logr = log
+
+	// Ensure there is at least one DNS name to set in the serving certificate
+	// to ensure clients can properly verify the serving certificate
+	if len(o.TLSOptions.ServingCertificateDNSNames) == 0 {
+		return fmt.Errorf("the list of DNS names to add to the serving certificate is empty")
+	}
 
 	// Set the trust domain before the Auther and tls Provider are created to
 	// ensure the trust domain is set correctly before being used to
@@ -192,6 +199,11 @@ func (t *TLSOptions) addFlags(fs *pflag.FlagSet) {
 		"serving-certificate-duration", "t", time.Hour*24,
 		"Certificate duration of serving certificates. Will be renewed after 2/3 of "+
 			"the duration.")
+
+	fs.StringSliceVar(&t.ServingCertificateDNSNames,
+		"serving-certificate-dns-names", []string{"cert-manager-istio-csr.cert-manager.svc"},
+		"A list of DNS names to request for the server's serving certificate which will be "+
+			"presented to istio-agents.")
 
 	fs.StringVar(&t.RootCACertFile,
 		"root-ca-file", "",

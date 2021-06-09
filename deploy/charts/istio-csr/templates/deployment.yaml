@@ -37,6 +37,10 @@ spec:
 
           - "--serving-address={{.Values.agent.servingAddress}}:{{.Values.agent.servingPort}}"
           - "--serving-certificate-duration={{.Values.agent.certificateDuration}}"
+        {{- range .Values.agent.certificateDNSNames }}
+          - "--serving-certificate-dns-names={{ . }}"
+        {{- end  }}
+
           - "--root-ca-configmap-name={{.Values.agent.rootCAConfigMapName}}"
 
           - "--certificate-namespace={{.Values.certificate.namespace}}"

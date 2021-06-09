@@ -41,6 +41,12 @@ agent:
   # -- Requested duration of gRPC serving certificate. Will be automatically renewed.
   certificateDuration: 24h
 
+  # -- The DNS names to request for the server's serving certificate which is
+  # presented to istio-agents. istio-agents must route to istio-csr using one
+  # of these DNS names.
+  certificateDNSNames:
+  - cert-manager-istio-csr.cert-manager.svc
+
 certificate:
   # -- Namespace to create CertificateRequests from incoming gRPC CSRs.
   namespace: istio-system
