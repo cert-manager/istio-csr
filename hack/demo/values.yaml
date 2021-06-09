@@ -9,11 +9,6 @@ service:
   port: 443
   type: NodePort
   nodePort: 30443
-  dnsNames:
-  # Name used by the e2e client
-  - istio-csr.cert-manager.svc
-  # Name used within the demo cluster
-  - cert-manager-istio-csr.cert-manager.svc
 
 agent:
   logLevel: 5
@@ -24,6 +19,12 @@ agent:
   servingPort: 6443
 
   certificateDuration: 20s
+  certificateDNSNames:
+  # Name used by the e2e client
+  - istio-csr.cert-manager.svc
+  # Name used within the demo cluster
+  - cert-manager-istio-csr.cert-manager.svc
+
   rootCAConfigMapName: istio-ca-root-cert
 
 certificate:

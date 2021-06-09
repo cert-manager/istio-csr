@@ -72,7 +72,7 @@ func NewProvider(ctx context.Context, log logr.Logger, tlsOptions *options.TLSOp
 		log: log.WithName("serving_certificate"),
 
 		servingCertificateTTL: tlsOptions.ServingCertificateDuration,
-		dnsNames:              tlsOptions.DNSNames,
+		dnsNames:              tlsOptions.ServingCertificateDNSNames,
 		preserveCRs:           cmOptions.PreserveCRs,
 		customRootCA:          len(tlsOptions.RootCACertFile) > 0,
 		client:                kubeOptions.CMClient,
