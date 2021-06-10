@@ -4,13 +4,18 @@ metadata:
   name: istiod
   namespace: istio-system
 spec:
-  duration: 24h
-  renewBefore: 12h
-  secretName: istiod-tls
   dnsNames:
   - istiod.istio-system.svc
   uris:
     - spiffe://cluster.local/ns/istio-system/sa/istiod-service-account
+  secretName: istiod-tls
+  duration: 1h
+  renewBefore: 30m
+  privateKey:
+    rotationPolicy: Always
+    algorithm: RSA
+    size: 2048
+  revisionHistoryLimit: 1
   issuerRef:
     name: {{ .Values.app.certmanager.issuer.name }}
     kind: {{ .Values.app.certmanager.issuer.kind }}
