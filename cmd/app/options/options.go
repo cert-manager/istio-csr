@@ -145,7 +145,7 @@ func (o *Options) addTLSFlags(fs *pflag.FlagSet) {
 			"cert-manager issuer will be used.")
 
 	fs.DurationVarP(&o.TLS.ServingCertificateDuration,
-		"serving-certificate-duration", "t", time.Hour*24,
+		"serving-certificate-duration", "t", time.Hour,
 		"Certificate duration of serving certificates. Will be renewed after 2/3 of "+
 			"the duration.")
 
@@ -182,7 +182,7 @@ func (o *Options) addServerFlags(fs *pflag.FlagSet) {
 		"Address to serve certificates gRPC service.")
 
 	fs.DurationVarP(&o.Server.MaximumClientCertificateDuration,
-		"max-client-certificate-duration", "m", time.Hour*24,
+		"max-client-certificate-duration", "m", time.Hour,
 		"Maximum duration a client certificate can be requested and valid for. Will "+
 			"override with this value if the requested duration is larger")
 
