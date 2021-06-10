@@ -19,6 +19,7 @@ package app
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 
@@ -78,7 +79,14 @@ func NewCommand(ctx context.Context) *cobra.Command {
 				return fmt.Errorf("failed to create new controller: %s", err)
 			}
 
-			go rootCAController.Run(ctx)
+			go func() {
+				// If the controller fails to start or we lose leader election, exit
+				// error
+				if err := rootCAController.Run(ctx); err != nil {
+					opts.Logr.Error(err, "error running root CA controller")
+					os.Exit(1)
+				}
+			}()
 
 			// Run the istio agent certificate signing service
 			return server.Run(ctx, tlsConfig, opts.ServingAddress)

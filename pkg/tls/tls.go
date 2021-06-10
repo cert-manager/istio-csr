@@ -102,7 +102,7 @@ func NewProvider(ctx context.Context, log logr.Logger, tlsOptions *options.TLSOp
 			renewalTime := (2 * p.servingCertificateTTL) / 3
 			timer := time.NewTimer(renewalTime)
 
-			p.log.Info("renewing serving certificate", "renewal-time", renewalTime)
+			p.log.Info("renewing serving certificate", "renewal-time", time.Now().Add(renewalTime))
 
 			select {
 			case <-ctx.Done():

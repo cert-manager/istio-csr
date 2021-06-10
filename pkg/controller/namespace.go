@@ -19,7 +19,6 @@ package controller
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
@@ -27,7 +26,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	k8sscheme "k8s.io/client-go/kubernetes/scheme"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/kubernetes/scheme"
+	clientv1 "k8s.io/client-go/kubernetes/typed/core/v1"
+	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
@@ -68,25 +70,30 @@ type enforcer struct {
 func NewCARootController(opts *options.Options, data map[string]string, healthz healthz.Checker) (*CARoot, error) {
 	log := opts.Logr.WithName("ca-root-controller").WithValues("configmap-name", opts.RootCAConfigMapName)
 
-	scheme := runtime.NewScheme()
-	if err := k8sscheme.AddToScheme(scheme); err != nil {
+	intscheme := runtime.NewScheme()
+	if err := scheme.AddToScheme(intscheme); err != nil {
 		return nil, fmt.Errorf("failed to add kubernetes scheme: %s", err)
 	}
 
-	// hostname used as the leader election ID.
-	hostname, err := os.Hostname()
+	cl, err := kubernetes.NewForConfig(opts.KubeOptions.RestConfig)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get hostname for election ID: %s", err)
+		return nil, fmt.Errorf("error creating kubernetes client: %s", err.Error())
 	}
 
+	eventBroadcaster := record.NewBroadcaster()
+	eventBroadcaster.StartLogging(func(format string, args ...interface{}) { log.V(3).Info(fmt.Sprintf(format, args...)) })
+	eventBroadcaster.StartRecordingToSink(&clientv1.EventSinkImpl{Interface: cl.CoreV1().Events("istio-system")})
+
 	mgr, err := ctrl.NewManager(opts.KubeOptions.RestConfig, ctrl.Options{
-		Scheme:                  scheme,
-		LeaderElection:          true,
-		LeaderElectionNamespace: opts.Namespace,
-		LeaderElectionID:        hostname,
-		ReadinessEndpointName:   opts.ReadyzPath,
-		HealthProbeBindAddress:  fmt.Sprintf("0.0.0.0:%d", opts.ReadyzPort),
-		Logger:                  log,
+		Scheme:                        intscheme,
+		EventBroadcaster:              eventBroadcaster,
+		LeaderElection:                true,
+		LeaderElectionNamespace:       opts.Namespace,
+		LeaderElectionID:              "istio-csr",
+		LeaderElectionReleaseOnCancel: true,
+		ReadinessEndpointName:         opts.ReadyzPath,
+		HealthProbeBindAddress:        fmt.Sprintf("0.0.0.0:%d", opts.ReadyzPort),
+		Logger:                        log,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("unable to start manager: %s", err)
