@@ -18,9 +18,11 @@ package server
 
 import (
 	"context"
-	"crypto/tls"
+	"errors"
 	"fmt"
 	"net"
+	"net/http"
+	"sync"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -32,12 +34,12 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/status"
 	securityapi "istio.io/api/security/v1alpha1"
-	"istio.io/istio/security/pkg/server/ca/authenticate"
+	"istio.io/istio/pkg/security"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/cert-manager/istio-csr/cmd/app/options"
+	tls "github.com/cert-manager/istio-csr/pkg/tls"
 	"github.com/cert-manager/istio-csr/pkg/util"
-	"github.com/cert-manager/istio-csr/pkg/util/healthz"
 )
 
 const (
@@ -49,42 +51,48 @@ type Server struct {
 	log logr.Logger
 
 	client cmclient.CertificateRequestInterface
-	auther authenticate.Authenticator
+	auther security.Authenticator
+	tls    *tls.Provider
 
-	maxDuration time.Duration
+	listenAddress string
+	maxDuration   time.Duration
 
 	issuerRef   cmmeta.ObjectReference
 	preserveCRs bool
 
-	readyz *healthz.Check
+	ready bool
+	lock  sync.RWMutex
 }
 
 func New(log logr.Logger,
 	cmOptions *options.CertManagerOptions,
 	kubeOptions *options.KubeOptions,
-	readyz *healthz.Check,
+	tls *tls.Provider,
+	listenAddress string,
 ) *Server {
 	return &Server{
-		log:         log.WithName("certificate-provider"),
-		client:      kubeOptions.CMClient,
-		auther:      kubeOptions.Auther,
-		maxDuration: cmOptions.MaximumClientCertificateDuration,
-		issuerRef:   cmOptions.IssuerRef,
-		preserveCRs: cmOptions.PreserveCRs,
-		readyz:      readyz,
+		log:           log.WithName("grpc_server").WithValues("serving_addr", listenAddress),
+		client:        kubeOptions.CMClient,
+		auther:        kubeOptions.Auther,
+		tls:           tls,
+		listenAddress: listenAddress,
+		maxDuration:   cmOptions.MaximumClientCertificateDuration,
+		issuerRef:     cmOptions.IssuerRef,
+		preserveCRs:   cmOptions.PreserveCRs,
+		ready:         false,
 	}
 }
 
 // Run is a blocking func that will run the client facing certificate service
-func (s *Server) Run(ctx context.Context, tlsConfig *tls.Config, listenAddress string) error {
+func (s *Server) Start(ctx context.Context) error {
 	// Setup the grpc server using the passed TLS config
-	creds := credentials.NewTLS(tlsConfig)
+	creds := credentials.NewTLS(s.tls.Config())
 	grpcServer := grpc.NewServer(grpc.Creds(creds))
 
 	// listen on the configured address
-	listener, err := net.Listen("tcp", listenAddress)
+	listener, err := net.Listen("tcp", s.listenAddress)
 	if err != nil {
-		return fmt.Errorf("failed to listen %s: %v", listenAddress, err)
+		return fmt.Errorf("failed to listen %s: %v", s.listenAddress, err)
 	}
 
 	// register certificate service grpc API
@@ -93,14 +101,20 @@ func (s *Server) Run(ctx context.Context, tlsConfig *tls.Config, listenAddress s
 	// handle termination gracefully
 	go func() {
 		<-ctx.Done()
-		s.readyz.Set(false)
+		s.lock.Lock()
+		s.ready = false
+		s.lock.Unlock()
+
 		s.log.Info("shutting down grpc server")
 		grpcServer.GracefulStop()
 		s.log.Info("grpc server stopped")
 	}()
 
-	s.log.Info("grpc serving", "address", listener.Addr().String())
-	s.readyz.Set(true)
+	s.log.Info("grpc serving")
+
+	s.lock.Lock()
+	s.ready = true
+	s.lock.Unlock()
 
 	return grpcServer.Serve(listener)
 }
@@ -199,4 +213,19 @@ func (s *Server) deleteOrPreserveCertificateRequest(log logr.Logger, cr *cmapi.C
 	}
 
 	log.V(3).Info("deleted workload CertificateRequest")
+}
+
+// All istio-csr's should serve the CreateCertificate service
+func (s *Server) NeedLeaderElection() bool {
+	return false
+}
+
+func (s *Server) Check(_ *http.Request) error {
+	s.lock.RLock()
+	defer s.lock.RUnlock()
+
+	if s.ready {
+		return nil
+	}
+	return errors.New("not ready")
 }
