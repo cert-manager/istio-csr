@@ -19,15 +19,19 @@ package app
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/kubernetes/scheme"
+	clientv1 "k8s.io/client-go/kubernetes/typed/core/v1"
+	"k8s.io/client-go/tools/record"
+	ctrl "sigs.k8s.io/controller-runtime"
 
 	"github.com/cert-manager/istio-csr/cmd/app/options"
 	"github.com/cert-manager/istio-csr/pkg/controller"
 	"github.com/cert-manager/istio-csr/pkg/server"
-	agenttls "github.com/cert-manager/istio-csr/pkg/tls"
-	"github.com/cert-manager/istio-csr/pkg/util/healthz"
+	"github.com/cert-manager/istio-csr/pkg/tls"
 )
 
 const (
@@ -47,49 +51,65 @@ func NewCommand(ctx context.Context) *cobra.Command {
 				return err
 			}
 
-			readyz := healthz.New()
-
-			// Create a new TLS provider for the serving certificate and private key.
-			tlsProvider, err := agenttls.NewProvider(ctx, opts.Logr, opts.TLSOptions,
-				opts.KubeOptions, opts.CertManagerOptions, readyz.Register())
-			if err != nil {
-				return err
+			intscheme := runtime.NewScheme()
+			if err := scheme.AddToScheme(intscheme); err != nil {
+				return fmt.Errorf("failed to add kubernetes scheme: %s", err)
 			}
 
-			// Fetch a TLS config which will be renewed transparently
-			tlsConfig, err := tlsProvider.TLSConfig()
+			cl, err := kubernetes.NewForConfig(opts.KubeOptions.RestConfig)
 			if err != nil {
-				return err
+				return fmt.Errorf("error creating kubernetes client: %s", err.Error())
+			}
+
+			log := opts.Logr.WithName("manager")
+			eventBroadcaster := record.NewBroadcaster()
+			eventBroadcaster.StartLogging(func(format string, args ...interface{}) { log.V(3).Info(fmt.Sprintf(format, args...)) })
+			eventBroadcaster.StartRecordingToSink(&clientv1.EventSinkImpl{Interface: cl.CoreV1().Events("istio-system")})
+
+			mgr, err := ctrl.NewManager(opts.KubeOptions.RestConfig, ctrl.Options{
+				Scheme:                        intscheme,
+				EventBroadcaster:              eventBroadcaster,
+				LeaderElection:                true,
+				LeaderElectionNamespace:       opts.Namespace,
+				LeaderElectionID:              "istio-csr",
+				LeaderElectionReleaseOnCancel: true,
+				ReadinessEndpointName:         opts.ReadyzPath,
+				HealthProbeBindAddress:        fmt.Sprintf("0.0.0.0:%d", opts.ReadyzPort),
+				Logger:                        log,
+			})
+			if err != nil {
+				return fmt.Errorf("failed to create manager: %w", err)
+			}
+
+			// Create a new TLS provider for the serving certificate and private key.
+			tls, err := tls.NewProvider(opts.Logr, opts.CertManagerOptions, opts.KubeOptions, opts.TLSOptions)
+			if err != nil {
+				return fmt.Errorf("failed to create tls provider: %w", err)
+			}
+			if err := mgr.AddReadyzCheck("tls_provider", tls.Check); err != nil {
+				return fmt.Errorf("failed to add tls provider readiness check: %w", err)
+			}
+			if err := mgr.Add(tls); err != nil {
+				return fmt.Errorf("failed to add tls provider as runnable: %w", err)
 			}
 
 			// Create an new server instance that implements the certificate signing API
-			server := server.New(opts.Logr,
-				opts.CertManagerOptions, opts.KubeOptions,
-				readyz.Register())
-
-			// Build the data which should be present in the well-known configmap in
-			// all namespaces.
-			rootCAConfigData := map[string]string{
-				"root-cert.pem": fmt.Sprintf("%s", tlsProvider.RootCA()),
+			server := server.New(opts.Logr, opts.CertManagerOptions, opts.KubeOptions, tls, opts.TLSOptions.ServingAddress)
+			if err := mgr.AddReadyzCheck("grpc_server", server.Check); err != nil {
+				return fmt.Errorf("failed to add grpc server readiness check: %w", err)
+			}
+			if err := mgr.Add(server); err != nil {
+				return fmt.Errorf("failed to add grpc server as runnable: %w", err)
 			}
 
 			// Build and run the namespace controller to distribute the root CA
-			rootCAController, err := controller.NewCARootController(opts, rootCAConfigData, readyz.Check)
+			err = controller.AddCARootController(opts.Logr, mgr, tls.RootCA, opts.TLSOptions.RootCAConfigMapName)
 			if err != nil {
-				return fmt.Errorf("failed to create new controller: %s", err)
+				return fmt.Errorf("failed to add CA root controller: %w", err)
 			}
 
-			go func() {
-				// If the controller fails to start or we lose leader election, exit
-				// error
-				if err := rootCAController.Run(ctx); err != nil {
-					opts.Logr.Error(err, "error running root CA controller")
-					os.Exit(1)
-				}
-			}()
-
-			// Run the istio agent certificate signing service
-			return server.Run(ctx, tlsConfig, opts.ServingAddress)
+			// Start all runnable and controller
+			return mgr.Start(ctx)
 		},
 	}
 
