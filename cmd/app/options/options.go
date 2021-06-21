@@ -27,9 +27,9 @@ import (
 	cmclient "github.com/jetstack/cert-manager/pkg/client/clientset/versioned/typed/certmanager/v1"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"istio.io/istio/pkg/config/mesh"
 	"istio.io/istio/pkg/jwt"
 	"istio.io/istio/pkg/security"
-	"istio.io/istio/pkg/spiffe"
 	"istio.io/istio/security/pkg/server/ca/authenticate/kubeauth"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/kubernetes"
@@ -114,11 +114,6 @@ func (o *Options) Complete() error {
 		return fmt.Errorf("the list of DNS names to add to the serving certificate is empty")
 	}
 
-	// Set the trust domain before the Auther and tls Provider are created to
-	// ensure the trust domain is set correctly before being used to
-	// authenticate requests
-	spiffe.SetTrustDomain(o.TLSOptions.TrustDomain)
-
 	var err error
 	o.RestConfig, err = o.kubeConfigFlags.ToRESTConfig()
 	if err != nil {
@@ -130,7 +125,9 @@ func (o *Options) Complete() error {
 		return fmt.Errorf("failed to build kubernetes client: %s", err)
 	}
 
-	o.Auther = kubeauth.NewKubeJWTAuthenticator(nil, o.KubeClient, o.ClusterID, nil, jwt.PolicyThirdParty)
+	meshcnf := mesh.DefaultMeshConfig()
+	meshcnf.TrustDomain = o.TLSOptions.TrustDomain
+	o.Auther = kubeauth.NewKubeJWTAuthenticator(mesh.NewFixedWatcher(&meshcnf), o.KubeClient, o.ClusterID, nil, jwt.PolicyThirdParty)
 
 	cmClient, err := cmversioned.NewForConfig(o.RestConfig)
 	if err != nil {
