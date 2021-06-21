@@ -78,7 +78,7 @@ var _ = framework.CasesDescribe("CA Root Controller", func() {
 	It("all namespaces should have valid configs in", func() {
 		By("ensure all existing namespaces have the correct root CA")
 
-		err := wait.PollImmediate(time.Second, time.Second*30,
+		err := wait.PollImmediate(time.Second, time.Minute,
 			func() (bool, error) {
 				nss, err := f.KubeClientSet.CoreV1().Namespaces().List(ctx, metav1.ListOptions{})
 				if err != nil {
