@@ -24,10 +24,11 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/cert-manager/istio-csr/cmd/app/options"
+	"github.com/cert-manager/istio-csr/pkg/certmanager"
 	"github.com/cert-manager/istio-csr/pkg/controller"
 	"github.com/cert-manager/istio-csr/pkg/server"
-	agenttls "github.com/cert-manager/istio-csr/pkg/tls"
-	"github.com/cert-manager/istio-csr/pkg/util/healthz"
+	"github.com/cert-manager/istio-csr/pkg/tls"
+	"github.com/cert-manager/istio-csr/pkg/util"
 )
 
 const (
@@ -47,11 +48,15 @@ func NewCommand(ctx context.Context) *cobra.Command {
 				return err
 			}
 
-			readyz := healthz.New()
+			readyz := util.New()
+
+			cm, err := certmanager.New(opts.Logr, opts.RestConfig, opts.CertManager)
+			if err != nil {
+				return err
+			}
 
 			// Create a new TLS provider for the serving certificate and private key.
-			tlsProvider, err := agenttls.NewProvider(ctx, opts.Logr, opts.TLSOptions,
-				opts.KubeOptions, opts.CertManagerOptions, readyz.Register())
+			tlsProvider, err := tls.NewProvider(ctx, opts.Logr, cm, readyz.Register(), opts.TLS)
 			if err != nil {
 				return err
 			}
@@ -63,18 +68,16 @@ func NewCommand(ctx context.Context) *cobra.Command {
 			}
 
 			// Create an new server instance that implements the certificate signing API
-			server := server.New(opts.Logr,
-				opts.CertManagerOptions, opts.KubeOptions,
-				readyz.Register())
+			server := server.New(opts.Logr, cm, readyz.Register(), opts.Server)
 
 			// Build the data which should be present in the well-known configmap in
 			// all namespaces.
-			rootCAConfigData := map[string]string{
+			opts.Controller.Data = map[string]string{
 				"root-cert.pem": fmt.Sprintf("%s", tlsProvider.RootCA()),
 			}
 
 			// Build and run the namespace controller to distribute the root CA
-			rootCAController, err := controller.NewCARootController(opts, rootCAConfigData, readyz.Check)
+			rootCAController, err := controller.NewCARootController(opts.Logr, opts.RestConfig, readyz.Check, opts.Controller)
 			if err != nil {
 				return fmt.Errorf("failed to create new controller: %s", err)
 			}
@@ -89,7 +92,7 @@ func NewCommand(ctx context.Context) *cobra.Command {
 			}()
 
 			// Run the istio agent certificate signing service
-			return server.Run(ctx, tlsConfig, opts.ServingAddress)
+			return server.Run(ctx, tlsConfig)
 		},
 	}
 
