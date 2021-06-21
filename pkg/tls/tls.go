@@ -55,6 +55,7 @@ type Provider struct {
 	servingCertificateTTL time.Duration
 	dnsNames              []string
 	rootCA                []byte
+	trustDomain           string
 
 	client    cmclient.CertificateRequestInterface
 	issuerRef cmmeta.ObjectReference
@@ -75,6 +76,7 @@ func NewProvider(log logr.Logger,
 
 		servingCertificateTTL: tlsOptions.ServingCertificateDuration,
 		dnsNames:              tlsOptions.ServingCertificateDNSNames,
+		trustDomain:           tlsOptions.TrustDomain,
 		preserveCRs:           cmOptions.PreserveCRs,
 		customRootCA:          len(tlsOptions.RootCACertFile) > 0,
 		client:                kubeOptions.CMClient,
@@ -300,7 +302,7 @@ func (p *Provider) fetchCertificate(ctx context.Context) (time.Time, error) {
 
 	// Build the client certificate verifier based upon the root certificate
 	peerCertVerifier := spiffe.NewPeerCertVerifier()
-	peerCertVerifier.AddMapping(spiffe.GetTrustDomain(), []*x509.Certificate{rootCert})
+	peerCertVerifier.AddMapping(p.trustDomain, []*x509.Certificate{rootCert})
 
 	tlsCert, err := tls.X509KeyPair(cr.Status.Certificate, pk)
 	if err != nil {
