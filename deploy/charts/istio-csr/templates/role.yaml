@@ -4,7 +4,7 @@ metadata:
   labels:
 {{ include "cert-manager-istio-csr.labels" . | indent 4 }}
   name: {{ include "cert-manager-istio-csr.name" . }}
-  namespace: {{ .Values.certificate.namespace }}
+  namespace: {{ .Values.app.certmanager.namespace }}
 rules:
 - apiGroups:
   - "cert-manager.io"
@@ -16,6 +16,7 @@ rules:
   - "create"
   - "update"
   - "delete"
+  - "watch"
 - apiGroups:
   - "coordination.k8s.io"
   resources:

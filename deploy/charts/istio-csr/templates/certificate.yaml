@@ -12,6 +12,6 @@ spec:
   uris:
     - spiffe://cluster.local/ns/istio-system/sa/istiod-service-account
   issuerRef:
-    group: {{ .Values.certificate.group }}
-    kind: {{ .Values.certificate.kind }}
-    name: {{ .Values.certificate.name }}
+    name: {{ .Values.app.certmanager.issuer.name }}
+    kind: {{ .Values.app.certmanager.issuer.kind }}
+    group: {{ .Values.app.certmanager.issuer.group }}

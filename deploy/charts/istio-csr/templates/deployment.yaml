@@ -20,56 +20,53 @@ spec:
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         ports:
-        - containerPort: {{ .Values.agent.servingPort }}
+        - containerPort: {{ .Values.app.server.serving.port }}
         readinessProbe:
           httpGet:
-            port: {{.Values.agent.readinessProbe.port}}
-            path: {{.Values.agent.readinessProbe.path}}
+            port: {{ .Values.app.controller.readinessProbe.port }}
+            path: {{ .Values.app.controller.readinessProbe.path }}
           initialDelaySeconds: 3
           periodSeconds: 7
         command: ["cert-manager-istio-csr"]
         args:
-          - "--log-level={{.Values.agent.logLevel}}"
-          - "--readiness-probe-port={{.Values.agent.readinessProbe.port}}"
-          - "--readiness-probe-path={{.Values.agent.readinessProbe.path}}"
+          - "--log-level={{.Values.app.logLevel}}"
+          - "--cluster-id={{.Values.app.clusterID}}"
 
-          - "--cluster-id={{.Values.agent.clusterID}}"
+            # cert-manager
+          - "--certificate-namespace={{.Values.app.certmanager.namespace}}"
+          - "--issuer-name={{.Values.app.certmanager.issuer.name}}"
+          - "--issuer-kind={{.Values.app.certmanager.issuer.kind}}"
+          - "--issuer-group={{.Values.app.certmanager.issuer.group}}"
+          - "--preserve-certificate-requests={{.Values.app.certmanager.preserveCertificateRequests}}"
 
-          - "--serving-address={{.Values.agent.servingAddress}}:{{.Values.agent.servingPort}}"
-          - "--serving-certificate-duration={{.Values.agent.certificateDuration}}"
-        {{- range .Values.agent.certificateDNSNames }}
+            # tls
+          - "--root-ca-file={{.Values.app.tls.rootCAFile}}"
+        {{- range .Values.app.tls.certificateDNSNames }}
           - "--serving-certificate-dns-names={{ . }}"
         {{- end  }}
+          - "--serving-certificate-duration={{.Values.app.tls.certificateDuration}}"
+          - "--serving-certificate-duration={{.Values.app.tls.certificateDuration}}"
+          - "--trust-domain={{.Values.app.tls.trustDomain}}"
 
-          - "--root-ca-configmap-name={{.Values.agent.rootCAConfigMapName}}"
+          # server
+          - "--max-client-certificate-duration={{.Values.app.server.maxCertificateDuration}}"
+          - "--serving-address={{.Values.app.server.serving.address}}:{{.Values.app.server.serving.port}}"
 
-          - "--certificate-namespace={{.Values.certificate.namespace}}"
-          - "--issuer-group={{.Values.certificate.group}}"
-          - "--issuer-kind={{.Values.certificate.kind}}"
-          - "--issuer-name={{.Values.certificate.name}}"
-          - "--trust-domain={{.Values.agent.trustDomain}}"
-          - "--max-client-certificate-duration={{.Values.certificate.maxDuration}}"
-          - "--preserve-certificate-requests={{.Values.certificate.preserveCertificateRequests}}"
+          # controller
+          - "--leader-election-namespace={{.Values.app.controller.leaderElectionNamespace}}"
+          - "--readiness-probe-port={{.Values.app.controller.readinessProbe.port}}"
+          - "--readiness-probe-path={{.Values.app.controller.readinessProbe.path}}"
+          - "--root-ca-configmap-name={{.Values.app.controller.rootCAConfigMapName}}"
 
-        {{- if .Values.certificate.rootCA }}
-          - "--root-ca-file=/etc/cert-manager-istio-csr/ca.pem"
-
-        volumeMounts:
-          - name: root-ca
-            mountPath: /etc/cert-manager-istio-csr
-        {{- end  }}
+      {{- if .Values.volumeMounts }}
+      volumeMounts:
+{{ toYaml .Values.volumeMounts | indent 12 }}
+      {{- end }}
 
         resources:
           {{- toYaml .Values.resources | nindent 12 }}
 
-      {{- if .Values.certificate.rootCA }}
+      {{- if .Values.volumes }}
       volumes:
-        - name: root-ca
-          configMap:
-            name: cert-manager-istio-csr-root-ca
-            items:
-            - key: ca.pem
-              path: ca.pem
-      {{- end  }}
-
-
+{{ toYaml .Values.volumes | indent 8 }}
+      {{- end }}
