@@ -32,7 +32,7 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/status"
 	securityapi "istio.io/api/security/v1alpha1"
-	"istio.io/istio/security/pkg/server/ca/authenticate"
+	"istio.io/istio/pkg/security"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/cert-manager/istio-csr/cmd/app/options"
@@ -49,7 +49,7 @@ type Server struct {
 	log logr.Logger
 
 	client cmclient.CertificateRequestInterface
-	auther authenticate.Authenticator
+	auther security.Authenticator
 
 	maxDuration time.Duration
 

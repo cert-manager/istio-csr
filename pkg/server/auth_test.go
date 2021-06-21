@@ -19,10 +19,11 @@ package server
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"net/url"
 	"testing"
 
-	"istio.io/istio/security/pkg/server/ca/authenticate"
+	"istio.io/istio/pkg/security"
 	"k8s.io/klog/v2/klogr"
 
 	"github.com/cert-manager/istio-csr/test/gen"
@@ -104,14 +105,18 @@ func (authn *mockAuthenticator) AuthenticatorType() string {
 	return "mockAuthenticator"
 }
 
-func (authn *mockAuthenticator) Authenticate(ctx context.Context) (*authenticate.Caller, error) {
+func (authn *mockAuthenticator) Authenticate(ctx context.Context) (*security.Caller, error) {
 	if len(authn.errMsg) > 0 {
 		return nil, fmt.Errorf("%v", authn.errMsg)
 	}
 
-	return &authenticate.Caller{
+	return &security.Caller{
 		Identities: authn.identities,
 	}, nil
+}
+
+func (authn *mockAuthenticator) AuthenticateRequest(_ *http.Request) (*security.Caller, error) {
+	return nil, nil
 }
 
 func newMockAuthn(ids []string, errMsg string) *mockAuthenticator {
