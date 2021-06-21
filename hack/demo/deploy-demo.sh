@@ -60,7 +60,7 @@ done
 
 echo ">> installing cert-manager-istio-csr"
 
-$HELM_BIN install cert-manager-istio-csr ./deploy/charts/istio-csr -n cert-manager --values ./hack/demo/values.yaml
+$HELM_BIN install cert-manager-istio-csr ./deploy/charts/istio-csr -n cert-manager --values ./hack/demo/istio-csr-values.yaml
 
 echo ">> installing istio"
 
