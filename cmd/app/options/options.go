@@ -47,6 +47,10 @@ type Options struct {
 	// ReadyzPath if the HTTP path used to expose Prometheus metrics.
 	ReadyzPath string
 
+	// MetricsPort is the port for exposing Prometheus metrics on 0.0.0.0 on the
+	// path '/metrics'.
+	MetricsPort int
+
 	// Logr is the shared base logger.
 	Logr logr.Logger
 
@@ -131,6 +135,10 @@ func (o *Options) addAppFlags(fs *pflag.FlagSet) {
 	fs.StringVar(&o.ReadyzPath,
 		"readiness-probe-path", "/readyz",
 		"HTTP path to expose the readiness probe server.")
+
+	fs.IntVar(&o.MetricsPort,
+		"metrics-port", 9402,
+		"Port to expose Prometheus metrics on 0.0.0.0 on path '/metrics'.")
 }
 
 func (o *Options) addTLSFlags(fs *pflag.FlagSet) {
