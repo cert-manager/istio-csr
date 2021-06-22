@@ -43,6 +43,7 @@ type Options struct {
 
 	// Namespace is the namespace that CertificateRequests will be created in.
 	Namespace string
+
 	// IssuerRef is used as the issuerRef on created CertificateRequests.
 	IssuerRef cmmeta.ObjectReference
 }
@@ -123,7 +124,7 @@ func (m *Manager) Sign(ctx context.Context, identities string, csrPEM []byte, du
 			// Use the Background context so that this call is not cancelled by the
 			// gRPC context closing.
 			if err := m.client.Delete(context.Background(), cr.Name, metav1.DeleteOptions{}); err != nil {
-				log.Error(err, "failed to delete serving CertificateRequest")
+				log.Error(err, "failed to delete CertificateRequest")
 				return
 			}
 
@@ -134,6 +135,10 @@ func (m *Manager) Sign(ctx context.Context, identities string, csrPEM []byte, du
 	return Bundle{Certificate: cr.Status.Certificate, CA: cr.Status.CA}, nil
 }
 
+// waitForCertificateRequest will set a watch for the CertificateRequest, and
+// will return the CertificateRequest once it has reached a terminal state. If
+// the terminal state is either Denied or Failed, then this will also return an
+// error.
 func (m *Manager) waitForCertificateRequest(ctx context.Context, log logr.Logger, cr *cmapi.CertificateRequest) (*cmapi.CertificateRequest, error) {
 	watcher, err := m.client.Watch(ctx, metav1.ListOptions{
 		FieldSelector: fields.OneTermEqualSelector(metav1.ObjectNameField, cr.Name).String(),
@@ -141,15 +146,15 @@ func (m *Manager) waitForCertificateRequest(ctx context.Context, log logr.Logger
 	if err != nil {
 		return cr, fmt.Errorf("failed to build watcher for CertificateRequest: %w", err)
 	}
-
 	defer watcher.Stop()
 
+	// Get the request in-case it has already reached a terminal state.
+	cr, err = m.client.Get(ctx, cr.Name, metav1.GetOptions{})
+	if err != nil {
+		return cr, fmt.Errorf("failed to get CertificateRequest: %w", err)
+	}
+
 	for {
-		log.V(3).Info("waiting for CertificateRequest to become ready")
-
-		w := <-watcher.ResultChan()
-		cr = w.Object.(*cmapi.CertificateRequest)
-
 		if apiutil.CertificateRequestIsDenied(cr) {
 			return cr, fmt.Errorf("created CertificateRequest has been denied: %v", cr.Status.Conditions)
 		}
@@ -165,5 +170,10 @@ func (m *Manager) waitForCertificateRequest(ctx context.Context, log logr.Logger
 		if len(cr.Status.Certificate) > 0 {
 			return cr, nil
 		}
+
+		log.V(3).Info("waiting for CertificateRequest to become ready")
+
+		w := <-watcher.ResultChan()
+		cr = w.Object.(*cmapi.CertificateRequest)
 	}
 }
