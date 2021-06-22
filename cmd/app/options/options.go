@@ -24,11 +24,7 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-	"istio.io/istio/pkg/config/mesh"
-	"istio.io/istio/pkg/jwt"
-	"istio.io/istio/security/pkg/server/ca/authenticate/kubeauth"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
-	"k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/rest"
 	cliflag "k8s.io/component-base/cli/flag"
@@ -46,11 +42,17 @@ type Options struct {
 	logLevel        string
 	kubeConfigFlags *genericclioptions.ConfigFlags
 
-	Logr       logr.Logger
-	RestConfig *rest.Config
+	// ReadyzPort if the port used to expose Prometheus metrics.
+	ReadyzPort int
+	// ReadyzPath if the HTTP path used to expose Prometheus metrics.
+	ReadyzPath string
 
-	// ClusterID is the ID of the cluster to verify requests to.
-	ClusterID string
+	// Logr is the shared base logger.
+	Logr logr.Logger
+
+	// RestConfig is the shared based rest config to connect to the Kubernetes
+	// API.
+	RestConfig *rest.Config
 
 	CertManager certmanager.Options
 	TLS         tls.Options
@@ -84,15 +86,6 @@ func (o *Options) Complete() error {
 	if err != nil {
 		return fmt.Errorf("failed to build kubernetes rest config: %s", err)
 	}
-
-	kubeClient, err := kubernetes.NewForConfig(o.RestConfig)
-	if err != nil {
-		return fmt.Errorf("failed to build kubernetes client: %s", err)
-	}
-
-	meshcnf := mesh.DefaultMeshConfig()
-	meshcnf.TrustDomain = o.TLS.TrustDomain
-	o.Server.Auther = kubeauth.NewKubeJWTAuthenticator(mesh.NewFixedWatcher(&meshcnf), kubeClient, o.ClusterID, nil, jwt.PolicyThirdParty)
 
 	return nil
 }
@@ -131,8 +124,13 @@ func (o *Options) addAppFlags(fs *pflag.FlagSet) {
 		"log-level", "v", "1",
 		"Log level (1-5).")
 
-	fs.StringVar(&o.ClusterID, "cluster-id", "Kubernetes",
-		"The ID of the istio cluster to verify.")
+	fs.IntVar(&o.ReadyzPort,
+		"readiness-probe-port", 6060,
+		"Port to expose the readiness probe.")
+
+	fs.StringVar(&o.ReadyzPath,
+		"readiness-probe-path", "/readyz",
+		"HTTP path to expose the readiness probe server.")
 }
 
 func (o *Options) addTLSFlags(fs *pflag.FlagSet) {
@@ -187,6 +185,9 @@ func (o *Options) addServerFlags(fs *pflag.FlagSet) {
 		"max-client-certificate-duration", "m", time.Hour*24,
 		"Maximum duration a client certificate can be requested and valid for. Will "+
 			"override with this value if the requested duration is larger")
+
+	fs.StringVar(&o.Server.ClusterID, "cluster-id", "Kubernetes",
+		"The ID of the istio cluster to verify.")
 }
 
 func (o *Options) addControllerFlags(fs *pflag.FlagSet) {
@@ -197,12 +198,4 @@ func (o *Options) addControllerFlags(fs *pflag.FlagSet) {
 	fs.StringVar(&o.Controller.LeaderElectionNamespace,
 		"leader-election-namespace", "istio-system",
 		"Namespace to use for controller leader election.")
-
-	fs.IntVar(&o.Controller.ReadyzPort,
-		"readiness-probe-port", 6060,
-		"Port to expose the readiness probe.")
-
-	fs.StringVar(&o.Controller.ReadyzPath,
-		"readiness-probe-path", "/readyz",
-		"HTTP path to expose the readiness probe server.")
 }
