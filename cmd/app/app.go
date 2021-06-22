@@ -67,9 +67,9 @@ func NewCommand(ctx context.Context) *cobra.Command {
 				return fmt.Errorf("error creating kubernetes client: %s", err.Error())
 			}
 
-			log := opts.Logr.WithName("manager")
+			mlog := opts.Logr.WithName("manager")
 			eventBroadcaster := record.NewBroadcaster()
-			eventBroadcaster.StartLogging(func(format string, args ...interface{}) { log.V(3).Info(fmt.Sprintf(format, args...)) })
+			eventBroadcaster.StartLogging(func(format string, args ...interface{}) { mlog.V(3).Info(fmt.Sprintf(format, args...)) })
 			eventBroadcaster.StartRecordingToSink(&clientv1.EventSinkImpl{Interface: cl.CoreV1().Events("istio-system")})
 
 			mgr, err := ctrl.NewManager(opts.RestConfig, ctrl.Options{
@@ -81,7 +81,8 @@ func NewCommand(ctx context.Context) *cobra.Command {
 				LeaderElectionReleaseOnCancel: true,
 				ReadinessEndpointName:         opts.ReadyzPath,
 				HealthProbeBindAddress:        fmt.Sprintf("0.0.0.0:%d", opts.ReadyzPort),
-				Logger:                        log,
+				MetricsBindAddress:            fmt.Sprintf("0.0.0.0:%d", opts.MetricsPort),
+				Logger:                        mlog,
 			})
 			if err != nil {
 				return fmt.Errorf("failed to create manager: %w", err)
