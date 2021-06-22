@@ -31,7 +31,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/cert-manager/istio-csr/pkg/server"
 	"github.com/cert-manager/istio-csr/test/e2e/framework"
 	cmclient "github.com/cert-manager/istio-csr/test/e2e/suite/internal/client"
 	"github.com/cert-manager/istio-csr/test/gen"
@@ -264,7 +263,7 @@ var _ = framework.CasesDescribe("Request Authentication", func() {
 
 		var createdCR *cmapi.CertificateRequest
 		for _, cr := range crs.Items {
-			if val, ok := cr.Annotations[server.IdentitiesAnnotationKey]; ok && val == id {
+			if val, ok := cr.Annotations["istio.cert-manager.io/identities"]; ok && val == id {
 				createdCR = &cr
 				break
 			}
