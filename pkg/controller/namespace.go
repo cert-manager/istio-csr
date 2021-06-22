@@ -24,16 +24,9 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/kubernetes/scheme"
-	clientv1 "k8s.io/client-go/kubernetes/typed/core/v1"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 )
@@ -43,18 +36,19 @@ const (
 )
 
 type Options struct {
-	// Data is the data which will be written to the ConfigMap in all namespaces
-	Data map[string]string
-
 	// ConfigMapName is the name of the ConfigMap to write the data to all
 	// namespaces.
 	ConfigMapName string
 
+	// LeaderElectionNamespace is the namespace that will be used to lease the
+	// leader election of each controller.
 	LeaderElectionNamespace string
-
-	ReadyzPort int
-	ReadyzPath string
 }
+
+type caGetter func() []byte
+
+// CARoot manages reconciles a configmap in each namespace with the root CA
+// data
 
 // CARoot reconciles a configmap in each namespace with a desired set of data.
 type CARoot struct {
@@ -62,68 +56,39 @@ type CARoot struct {
 	mgr manager.Manager
 }
 
+// namespace is a controller used for reconciles over Namespaces.
 type namespace struct {
 	log    logr.Logger
 	client client.Client
 	*enforcer
 }
 
+// configmap is a controller used for reconciling over ConfigMaps.
 type configmap struct {
 	log    logr.Logger
 	client client.Client
 	*enforcer
 }
 
+// enforcer is a utility for enforcing the correct data is present in the given
+// ConfigMap name.
 type enforcer struct {
 	client        client.Client
-	data          map[string]string
+	rootCA        caGetter
 	configMapName string
 }
 
-func NewCARootController(log logr.Logger,
-	restConfig *rest.Config,
-	healthz healthz.Checker,
+func AddCARootController(log logr.Logger,
+	mgr manager.Manager,
+	rootCA caGetter,
 	opts Options,
-) (*CARoot, error) {
+) error {
 
 	log = log.WithName("ca-root-controller").WithValues("configmap-name", opts.ConfigMapName)
 
-	intscheme := runtime.NewScheme()
-	if err := scheme.AddToScheme(intscheme); err != nil {
-		return nil, fmt.Errorf("failed to add kubernetes scheme: %s", err)
-	}
-
-	cl, err := kubernetes.NewForConfig(restConfig)
-	if err != nil {
-		return nil, fmt.Errorf("error creating kubernetes client: %s", err.Error())
-	}
-
-	eventBroadcaster := record.NewBroadcaster()
-	eventBroadcaster.StartLogging(func(format string, args ...interface{}) { log.V(3).Info(fmt.Sprintf(format, args...)) })
-	eventBroadcaster.StartRecordingToSink(&clientv1.EventSinkImpl{Interface: cl.CoreV1().Events("istio-system")})
-
-	mgr, err := ctrl.NewManager(restConfig, ctrl.Options{
-		Scheme:                        intscheme,
-		EventBroadcaster:              eventBroadcaster,
-		LeaderElection:                true,
-		LeaderElectionNamespace:       opts.LeaderElectionNamespace,
-		LeaderElectionID:              "istio-csr",
-		LeaderElectionReleaseOnCancel: true,
-		ReadinessEndpointName:         opts.ReadyzPath,
-		HealthProbeBindAddress:        fmt.Sprintf("0.0.0.0:%d", opts.ReadyzPort),
-		Logger:                        log,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("unable to start manager: %s", err)
-	}
-
-	if err := mgr.AddReadyzCheck("istio-csr", healthz); err != nil {
-		return nil, fmt.Errorf("failed to add istio-csr readiness checks: %s", err)
-	}
-
 	enforcer := &enforcer{
 		client:        mgr.GetClient(),
-		data:          opts.Data,
+		rootCA:        rootCA,
 		configMapName: opts.ConfigMapName,
 	}
 
@@ -141,7 +106,7 @@ func NewCARootController(log logr.Logger,
 	if err := ctrl.NewControllerManagedBy(mgr).
 		For(new(corev1.Namespace)).
 		Complete(namespace); err != nil {
-		return nil, fmt.Errorf("failed to create namespace controller: %s", err)
+		return fmt.Errorf("failed to create namespace controller: %s", err)
 	}
 
 	// Only reconcile config maps that match the well known name
@@ -154,19 +119,10 @@ func NewCARootController(log logr.Logger,
 			return true
 		})).
 		Complete(configmap); err != nil {
-		return nil, fmt.Errorf("failed to create configmap controller: %s", err)
+		return fmt.Errorf("failed to create configmap controller: %s", err)
 	}
 
-	return &CARoot{
-		mgr: mgr,
-		log: log,
-	}, nil
-}
-
-// Run starts the controller. This is a blocking function.
-func (c *CARoot) Run(ctx context.Context) error {
-	c.log.Info("starting controller")
-	return c.mgr.Start(ctx)
+	return nil
 }
 
 // Reconcile is called when a ConfigMap event occurs where the resource has the
@@ -184,7 +140,7 @@ func (c *configmap) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resul
 // cluster. If the resource exists, Reconcile will ensure that the ConfigMap
 // exists, CA root bundle is present.
 func (n *namespace) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	log := n.log.WithValues("namespace", req.NamespacedName.String())
+	log := n.log.WithValues("namespace", req.NamespacedName.Namespace)
 	ns := new(corev1.Namespace)
 
 	// Attempt to get the synced Namespace. If the resource no longer
@@ -212,7 +168,7 @@ func (n *namespace) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resul
 }
 
 // configmap will ensure that the provided namespace has the correct ConfigMap,
-// with the correct data and label.
+// with the correct CA and label.
 func (e *enforcer) configmap(ctx context.Context, log logr.Logger, namespace string) error {
 	var (
 		namespacedName = types.NamespacedName{
@@ -221,6 +177,14 @@ func (e *enforcer) configmap(ctx context.Context, log logr.Logger, namespace str
 		}
 		cm = new(corev1.ConfigMap)
 	)
+
+	rootCA := fmt.Sprintf("%s", e.rootCA())
+
+	// Build the data which should be present in the well-known configmap in
+	// all namespaces.
+	rootCAConfigData := map[string]string{
+		"root-cert.pem": rootCA,
+	}
 
 	log = log.WithValues("configmap", namespacedName.String())
 	err := e.client.Get(ctx, namespacedName, cm)
@@ -235,7 +199,7 @@ func (e *enforcer) configmap(ctx context.Context, log logr.Logger, namespace str
 					IstioConfigLabelKey: "true",
 				},
 			},
-			Data: e.data,
+			Data: rootCAConfigData,
 		})
 	}
 
@@ -244,15 +208,13 @@ func (e *enforcer) configmap(ctx context.Context, log logr.Logger, namespace str
 	}
 
 	var notMatch bool
-	for k, v := range e.data {
-		if kv, ok := cm.Data[k]; !ok || v != kv {
-			if cm.Data == nil {
-				cm.Data = make(map[string]string)
-			}
-
-			cm.Data[k] = v
-			notMatch = true
+	if data, ok := cm.Data["root-cert.pem"]; !ok || data != rootCA {
+		if cm.Data == nil {
+			cm.Data = make(map[string]string)
 		}
+
+		cm.Data["root-cert.pem"] = rootCA
+		notMatch = true
 	}
 
 	if val, ok := cm.Labels[IstioConfigLabelKey]; !ok || val != "true" {
