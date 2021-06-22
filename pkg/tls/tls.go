@@ -32,11 +32,27 @@ import (
 	"github.com/go-logr/logr"
 	cmapi "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1"
 	"github.com/jetstack/cert-manager/pkg/util/pki"
+	"github.com/prometheus/client_golang/prometheus"
 	"istio.io/istio/pkg/spiffe"
 	pkiutil "istio.io/istio/security/pkg/pki/util"
+	"sigs.k8s.io/controller-runtime/pkg/metrics"
 
 	"github.com/cert-manager/istio-csr/pkg/certmanager"
 )
+
+var (
+	metricCertRequest = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace: "cert_manager_istio_csr",
+			Name:      "tls_provider_certificate_requests",
+			Help:      "Total number of certificate signing requests attempted for serving TLS. Success is 1 if there is no error, 0 otherwise.",
+		}, []string{"success"},
+	)
+)
+
+func init() {
+	metrics.Registry.MustRegister(metricCertRequest)
+}
 
 type Options struct {
 	// TrustDomain is the trust domain to use for this mesh.
@@ -222,6 +238,11 @@ func (p *Provider) RootCA() []byte {
 // fails, returns error.
 // Returns the NotAfter timestamp that the new signed certificate expires.
 func (p *Provider) fetchCertificate(ctx context.Context) (time.Time, error) {
+	// Increment certificate request metric by 1. Success label is 0 unless there
+	// is no error where it is changed to 1.
+	success := "0"
+	defer func() { metricCertRequest.With(prometheus.Labels{"success": success}).Inc() }()
+
 	opts := pkiutil.CertOptions{
 		Host:       strings.Join(p.opts.ServingCertificateDNSNames, ","),
 		IsServer:   true,
@@ -276,6 +297,11 @@ func (p *Provider) fetchCertificate(ctx context.Context) (time.Time, error) {
 	rootCA := x509.NewCertPool()
 	rootCA.AppendCertsFromPEM(p.rootCA)
 
+	cert, err := pki.DecodeX509CertificateBytes(bundle.Certificate)
+	if err != nil {
+		return time.Time{}, fmt.Errorf("failed to parse signed certificate: %w", err)
+	}
+
 	// Build the actual TLS config which will be used for serving and exposed by
 	// this provider. This config will serve using the just signed certificate
 	// and private key. Mutually authenticate incoming client requests based if a
@@ -293,10 +319,7 @@ func (p *Provider) fetchCertificate(ctx context.Context) (time.Time, error) {
 		},
 	}
 
-	cert, err := pki.DecodeX509CertificateBytes(bundle.Certificate)
-	if err != nil {
-		return time.Time{}, err
-	}
+	success = "1"
 
 	return cert.NotAfter, nil
 }
