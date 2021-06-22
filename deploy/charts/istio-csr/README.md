@@ -25,12 +25,12 @@ A Helm chart for istio-csr
 | app.certmanager.issuer.name | string | `"istio-ca"` | Issuer name set on created CertificateRequests for both istio-csr's serving certificate and incoming gRPC CSRs. |
 | app.certmanager.namespace | string | `"istio-system"` | Namespace to create CertificateRequests for both istio-csr's serving certificate and incoming gRPC CSRs. |
 | app.certmanager.preserveCertificateRequests | bool | `false` | Don't delete created CertificateRequests once they have been signed. |
-| app.clusterID | string | `"Kubernetes"` | The istio cluster ID to verify incoming CSRs. |
 | app.controller.leaderElectionNamespace | string | `"istio-system"` |  |
-| app.controller.readinessProbe.path | string | `"/readyz"` | Path to expose istio-csr HTTP readiness probe on default network interface. |
-| app.controller.readinessProbe.port | int | `6060` | Container port to expose istio-csr HTTP readiness probe on default network interface. |
 | app.controller.rootCAConfigMapName | string | `"istio-ca-root-cert"` | Name of ConfigMap that should contain the root CA in all namespaces. |
 | app.logLevel | int | `1` | Verbosity of istio-csr logging. |
+| app.readinessProbe.path | string | `"/readyz"` | Path to expose istio-csr HTTP readiness probe on default network interface. |
+| app.readinessProbe.port | int | `6060` | Container port to expose istio-csr HTTP readiness probe on default network interface. |
+| app.server.clusterID | string | `"Kubernetes"` | The istio cluster ID to verify incoming CSRs. |
 | app.server.maxCertificateDuration | string | `"24h"` | Maximum validity duration that can be requested for a certificate. istio-csr will request a duration of the smaller of this value, and that of the incoming gRPC CSR. |
 | app.server.serving.address | string | `"0.0.0.0"` | Container address to serve istio-csr gRPC service. |
 | app.server.serving.port | int | `6443` | Container port to serve istio-csr gRPC service. |
