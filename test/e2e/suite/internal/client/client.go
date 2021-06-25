@@ -45,15 +45,18 @@ type certmanagerClient struct {
 	caEndpoint    string
 	enableTLS     bool
 	caTLSRootCert []byte
-	client        securityapi.IstioCertificateServiceClient
 	clusterID     string
-	conn          *grpc.ClientConn
+	token         string
+
+	client securityapi.IstioCertificateServiceClient
+	conn   *grpc.ClientConn
 }
 
 // NewCertManagerClient create a CA client for cert-manager istio agent.
-func NewCertManagerClient(endpoint string, tls bool, rootCert []byte, clusterID string) (security.Client, error) {
+func NewCertManagerClient(endpoint, token string, tls bool, rootCert []byte, clusterID string) (security.Client, error) {
 	c := &certmanagerClient{
 		caEndpoint:    endpoint,
+		token:         token,
 		enableTLS:     tls,
 		caTLSRootCert: rootCert,
 		clusterID:     clusterID,
@@ -70,35 +73,22 @@ func NewCertManagerClient(endpoint string, tls bool, rootCert []byte, clusterID 
 }
 
 // CSR Sign calls cert-manager istio-csr to sign a CSR.
-func (c *certmanagerClient) CSRSign(ctx context.Context, reqID string, csrPEM []byte, token string,
-	certValidTTLInSec int64) ([]string /*PEM-encoded certificate chain*/, error) {
+func (c *certmanagerClient) CSRSign(csrPEM []byte, certValidTTLInSec int64) ([]string, error) {
 	req := &securityapi.IstioCertificateRequest{
 		Csr:              string(csrPEM),
 		ValidityDuration: certValidTTLInSec,
 	}
-
-	if token != "" {
-		// add Bearer prefix, which is required by cert-manager istio agent.
-		token = bearerTokenPrefix + token
-		ctx = metadata.NewOutgoingContext(ctx, metadata.Pairs("Authorization", token, "ClusterID", c.clusterID))
-	} else {
-		// This may use the per call credentials, if enabled.
-		err := c.reconnect()
-		if err != nil {
-			certmanagerClientLog.Errorf("Failed to Reconnect: %v", err)
-			return nil, err
-		}
+	if err := c.reconnect(); err != nil {
+		return nil, err
 	}
-
+	ctx := metadata.NewOutgoingContext(context.Background(), metadata.Pairs("Authorization", bearerTokenPrefix+c.token, "ClusterID", c.clusterID))
 	resp, err := c.client.CreateCertificate(ctx, req)
 	if err != nil {
-		certmanagerClientLog.Errorf("Failed to create certificate: %v", err)
-		return nil, err
+		return nil, fmt.Errorf("create certificate: %v", err)
 	}
 
 	if len(resp.CertChain) <= 1 {
-		certmanagerClientLog.Errorf("CertChain length is %d, expected more than 1", len(resp.CertChain))
-		return nil, errors.New("invalid response cert chain")
+		return nil, errors.New("invalid empty CertChain")
 	}
 
 	return resp.CertChain, nil
@@ -176,4 +166,10 @@ func (c *certmanagerClient) reconnect() error {
 	c.conn = conn
 	c.client = securityapi.NewIstioCertificateServiceClient(conn)
 	return err
+}
+
+func (c *certmanagerClient) Close() {
+	if c.conn != nil {
+		c.conn.Close()
+	}
 }

@@ -28,7 +28,6 @@ import (
 	cmapi "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"istio.io/istio/pkg/security"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -42,8 +41,6 @@ var _ = framework.CasesDescribe("Request Authentication", func() {
 	f := framework.NewDefaultFramework("request-authentication")
 
 	var (
-		client security.Client
-
 		rootCA    string
 		saToken   string
 		saName    string
@@ -61,9 +58,6 @@ var _ = framework.CasesDescribe("Request Authentication", func() {
 		if !ok {
 			Expect(cm, "epected CA root cert not present").NotTo(HaveOccurred())
 		}
-
-		client, err = cmclient.NewCertManagerClient("localhost:30443", true, []byte(rootCA), "")
-		Expect(err).NotTo(HaveOccurred())
 
 		ns, err := f.KubeClientSet.CoreV1().Namespaces().Create(context.TODO(), &corev1.Namespace{
 			ObjectMeta: metav1.ObjectMeta{
@@ -114,12 +108,16 @@ var _ = framework.CasesDescribe("Request Authentication", func() {
 			gen.SetCSRIdentities([]string{fmt.Sprintf("spiffe://foo.bar/ns/%s/sa/%s", namespace, saName)}),
 		)
 		Expect(err).NotTo(HaveOccurred())
-		_, err = client.CSRSign(context.TODO(), "", csr, "bad token", 100)
+		client, err := cmclient.NewCertManagerClient("localhost:30443", "bad token", true, []byte(rootCA), "")
+		Expect(err).NotTo(HaveOccurred())
+		_, err = client.CSRSign(csr, 100)
 		Expect(err).To(HaveOccurred())
 	})
 
 	It("should reject a request with a bad csr", func() {
-		_, err := client.CSRSign(context.TODO(), "", []byte("bad csr"), saToken, 100)
+		client, err := cmclient.NewCertManagerClient("localhost:30443", saToken, true, []byte(rootCA), "")
+		Expect(err).NotTo(HaveOccurred())
+		_, err = client.CSRSign([]byte("bad csr"), 100)
 		Expect(err).To(HaveOccurred())
 	})
 
@@ -131,7 +129,9 @@ var _ = framework.CasesDescribe("Request Authentication", func() {
 		)
 		Expect(err).NotTo(HaveOccurred())
 
-		_, err = client.CSRSign(context.TODO(), "", csr, saToken, 100)
+		client, err := cmclient.NewCertManagerClient("localhost:30443", saToken, true, []byte(rootCA), "")
+		Expect(err).NotTo(HaveOccurred())
+		_, err = client.CSRSign(csr, 100)
 		Expect(err).To(HaveOccurred())
 	})
 
@@ -143,7 +143,9 @@ var _ = framework.CasesDescribe("Request Authentication", func() {
 		)
 		Expect(err).NotTo(HaveOccurred())
 
-		_, err = client.CSRSign(context.TODO(), "", csr, saToken, 100)
+		client, err := cmclient.NewCertManagerClient("localhost:30443", saToken, true, []byte(rootCA), "")
+		Expect(err).NotTo(HaveOccurred())
+		_, err = client.CSRSign(csr, 100)
 		Expect(err).To(HaveOccurred())
 	})
 
@@ -155,7 +157,9 @@ var _ = framework.CasesDescribe("Request Authentication", func() {
 		)
 		Expect(err).NotTo(HaveOccurred())
 
-		_, err = client.CSRSign(context.TODO(), "", csr, saToken, 100)
+		client, err := cmclient.NewCertManagerClient("localhost:30443", saToken, true, []byte(rootCA), "")
+		Expect(err).NotTo(HaveOccurred())
+		_, err = client.CSRSign(csr, 100)
 		Expect(err).To(HaveOccurred())
 	})
 
@@ -167,7 +171,9 @@ var _ = framework.CasesDescribe("Request Authentication", func() {
 		)
 		Expect(err).NotTo(HaveOccurred())
 
-		_, err = client.CSRSign(context.TODO(), "", csr, saToken, 100)
+		client, err := cmclient.NewCertManagerClient("localhost:30443", saToken, true, []byte(rootCA), "")
+		Expect(err).NotTo(HaveOccurred())
+		_, err = client.CSRSign(csr, 100)
 		Expect(err).To(HaveOccurred())
 	})
 
@@ -177,7 +183,9 @@ var _ = framework.CasesDescribe("Request Authentication", func() {
 		)
 		Expect(err).NotTo(HaveOccurred())
 
-		_, err = client.CSRSign(context.TODO(), "", csr, saToken, 100)
+		client, err := cmclient.NewCertManagerClient("localhost:30443", saToken, true, []byte(rootCA), "")
+		Expect(err).NotTo(HaveOccurred())
+		_, err = client.CSRSign(csr, 100)
 		Expect(err).To(HaveOccurred())
 	})
 
@@ -188,7 +196,9 @@ var _ = framework.CasesDescribe("Request Authentication", func() {
 		)
 		Expect(err).NotTo(HaveOccurred())
 
-		_, err = client.CSRSign(context.TODO(), "", csr, saToken, 100)
+		client, err := cmclient.NewCertManagerClient("localhost:30443", saToken, true, []byte(rootCA), "")
+		Expect(err).NotTo(HaveOccurred())
+		_, err = client.CSRSign(csr, 100)
 		Expect(err).To(HaveOccurred())
 	})
 
@@ -200,7 +210,10 @@ var _ = framework.CasesDescribe("Request Authentication", func() {
 			gen.SetCSRIdentities([]string{id}),
 		)
 		Expect(err).NotTo(HaveOccurred())
-		certs, err := client.CSRSign(context.TODO(), "", csr, saToken, 100)
+
+		client, err := cmclient.NewCertManagerClient("localhost:30443", saToken, true, []byte(rootCA), "")
+		Expect(err).NotTo(HaveOccurred())
+		certs, err := client.CSRSign(csr, 100)
 		Expect(err).NotTo(HaveOccurred())
 
 		By("verify the returned root and leaf certificates are valid")
@@ -258,19 +271,19 @@ var _ = framework.CasesDescribe("Request Authentication", func() {
 		}
 
 		if createdCR == nil {
-			Expect("did not find created CertificateRequest for identity").NotTo(HaveOccurred())
+			Fail(fmt.Sprintf("did not find created CertificateRequest for identity %q", id))
 		}
 		if !bytes.Equal(createdCR.Spec.Request, csr) {
-			Expect("request did not match that in CertificateRequest").NotTo(HaveOccurred())
+			Fail("request did not match that in CertificateRequest")
 		}
 		if createdCR.Spec.IsCA {
-			Expect("unexpected IsCA on CertificateRequest").NotTo(HaveOccurred())
+			Fail("unexpected IsCA on CertificateRequest")
 		}
 		if reflect.DeepEqual(createdCR.Spec.Duration, metav1.Duration{Duration: time.Second * 100}) {
-			Expect(
-				fmt.Errorf("duration did not match that expected in request, exp=%s got=%s",
-					time.Duration(time.Second*100), createdCR.Spec.Duration),
-			).NotTo(HaveOccurred())
+			Fail(fmt.Sprintf(
+				"duration did not match that expected in request, exp=%s got=%s",
+				time.Duration(time.Second*100), createdCR.Spec.Duration),
+			)
 		}
 	})
 })
