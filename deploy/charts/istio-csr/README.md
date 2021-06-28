@@ -20,10 +20,10 @@ A Helm chart for istio-csr
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| app.certmanager.issuer.group | string | `"cert-manager.io"` | Issuer group name set on created CertificateRequests from incoming gRPC CSRs. |
-| app.certmanager.issuer.kind | string | `"Issuer"` | Issuer kind set on created CertificateRequests from incoming gRPC CSRs. |
-| app.certmanager.issuer.name | string | `"istio-ca"` | Issuer name set on created CertificateRequests from incoming gRPC CSRs. |
-| app.certmanager.namespace | string | `"istio-system"` | Namespace to create CertificateRequests from incoming gRPC CSRs. |
+| app.certmanager.issuer.group | string | `"cert-manager.io"` | Issuer group name set on created CertificateRequests for both istio-csr's serving certificate and incoming gRPC CSRs. |
+| app.certmanager.issuer.kind | string | `"Issuer"` | Issuer kind set on created CertificateRequests for both istio-csr's serving certificate and incoming gRPC CSRs. |
+| app.certmanager.issuer.name | string | `"istio-ca"` | Issuer name set on created CertificateRequests for both istio-csr's serving certificate and incoming gRPC CSRs. |
+| app.certmanager.namespace | string | `"istio-system"` | Namespace to create CertificateRequests for both istio-csr's serving certificate and incoming gRPC CSRs. |
 | app.certmanager.preserveCertificateRequests | bool | `false` | Don't delete created CertificateRequests once they have been signed. |
 | app.clusterID | string | `"Kubernetes"` | The istio cluster ID to verify incoming CSRs. |
 | app.controller.leaderElectionNamespace | string | `"istio-system"` |  |
@@ -45,6 +45,6 @@ A Helm chart for istio-csr
 | resources | object | `{}` |  |
 | service.port | int | `443` | Service port to expose istio-csr gRPC service. |
 | service.type | string | `"ClusterIP"` | Service type to expose istio-csr gRPC service. |
-| volumeMounts | list | `[]` |  |
-| volumes | list | `[]` | Optional extra mounts. Useful for mounting custom root CAs |
+| volumeMounts | list | `[]` | Optional extra volume mounts. Useful for mounting custom root CAs |
+| volumes | list | `[]` | Optional extra volumes. Useful for mounting custom root CAs |
 

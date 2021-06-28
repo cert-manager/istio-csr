@@ -23,16 +23,20 @@ app:
   clusterID: "Kubernetes"
 
   certmanager:
-    # -- Namespace to create CertificateRequests from incoming gRPC CSRs.
+    # -- Namespace to create CertificateRequests for both istio-csr's serving
+    # certificate and incoming gRPC CSRs.
     namespace: istio-system
     # -- Don't delete created CertificateRequests once they have been signed.
     preserveCertificateRequests: false
     issuer:
-      # -- Issuer name set on created CertificateRequests from incoming gRPC CSRs.
+      # -- Issuer name set on created CertificateRequests for both istio-csr's
+      # serving certificate and incoming gRPC CSRs.
       name: istio-ca
-      # -- Issuer kind set on created CertificateRequests from incoming gRPC CSRs.
+      # -- Issuer kind set on created CertificateRequests for both istio-csr's
+      # serving certificate and incoming gRPC CSRs.
       kind: Issuer
-      # -- Issuer group name set on created CertificateRequests from incoming gRPC CSRs.
+      # -- Issuer group name set on created CertificateRequests for both
+      # istio-csr's serving certificate and incoming gRPC CSRs.
       group: cert-manager.io
 
   tls:
