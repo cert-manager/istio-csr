@@ -29,21 +29,34 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
 	clientv1 "k8s.io/client-go/kubernetes/typed/core/v1"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
-
-	"github.com/cert-manager/istio-csr/cmd/app/options"
 )
 
 const (
 	IstioConfigLabelKey = "istio.io/config"
 )
 
-// CARoot manages reconciles a configmap in each namespace with a desired set of data.
+type Options struct {
+	// Data is the data which will be written to the ConfigMap in all namespaces
+	Data map[string]string
+
+	// ConfigMapName is the name of the ConfigMap to write the data to all
+	// namespaces.
+	ConfigMapName string
+
+	LeaderElectionNamespace string
+
+	ReadyzPort int
+	ReadyzPath string
+}
+
+// CARoot reconciles a configmap in each namespace with a desired set of data.
 type CARoot struct {
 	log logr.Logger
 	mgr manager.Manager
@@ -67,15 +80,20 @@ type enforcer struct {
 	configMapName string
 }
 
-func NewCARootController(opts *options.Options, data map[string]string, healthz healthz.Checker) (*CARoot, error) {
-	log := opts.Logr.WithName("ca-root-controller").WithValues("configmap-name", opts.RootCAConfigMapName)
+func NewCARootController(log logr.Logger,
+	restConfig *rest.Config,
+	healthz healthz.Checker,
+	opts Options,
+) (*CARoot, error) {
+
+	log = log.WithName("ca-root-controller").WithValues("configmap-name", opts.ConfigMapName)
 
 	intscheme := runtime.NewScheme()
 	if err := scheme.AddToScheme(intscheme); err != nil {
 		return nil, fmt.Errorf("failed to add kubernetes scheme: %s", err)
 	}
 
-	cl, err := kubernetes.NewForConfig(opts.KubeOptions.RestConfig)
+	cl, err := kubernetes.NewForConfig(restConfig)
 	if err != nil {
 		return nil, fmt.Errorf("error creating kubernetes client: %s", err.Error())
 	}
@@ -84,11 +102,11 @@ func NewCARootController(opts *options.Options, data map[string]string, healthz 
 	eventBroadcaster.StartLogging(func(format string, args ...interface{}) { log.V(3).Info(fmt.Sprintf(format, args...)) })
 	eventBroadcaster.StartRecordingToSink(&clientv1.EventSinkImpl{Interface: cl.CoreV1().Events("istio-system")})
 
-	mgr, err := ctrl.NewManager(opts.KubeOptions.RestConfig, ctrl.Options{
+	mgr, err := ctrl.NewManager(restConfig, ctrl.Options{
 		Scheme:                        intscheme,
 		EventBroadcaster:              eventBroadcaster,
 		LeaderElection:                true,
-		LeaderElectionNamespace:       opts.Namespace,
+		LeaderElectionNamespace:       opts.LeaderElectionNamespace,
 		LeaderElectionID:              "istio-csr",
 		LeaderElectionReleaseOnCancel: true,
 		ReadinessEndpointName:         opts.ReadyzPath,
@@ -105,8 +123,8 @@ func NewCARootController(opts *options.Options, data map[string]string, healthz 
 
 	enforcer := &enforcer{
 		client:        mgr.GetClient(),
-		data:          data,
-		configMapName: opts.RootCAConfigMapName,
+		data:          opts.Data,
+		configMapName: opts.ConfigMapName,
 	}
 
 	namespace := &namespace{
@@ -130,7 +148,7 @@ func NewCARootController(opts *options.Options, data map[string]string, healthz 
 	if err := ctrl.NewControllerManagedBy(mgr).
 		For(new(corev1.ConfigMap)).
 		WithEventFilter(predicate.NewPredicateFuncs(func(obj client.Object) bool {
-			if obj.GetName() != opts.RootCAConfigMapName {
+			if obj.GetName() != opts.ConfigMapName {
 				return false
 			}
 			return true

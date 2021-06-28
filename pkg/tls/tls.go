@@ -30,16 +30,20 @@ import (
 
 	"github.com/go-logr/logr"
 	cmapi "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1"
-	cmmeta "github.com/jetstack/cert-manager/pkg/apis/meta/v1"
-	cmclient "github.com/jetstack/cert-manager/pkg/client/clientset/versioned/typed/certmanager/v1"
 	"istio.io/istio/pkg/spiffe"
 	pkiutil "istio.io/istio/security/pkg/pki/util"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/cert-manager/istio-csr/cmd/app/options"
+	"github.com/cert-manager/istio-csr/pkg/certmanager"
 	"github.com/cert-manager/istio-csr/pkg/util"
-	"github.com/cert-manager/istio-csr/pkg/util/healthz"
 )
+
+type Options struct {
+	TrustDomain    string
+	RootCACertFile string
+
+	ServingCertificateDuration time.Duration
+	ServingCertificateDNSNames []string
+}
 
 // Provider is used to provide a tls config containing an automatically renewed
 // private key and certificate. The provider will continue to renew the signed
@@ -47,44 +51,37 @@ import (
 // use an exposed TLS config. Consumers *MUST* using this config as is, in
 // order for the certificate and private key be renewed transparently.
 type Provider struct {
-	log logr.Logger
+	opts Options
+	log  logr.Logger
 
-	customRootCA          bool
-	preserveCRs           bool
-	servingCertificateTTL time.Duration
-	dnsNames              []string
-	rootCA                []byte
+	rootCA []byte
 
-	client    cmclient.CertificateRequestInterface
-	issuerRef cmmeta.ObjectReference
+	cm *certmanager.Manager
 
-	mu        sync.RWMutex
-	readyz    *healthz.Check
+	lock      sync.RWMutex
+	readyz    *util.Check
 	tlsConfig *tls.Config
 }
 
 // NewProvider will return a new provider where a TLS config is ready to be fetched.
-func NewProvider(ctx context.Context, log logr.Logger, tlsOptions *options.TLSOptions,
-	kubeOptions *options.KubeOptions, cmOptions *options.CertManagerOptions,
-	readyz *healthz.Check) (*Provider, error) {
-
+func NewProvider(ctx context.Context,
+	log logr.Logger,
+	cm *certmanager.Manager,
+	readyz *util.Check,
+	opts Options,
+) (*Provider, error) {
 	p := &Provider{
-		log: log.WithName("serving_certificate"),
-
-		servingCertificateTTL: tlsOptions.ServingCertificateDuration,
-		dnsNames:              tlsOptions.ServingCertificateDNSNames,
-		preserveCRs:           cmOptions.PreserveCRs,
-		customRootCA:          len(tlsOptions.RootCACertFile) > 0,
-		client:                kubeOptions.CMClient,
-		issuerRef:             cmOptions.IssuerRef,
-		readyz:                readyz,
+		opts:   opts,
+		log:    log.WithName("tls_provider"),
+		cm:     cm,
+		readyz: readyz,
 	}
 
-	if len(tlsOptions.RootCACertFile) > 0 {
-		rootCA, err := ioutil.ReadFile(tlsOptions.RootCACertFile)
+	if len(opts.RootCACertFile) > 0 {
+		rootCA, err := ioutil.ReadFile(opts.RootCACertFile)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read root CA certificate file %s: %s",
-				tlsOptions.RootCACertFile, err)
+				opts.RootCACertFile, err)
 		}
 
 		p.rootCA = rootCA
@@ -99,7 +96,7 @@ func NewProvider(ctx context.Context, log logr.Logger, tlsOptions *options.TLSOp
 	go func() {
 		for {
 			// Create a new timer every loop. Renew 2/3 into certificate duration
-			renewalTime := (2 * p.servingCertificateTTL) / 3
+			renewalTime := (2 * p.opts.ServingCertificateDuration) / 3
 			timer := time.NewTimer(renewalTime)
 
 			p.log.Info("renewing serving certificate", "renewal-time", time.Now().Add(renewalTime))
@@ -157,8 +154,8 @@ func (p *Provider) mustFetchCertificate(ctx context.Context) {
 // TLSConfig should be used by consumers of the provider to get a TLS config
 // which will have the signed certificate and private key appropriately renewed
 func (p *Provider) TLSConfig() (*tls.Config, error) {
-	p.mu.RLock()
-	defer p.mu.RUnlock()
+	p.lock.RLock()
+	defer p.lock.RUnlock()
 	if p.tlsConfig == nil {
 		return nil, errors.New("provider not configured, TLS config not ready")
 	}
@@ -172,15 +169,15 @@ func (p *Provider) TLSConfig() (*tls.Config, error) {
 // getConfigForClient will return a TLS config based upon the current signed
 // certificate and private key the provider holds.
 func (p *Provider) getConfigForClient(_ *tls.ClientHelloInfo) (*tls.Config, error) {
-	p.mu.RLock()
-	defer p.mu.RUnlock()
+	p.lock.RLock()
+	defer p.lock.RUnlock()
 	return p.tlsConfig, nil
 }
 
 // RootCA returns the configured CA certificate
 func (p *Provider) RootCA() []byte {
-	p.mu.RLock()
-	defer p.mu.RUnlock()
+	p.lock.RLock()
+	defer p.lock.RUnlock()
 	return p.rootCA
 }
 
@@ -190,9 +187,9 @@ func (p *Provider) RootCA() []byte {
 // fails, returns error.
 func (p *Provider) fetchCertificate(ctx context.Context) error {
 	opts := pkiutil.CertOptions{
-		Host:       strings.Join(p.dnsNames, ","),
+		Host:       strings.Join(p.opts.ServingCertificateDNSNames, ","),
 		IsServer:   true,
-		TTL:        p.servingCertificateTTL,
+		TTL:        p.opts.ServingCertificateDuration,
 		RSAKeySize: 2048,
 	}
 
@@ -202,62 +199,20 @@ func (p *Provider) fetchCertificate(ctx context.Context) error {
 		return fmt.Errorf("failed to generate serving private key and CSR: %s", err)
 	}
 
-	// Build the CertificateRequest for a serving certificate for this agent
-	// using the configured issuer.
-	cr := &cmapi.CertificateRequest{
-		ObjectMeta: metav1.ObjectMeta{
-			GenerateName: "cert-manager-istio-csr-",
-			Annotations: map[string]string{
-				"istio.cert-manager.io/identities": "cert-manager-istio-csr",
-			},
-		},
-		Spec: cmapi.CertificateRequestSpec{
-			Duration: &metav1.Duration{
-				Duration: p.servingCertificateTTL,
-			},
-			IsCA:      false,
-			Request:   csr,
-			Usages:    []cmapi.KeyUsage{cmapi.UsageServerAuth},
-			IssuerRef: p.issuerRef,
-		},
-	}
-
-	// Create CertificateRequest and wait for it to be successfully signed.
-	cr, err = p.client.Create(ctx, cr, metav1.CreateOptions{})
+	bundle, err := p.cm.Sign(ctx, "istio-csr-serving", csr, p.opts.ServingCertificateDuration, []cmapi.KeyUsage{cmapi.UsageServerAuth})
 	if err != nil {
-		return fmt.Errorf("failed to create serving CertificateRequest: %s", err)
+		return fmt.Errorf("failed to sign serving certificate: %w", err)
 	}
 
-	log := p.log.WithValues("namespace", cr.Namespace, "name", cr.Name)
-	log.Info("created serving CertificateRequest")
+	p.log.Info("serving certificate ready")
 
-	cr, err = util.WaitForCertificateRequestReady(ctx, log, p.client, cr.Name, time.Minute)
-	if err != nil {
-		return fmt.Errorf("failed to wait for CertificateRequest %s/%s to become ready: %s",
-			cr.Namespace, cr.Name, err)
-	}
-
-	log.Info("serving CertificateRequest ready")
-
-	// If we are no preserving CertificateRequests, delete from Kubernetes
-	if !p.preserveCRs {
-		go func() {
-			if err := p.client.Delete(ctx, cr.Name, metav1.DeleteOptions{}); err != nil {
-				log.Error(err, "failed to delete serving CertificateRequest")
-				return
-			}
-
-			log.Info("deleted serving CertificateRequest")
-		}()
-	}
-
-	p.mu.Lock()
-	defer p.mu.Unlock()
+	p.lock.Lock()
+	defer p.lock.Unlock()
 
 	// If we are not using a custom root CA, then overwrite the existing with
 	// what was responded.
-	if !p.customRootCA {
-		p.rootCA = cr.Status.CA
+	if len(p.opts.RootCACertFile) == 0 {
+		p.rootCA = bundle.CA
 	}
 
 	// Parse the root CA if it exists
@@ -275,9 +230,9 @@ func (p *Provider) fetchCertificate(ctx context.Context) error {
 
 	// Build the client certificate verifier based upon the root certificate
 	peerCertVerifier := spiffe.NewPeerCertVerifier()
-	peerCertVerifier.AddMapping(spiffe.GetTrustDomain(), []*x509.Certificate{rootCert})
+	peerCertVerifier.AddMapping(p.opts.TrustDomain, []*x509.Certificate{rootCert})
 
-	tlsCert, err := tls.X509KeyPair(cr.Status.Certificate, pk)
+	tlsCert, err := tls.X509KeyPair(bundle.Certificate, pk)
 	if err != nil {
 		return err
 	}
@@ -296,7 +251,7 @@ func (p *Provider) fetchCertificate(ctx context.Context) error {
 		VerifyPeerCertificate: func(rawCerts [][]byte, verifiedChains [][]*x509.Certificate) error {
 			err := peerCertVerifier.VerifyPeerCert(rawCerts, verifiedChains)
 			if err != nil {
-				log.Error(err, "could not verify certificate")
+				p.log.Error(err, "could not verify certificate")
 			}
 			return err
 		},

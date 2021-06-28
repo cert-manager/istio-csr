@@ -15,61 +15,74 @@ service:
   # -- Service port to expose istio-csr gRPC service.
   port: 443
 
-agent:
+app:
   # -- Verbosity of istio-csr logging.
   logLevel: 1 # 1-5
-  readinessProbe:
-    # -- Container port to expose istio-csr HTTP readiness probe on default network interface.
-    port: 6060
-    # -- Path to expose istio-csr HTTP readiness probe on default network interface.
-    path: "/readyz"
 
   # -- The istio cluster ID to verify incoming CSRs.
   clusterID: "Kubernetes"
 
-  # -- The Istio cluster's trust domain.
-  trustDomain: "cluster.local"
+  certmanager:
+    # -- Namespace to create CertificateRequests for both istio-csr's serving
+    # certificate and incoming gRPC CSRs.
+    namespace: istio-system
+    # -- Don't delete created CertificateRequests once they have been signed.
+    preserveCertificateRequests: false
+    issuer:
+      # -- Issuer name set on created CertificateRequests for both istio-csr's
+      # serving certificate and incoming gRPC CSRs.
+      name: istio-ca
+      # -- Issuer kind set on created CertificateRequests for both istio-csr's
+      # serving certificate and incoming gRPC CSRs.
+      kind: Issuer
+      # -- Issuer group name set on created CertificateRequests for both
+      # istio-csr's serving certificate and incoming gRPC CSRs.
+      group: cert-manager.io
 
-  # -- Container address to serve istio-csr gRPC service.
-  servingAddress: 0.0.0.0
-  # -- Container port to serve istio-csr gRPC service.
-  servingPort: 6443
+  tls:
+    # -- The Istio cluster's trust domain.
+    trustDomain: "cluster.local"
 
-  # -- Name of ConfigMap that should contain the root CA in all namespaces.
-  rootCAConfigMapName: istio-ca-root-cert
+    # -- An optional file location to a PEM encoded root CA that the root CA
+    # ConfigMap in all namespaces will be populated with. If empty, the CA
+    # returned from cert-manager for the serving certificate will be used.
+    rootCAFile: # /var/certs/ca.pem
 
-  # -- Requested duration of gRPC serving certificate. Will be automatically renewed.
-  certificateDuration: 24h
+    # -- The DNS names to request for the server's serving certificate which is
+    # presented to istio-agents. istio-agents must route to istio-csr using one
+    # of these DNS names.
+    certificateDNSNames:
+    - cert-manager-istio-csr.cert-manager.svc
 
-  # -- The DNS names to request for the server's serving certificate which is
-  # presented to istio-agents. istio-agents must route to istio-csr using one
-  # of these DNS names.
-  certificateDNSNames:
-  - cert-manager-istio-csr.cert-manager.svc
+    # -- Requested duration of gRPC serving certificate. Will be automatically renewed.
+    certificateDuration: 24h
 
-certificate:
-  # -- Namespace to create CertificateRequests from incoming gRPC CSRs.
-  namespace: istio-system
-  # -- Issuer group name set on created CertificateRequests from incoming gRPC CSRs.
-  group: cert-manager.io
-  # -- Issuer kind set on created CertificateRequests from incoming gRPC CSRs.
-  kind: Issuer
-  # -- Issuer name set on created CertificateRequests from incoming gRPC CSRs.
-  name: istio-ca
+  server:
+    # -- Maximum validity duration that can be requested for a certificate.
+    # istio-csr will request a duration of the smaller of this value, and that of
+    # the incoming gRPC CSR.
+    maxCertificateDuration: 24h
+    serving:
+      # -- Container address to serve istio-csr gRPC service.
+      address: 0.0.0.0
+      # -- Container port to serve istio-csr gRPC service.
+      port: 6443
 
-  # -- Maximum validity duration that can be requested for a certificate.
-  # istio-csr will request a duration of the smaller of this value, and that of
-  # the incoming gRPC CSR.
-  maxDuration: 24h
+  controller:
+    leaderElectionNamespace: istio-system
+    # -- Name of ConfigMap that should contain the root CA in all namespaces.
+    rootCAConfigMapName: istio-ca-root-cert
+    readinessProbe:
+      # -- Container port to expose istio-csr HTTP readiness probe on default network interface.
+      port: 6060
+      # -- Path to expose istio-csr HTTP readiness probe on default network interface.
+      path: "/readyz"
 
-  # -- Don't delete created CertificateRequests once they have been signed.
-  preserveCertificateRequests: false
+# -- Optional extra volumes. Useful for mounting custom root CAs
+volumes: []
+# -- Optional extra volume mounts. Useful for mounting custom root CAs
+volumeMounts: []
 
-  # -- An optional PEM encoded root CA that the root CA ConfigMap in all
-  # namespaces will be populated with. If empty, the CA returned from
-  # cert-manager for the serving certificate will be used.
-  rootCA: #|
-       #MyCACertificate
 
 resources: {}
   # -- Kubernetes pod resource limits for istio-csr.

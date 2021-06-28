@@ -22,14 +22,10 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
-	cmmeta "github.com/jetstack/cert-manager/pkg/apis/meta/v1"
-	cmversioned "github.com/jetstack/cert-manager/pkg/client/clientset/versioned"
-	cmclient "github.com/jetstack/cert-manager/pkg/client/clientset/versioned/typed/certmanager/v1"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"istio.io/istio/pkg/config/mesh"
 	"istio.io/istio/pkg/jwt"
-	"istio.io/istio/pkg/security"
 	"istio.io/istio/security/pkg/server/ca/authenticate/kubeauth"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/kubernetes"
@@ -38,63 +34,32 @@ import (
 	cliflag "k8s.io/component-base/cli/flag"
 	"k8s.io/klog/v2"
 	"k8s.io/klog/v2/klogr"
+
+	"github.com/cert-manager/istio-csr/pkg/certmanager"
+	"github.com/cert-manager/istio-csr/pkg/controller"
+	"github.com/cert-manager/istio-csr/pkg/server"
+	"github.com/cert-manager/istio-csr/pkg/tls"
 )
 
 // Options is a struct to hold options for cert-manager-istio-csr
 type Options struct {
-	*AppOptions
-	*CertManagerOptions
-	*TLSOptions
-	*KubeOptions
-}
-
-type AppOptions struct {
-	logLevel string
-	Logr     logr.Logger
-
-	ReadyzPort int
-	ReadyzPath string
-}
-
-type CertManagerOptions struct {
-	issuerName  string
-	issuerKind  string
-	issuerGroup string
-
-	MaximumClientCertificateDuration time.Duration
-
-	Namespace   string
-	PreserveCRs bool
-	IssuerRef   cmmeta.ObjectReference
-}
-
-type TLSOptions struct {
-	RootCACertFile             string
-	RootCAConfigMapName        string
-	ServingAddress             string
-	ServingCertificateDuration time.Duration
-	ServingCertificateDNSNames []string
-
-	ClusterID   string
-	TrustDomain string
-}
-
-type KubeOptions struct {
+	logLevel        string
 	kubeConfigFlags *genericclioptions.ConfigFlags
 
+	Logr       logr.Logger
 	RestConfig *rest.Config
-	KubeClient kubernetes.Interface
-	CMClient   cmclient.CertificateRequestInterface
-	Auther     security.Authenticator
+
+	// ClusterID is the ID of the cluster to verify requests to.
+	ClusterID string
+
+	CertManager certmanager.Options
+	TLS         tls.Options
+	Server      server.Options
+	Controller  controller.Options
 }
 
 func New() *Options {
-	return &Options{
-		AppOptions:         new(AppOptions),
-		CertManagerOptions: new(CertManagerOptions),
-		TLSOptions:         new(TLSOptions),
-		KubeOptions:        new(KubeOptions),
-	}
+	return new(Options)
 }
 
 func (o *Options) Prepare(cmd *cobra.Command) *Options {
@@ -110,7 +75,7 @@ func (o *Options) Complete() error {
 
 	// Ensure there is at least one DNS name to set in the serving certificate
 	// to ensure clients can properly verify the serving certificate
-	if len(o.TLSOptions.ServingCertificateDNSNames) == 0 {
+	if len(o.TLS.ServingCertificateDNSNames) == 0 {
 		return fmt.Errorf("the list of DNS names to add to the serving certificate is empty")
 	}
 
@@ -120,27 +85,14 @@ func (o *Options) Complete() error {
 		return fmt.Errorf("failed to build kubernetes rest config: %s", err)
 	}
 
-	o.KubeClient, err = kubernetes.NewForConfig(o.RestConfig)
+	kubeClient, err := kubernetes.NewForConfig(o.RestConfig)
 	if err != nil {
 		return fmt.Errorf("failed to build kubernetes client: %s", err)
 	}
 
 	meshcnf := mesh.DefaultMeshConfig()
-	meshcnf.TrustDomain = o.TLSOptions.TrustDomain
-	o.Auther = kubeauth.NewKubeJWTAuthenticator(mesh.NewFixedWatcher(&meshcnf), o.KubeClient, o.ClusterID, nil, jwt.PolicyThirdParty)
-
-	cmClient, err := cmversioned.NewForConfig(o.RestConfig)
-	if err != nil {
-		return fmt.Errorf("failed to build cert-manager client: %s", err)
-	}
-
-	o.CMClient = cmClient.CertmanagerV1().CertificateRequests(o.Namespace)
-
-	o.IssuerRef = cmmeta.ObjectReference{
-		Name:  o.issuerName,
-		Kind:  o.issuerKind,
-		Group: o.issuerGroup,
-	}
+	meshcnf.TrustDomain = o.TLS.TrustDomain
+	o.Server.Auther = kubeauth.NewKubeJWTAuthenticator(mesh.NewFixedWatcher(&meshcnf), kubeClient, o.ClusterID, nil, jwt.PolicyThirdParty)
 
 	return nil
 }
@@ -148,11 +100,13 @@ func (o *Options) Complete() error {
 func (o *Options) addFlags(cmd *cobra.Command) {
 	var nfs cliflag.NamedFlagSets
 
-	o.AppOptions.addFlags(nfs.FlagSet("App"))
-	o.TLSOptions.addFlags(nfs.FlagSet("TLS"))
-	o.CertManagerOptions.addFlags(nfs.FlagSet("cert-manager"))
-	o.KubeOptions.kubeConfigFlags = genericclioptions.NewConfigFlags(true)
-	o.KubeOptions.kubeConfigFlags.AddFlags(nfs.FlagSet("Kubernetes"))
+	o.addAppFlags(nfs.FlagSet("App"))
+	o.addCertManagerFlags(nfs.FlagSet("cert-manager"))
+	o.kubeConfigFlags = genericclioptions.NewConfigFlags(true)
+	o.kubeConfigFlags.AddFlags(nfs.FlagSet("Kubernetes"))
+	o.addTLSFlags(nfs.FlagSet("TLS"))
+	o.addServerFlags(nfs.FlagSet("Server"))
+	o.addControllerFlags(nfs.FlagSet("controller"))
 
 	usageFmt := "Usage:\n  %s\n"
 	cmd.SetUsageFunc(func(cmd *cobra.Command) error {
@@ -172,75 +126,83 @@ func (o *Options) addFlags(cmd *cobra.Command) {
 	}
 }
 
-func (a *AppOptions) addFlags(fs *pflag.FlagSet) {
-	fs.StringVarP(&a.logLevel,
+func (o *Options) addAppFlags(fs *pflag.FlagSet) {
+	fs.StringVarP(&o.logLevel,
 		"log-level", "v", "1",
 		"Log level (1-5).")
 
-	fs.IntVar(&a.ReadyzPort,
-		"readiness-probe-port", 6060,
-		"Port to expose the readiness probe.")
-
-	fs.StringVar(&a.ReadyzPath,
-		"readiness-probe-path", "/readyz",
-		"HTTP path to expose the readiness probe server.")
+	fs.StringVar(&o.ClusterID, "cluster-id", "Kubernetes",
+		"The ID of the istio cluster to verify.")
 }
 
-func (t *TLSOptions) addFlags(fs *pflag.FlagSet) {
-	fs.StringVarP(&t.ServingAddress,
-		"serving-address", "a", "0.0.0.0:443",
-		"Address to serve certificates gRPC service.")
+func (o *Options) addTLSFlags(fs *pflag.FlagSet) {
+	fs.StringVar(&o.TLS.TrustDomain,
+		"trust-domain", "cluster.local",
+		"The Istio cluster's trust domain.")
 
-	fs.DurationVarP(&t.ServingCertificateDuration,
+	fs.StringVar(&o.TLS.RootCACertFile,
+		"root-ca-file", "",
+		"File location of a PEM encoded Root CA bundle to be used as root of "+
+			"trust for TLS in the mesh. If empty, the CA returned from the "+
+			"cert-manager issuer will be used.")
+
+	fs.DurationVarP(&o.TLS.ServingCertificateDuration,
 		"serving-certificate-duration", "t", time.Hour*24,
 		"Certificate duration of serving certificates. Will be renewed after 2/3 of "+
 			"the duration.")
 
-	fs.StringSliceVar(&t.ServingCertificateDNSNames,
+	fs.StringSliceVar(&o.TLS.ServingCertificateDNSNames,
 		"serving-certificate-dns-names", []string{"cert-manager-istio-csr.cert-manager.svc"},
 		"A list of DNS names to request for the server's serving certificate which will be "+
 			"presented to istio-agents.")
 
-	fs.StringVar(&t.RootCACertFile,
-		"root-ca-file", "",
-		"File location of a PEM encoded Root CA certificate to be used as root of "+
-			"trust for TLS. If empty, the CA returned from the cert-manager issuer will "+
-			"be used.")
-
-	fs.StringVar(&t.RootCAConfigMapName,
-		"root-ca-configmap-name", "istio-ca-root-cert",
-		"The ConfigMap name to store the root CA certificate in each namespace.")
-
-	fs.StringVar(&t.ClusterID, "cluster-id", "Kubernetes",
-		"The ID of the istio cluster to verify.")
-
-	fs.StringVar(&t.TrustDomain,
-		"trust-domain", "cluster.local",
-		"The Istio cluster's trust domain.")
 }
 
-func (c *CertManagerOptions) addFlags(fs *pflag.FlagSet) {
-	fs.StringVarP(&c.issuerName,
-		"issuer-name", "u", "istio-ca",
-		"Name of the issuer to sign istio workload certificates.")
-	fs.StringVarP(&c.issuerKind,
-		"issuer-kind", "k", "Issuer",
-		"Kind of the issuer to sign istio workload certificates.")
-	fs.StringVarP(&c.issuerGroup,
-		"issuer-group", "g", "cert-manager.io",
-		"Group of the issuer to sign istio workload certificates.")
-
-	fs.DurationVarP(&c.MaximumClientCertificateDuration,
-		"max-client-certificate-duration", "m", time.Hour*24,
-		"Maximum duration a client certificate can be requested and valid for. Will "+
-			"override with this value if the requested duration is larger")
-
-	fs.BoolVarP(&c.PreserveCRs,
+func (o *Options) addCertManagerFlags(fs *pflag.FlagSet) {
+	fs.BoolVarP(&o.CertManager.PreserveCertificateRequests,
 		"preserve-certificate-requests", "d", false,
 		"If enabled, will preserve created CertificateRequests, rather than "+
 			"deleting when they are ready.")
 
-	fs.StringVarP(&c.Namespace,
+	fs.StringVarP(&o.CertManager.Namespace,
 		"certificate-namespace", "c", "istio-system",
 		"Namespace to request certificates.")
+	fs.StringVarP(&o.CertManager.IssuerRef.Name,
+		"issuer-name", "u", "istio-ca",
+		"Name of the issuer to sign istio workload certificates.")
+	fs.StringVarP(&o.CertManager.IssuerRef.Kind,
+		"issuer-kind", "k", "Issuer",
+		"Kind of the issuer to sign istio workload certificates.")
+	fs.StringVarP(&o.CertManager.IssuerRef.Group,
+		"issuer-group", "g", "cert-manager.io",
+		"Group of the issuer to sign istio workload certificates.")
+}
+
+func (o *Options) addServerFlags(fs *pflag.FlagSet) {
+	fs.StringVarP(&o.Server.ServingAddress,
+		"serving-address", "a", "0.0.0.0:6443",
+		"Address to serve certificates gRPC service.")
+
+	fs.DurationVarP(&o.Server.MaximumClientCertificateDuration,
+		"max-client-certificate-duration", "m", time.Hour*24,
+		"Maximum duration a client certificate can be requested and valid for. Will "+
+			"override with this value if the requested duration is larger")
+}
+
+func (o *Options) addControllerFlags(fs *pflag.FlagSet) {
+	fs.StringVar(&o.Controller.ConfigMapName,
+		"root-ca-configmap-name", "istio-ca-root-cert",
+		"The ConfigMap name to store the root CA certificate in each namespace.")
+
+	fs.StringVar(&o.Controller.LeaderElectionNamespace,
+		"leader-election-namespace", "istio-system",
+		"Namespace to use for controller leader election.")
+
+	fs.IntVar(&o.Controller.ReadyzPort,
+		"readiness-probe-port", 6060,
+		"Port to expose the readiness probe.")
+
+	fs.StringVar(&o.Controller.ReadyzPath,
+		"readiness-probe-path", "/readyz",
+		"HTTP path to expose the readiness probe server.")
 }

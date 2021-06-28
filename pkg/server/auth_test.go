@@ -232,8 +232,10 @@ func TestAuthRequest(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			s := &Server{
-				log:    klogr.New(),
-				auther: test.authn,
+				log: klogr.New(),
+				opts: Options{
+					Auther: test.authn,
+				},
 			}
 
 			identities, authed := s.authRequest(context.TODO(), test.inpCSR)
