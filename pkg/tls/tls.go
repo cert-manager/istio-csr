@@ -204,7 +204,7 @@ func (p *Provider) fetchCertificate(ctx context.Context) error {
 		return fmt.Errorf("failed to sign serving certificate: %w", err)
 	}
 
-	p.log.Info("serving CertificateRequest ready")
+	p.log.Info("serving certificate ready")
 
 	p.lock.Lock()
 	defer p.lock.Unlock()

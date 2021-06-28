@@ -33,7 +33,7 @@ import (
 )
 
 const (
-	identityAnnotaiton = "istio.cert-manager.io/identities"
+	identityAnnotation = "istio.cert-manager.io/identities"
 )
 
 type Options struct {
@@ -86,7 +86,7 @@ func (m *Manager) Sign(ctx context.Context, identities string, csrPEM []byte, du
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: "istio-csr-",
 			Annotations: map[string]string{
-				identityAnnotaiton: identities,
+				identityAnnotation: identities,
 			},
 		},
 		Spec: cmapi.CertificateRequestSpec{
@@ -109,7 +109,7 @@ func (m *Manager) Sign(ctx context.Context, identities string, csrPEM []byte, du
 	log := m.log.WithValues("namespace", cr.Namespace, "name", cr.Name, "identity", identities)
 	log.V(2).Info("created CertificateRequest")
 
-	cr, err = m.waitForCertificateRequest(ctx, cr)
+	cr, err = m.waitForCertificateRequest(ctx, log, cr)
 	if err != nil {
 		return Bundle{}, fmt.Errorf("failed to wait for CertificateRequest %s/%s to be signed: %w",
 			cr.Namespace, cr.Name, err)
@@ -120,7 +120,9 @@ func (m *Manager) Sign(ctx context.Context, identities string, csrPEM []byte, du
 	// If we are not preserving CertificateRequests, delete from Kubernetes
 	if !m.opts.PreserveCertificateRequests {
 		go func() {
-			if err := m.client.Delete(ctx, cr.Name, metav1.DeleteOptions{}); err != nil {
+			// Use the Background context so that this call is not cancelled by the
+			// gRPC context closing.
+			if err := m.client.Delete(context.Background(), cr.Name, metav1.DeleteOptions{}); err != nil {
 				log.Error(err, "failed to delete serving CertificateRequest")
 				return
 			}
@@ -132,7 +134,7 @@ func (m *Manager) Sign(ctx context.Context, identities string, csrPEM []byte, du
 	return Bundle{Certificate: cr.Status.Certificate, CA: cr.Status.CA}, nil
 }
 
-func (m *Manager) waitForCertificateRequest(ctx context.Context, cr *cmapi.CertificateRequest) (*cmapi.CertificateRequest, error) {
+func (m *Manager) waitForCertificateRequest(ctx context.Context, log logr.Logger, cr *cmapi.CertificateRequest) (*cmapi.CertificateRequest, error) {
 	watcher, err := m.client.Watch(ctx, metav1.ListOptions{
 		FieldSelector: fields.OneTermEqualSelector(metav1.ObjectNameField, cr.Name).String(),
 	})
@@ -143,6 +145,8 @@ func (m *Manager) waitForCertificateRequest(ctx context.Context, cr *cmapi.Certi
 	defer watcher.Stop()
 
 	for {
+		log.V(3).Info("waiting for CertificateRequest to become ready")
+
 		w := <-watcher.ResultChan()
 		cr = w.Object.(*cmapi.CertificateRequest)
 
