@@ -36,30 +36,30 @@ spec:
           patches:
 
             # Mount istiod serving and webhook certificate from Secret mount
-          - path: spec.template.spec.containers.[name:discovery].args[8]
+          - path: spec.template.spec.containers.[name:discovery].args[-1]
             value: "--tlsCertFile=/etc/cert-manager/tls/tls.crt"
-          - path: spec.template.spec.containers.[name:discovery].args[9]
+          - path: spec.template.spec.containers.[name:discovery].args[-1]
             value: "--tlsKeyFile=/etc/cert-manager/tls/tls.key"
-          - path: spec.template.spec.containers.[name:discovery].args[10]
+          - path: spec.template.spec.containers.[name:discovery].args[-1]
             value: "--caCertFile=/etc/cert-manager/ca/root-cert.pem"
 
-          - path: spec.template.spec.containers.[name:discovery].volumeMounts[6]
+          - path: spec.template.spec.containers.[name:discovery].volumeMounts[-1]
             value:
               name: cert-manager
               mountPath: "/etc/cert-manager/tls"
               readOnly: true
-          - path: spec.template.spec.containers.[name:discovery].volumeMounts[7]
+          - path: spec.template.spec.containers.[name:discovery].volumeMounts[-1]
             value:
               name: ca-root-cert
               mountPath: "/etc/cert-manager/ca"
               readOnly: true
 
-          - path: spec.template.spec.volumes[6]
+          - path: spec.template.spec.volumes[-1]
             value:
               name: cert-manager
               secret:
                 secretName: istiod-tls
-          - path: spec.template.spec.volumes[7]
+          - path: spec.template.spec.volumes[-1]
             value:
               name: ca-root-cert
               configMap:
