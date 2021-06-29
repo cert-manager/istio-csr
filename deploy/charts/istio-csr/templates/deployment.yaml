@@ -23,14 +23,15 @@ spec:
         - containerPort: {{ .Values.app.server.serving.port }}
         readinessProbe:
           httpGet:
-            port: {{ .Values.app.controller.readinessProbe.port }}
-            path: {{ .Values.app.controller.readinessProbe.path }}
+            port: {{ .Values.app.readinessProbe.port }}
+            path: {{ .Values.app.readinessProbe.path }}
           initialDelaySeconds: 3
           periodSeconds: 7
         command: ["cert-manager-istio-csr"]
         args:
           - "--log-level={{.Values.app.logLevel}}"
-          - "--cluster-id={{.Values.app.clusterID}}"
+          - "--readiness-probe-port={{.Values.app.readinessProbe.port}}"
+          - "--readiness-probe-path={{.Values.app.readinessProbe.path}}"
 
             # cert-manager
           - "--certificate-namespace={{.Values.app.certmanager.namespace}}"
@@ -49,13 +50,12 @@ spec:
           - "--trust-domain={{.Values.app.tls.trustDomain}}"
 
           # server
+          - "--cluster-id={{.Values.app.server.clusterID}}"
           - "--max-client-certificate-duration={{.Values.app.server.maxCertificateDuration}}"
           - "--serving-address={{.Values.app.server.serving.address}}:{{.Values.app.server.serving.port}}"
 
           # controller
           - "--leader-election-namespace={{.Values.app.controller.leaderElectionNamespace}}"
-          - "--readiness-probe-port={{.Values.app.controller.readinessProbe.port}}"
-          - "--readiness-probe-path={{.Values.app.controller.readinessProbe.path}}"
           - "--root-ca-configmap-name={{.Values.app.controller.rootCAConfigMapName}}"
 
       {{- if .Values.volumeMounts }}

@@ -18,9 +18,11 @@ package server
 
 import (
 	"context"
-	"crypto/tls"
+	"errors"
 	"fmt"
 	"net"
+	"net/http"
+	"sync"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -30,10 +32,15 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/status"
 	securityapi "istio.io/api/security/v1alpha1"
+	"istio.io/istio/pkg/config/mesh"
+	"istio.io/istio/pkg/jwt"
 	"istio.io/istio/pkg/security"
+	"istio.io/istio/security/pkg/server/ca/authenticate/kubeauth"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 
 	"github.com/cert-manager/istio-csr/pkg/certmanager"
-	"github.com/cert-manager/istio-csr/pkg/util"
+	"github.com/cert-manager/istio-csr/pkg/tls"
 )
 
 const (
@@ -41,9 +48,8 @@ const (
 )
 
 type Options struct {
-	// Auther is used to authenticate incoming CreateCertificate requests from
-	// clients.
-	Auther security.Authenticator
+	// ClusterID is the ID of the cluster to verify requests to.
+	ClusterID string
 
 	// Address to serve the gRPC service
 	ServingAddress string
@@ -59,27 +65,44 @@ type Server struct {
 	opts Options
 	log  logr.Logger
 
-	cm     *certmanager.Manager
-	readyz *util.Check
+	auther security.Authenticator
+
+	cm  *certmanager.Manager
+	tls *tls.Provider
+
+	ready bool
+	lock  sync.RWMutex
 }
 
 func New(log logr.Logger,
+	restConfig *rest.Config,
 	cm *certmanager.Manager,
-	readyz *util.Check,
+	tls *tls.Provider,
 	opts Options,
-) *Server {
+) (*Server, error) {
+
+	kubeClient, err := kubernetes.NewForConfig(restConfig)
+	if err != nil {
+		return nil, fmt.Errorf("failed to build kubernetes client: %s", err)
+	}
+
+	meshcnf := mesh.DefaultMeshConfig()
+	meshcnf.TrustDomain = tls.TrustDomain()
+	auther := kubeauth.NewKubeJWTAuthenticator(mesh.NewFixedWatcher(&meshcnf), kubeClient, opts.ClusterID, nil, jwt.PolicyThirdParty)
+
 	return &Server{
 		opts:   opts,
 		log:    log.WithName("grpc_server").WithValues("serving_addr", opts.ServingAddress),
+		auther: auther,
 		cm:     cm,
-		readyz: readyz,
-	}
+		tls:    tls,
+	}, nil
 }
 
-// Run is a blocking func that will run the client facing certificate service
-func (s *Server) Run(ctx context.Context, tlsConfig *tls.Config) error {
+// Start is a blocking func that will run the client facing certificate service
+func (s *Server) Start(ctx context.Context) error {
 	// Setup the grpc server using the passed TLS config
-	creds := credentials.NewTLS(tlsConfig)
+	creds := credentials.NewTLS(s.tls.Config())
 	grpcServer := grpc.NewServer(grpc.Creds(creds))
 
 	// listen on the configured address
@@ -94,14 +117,21 @@ func (s *Server) Run(ctx context.Context, tlsConfig *tls.Config) error {
 	// handle termination gracefully
 	go func() {
 		<-ctx.Done()
-		s.readyz.Set(false)
-		s.log.Info("shutting down grpc server")
+
+		s.lock.Lock()
+		s.ready = false
+		s.lock.Unlock()
+
+		s.log.Info("shutting down grpc server", "context", ctx.Err())
 		grpcServer.GracefulStop()
 		s.log.Info("grpc server stopped")
 	}()
 
 	s.log.Info("grpc serving", "address", listener.Addr().String())
-	s.readyz.Set(true)
+
+	s.lock.Lock()
+	s.ready = true
+	s.lock.Unlock()
 
 	return grpcServer.Serve(listener)
 }
@@ -146,4 +176,21 @@ func (s *Server) CreateCertificate(ctx context.Context, icr *securityapi.IstioCe
 
 	// Return response to the client
 	return response, nil
+}
+
+// All istio-csr's should serve the CreateCertificate service
+func (s *Server) NeedLeaderElection() bool {
+	return false
+}
+
+// Check is used by the shared readiness manager to expose whether the server
+// is ready.
+func (s *Server) Check(_ *http.Request) error {
+	s.lock.RLock()
+	defer s.lock.RUnlock()
+
+	if s.ready {
+		return nil
+	}
+	return errors.New("not ready")
 }

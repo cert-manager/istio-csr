@@ -65,13 +65,10 @@ func TestConfigMapReconcile(t *testing.T) {
 			client := buildClient(t, test)
 
 			c := &configmap{
-				log:    klogr.New(),
-				client: client,
+				log: klogr.New(),
 				enforcer: &enforcer{
-					client: client,
-					data: map[string]string{
-						"foo": "bar",
-					},
+					client:        client,
+					rootCA:        func() []byte { return []byte("bar") },
 					configMapName: testNamespacedName.Name,
 				},
 			}
@@ -149,13 +146,10 @@ func TestNamespaceReconcile(t *testing.T) {
 			client := buildClient(t, test)
 
 			ns := &namespace{
-				log:    klogr.New(),
-				client: client,
+				log: klogr.New(),
 				enforcer: &enforcer{
-					client: client,
-					data: map[string]string{
-						"foo": "bar",
-					},
+					client:        client,
+					rootCA:        func() []byte { return []byte("bar") },
 					configMapName: testNamespacedName.Name,
 				},
 			}
@@ -184,10 +178,8 @@ func TestEnforcerConfigMap(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			client := buildClient(t, test)
 			enforcer := &enforcer{
-				client: client,
-				data: map[string]string{
-					"foo": "bar",
-				},
+				client:        client,
+				rootCA:        func() []byte { return []byte("bar") },
 				configMapName: testNamespacedName.Name,
 			}
 
@@ -246,7 +238,7 @@ func buildSuite() suite {
 					IstioConfigLabelKey: "true",
 				}),
 				gen.SetConfigMapData(map[string]string{
-					"foo": "bar",
+					"root-cert.pem": "bar",
 				}),
 			),
 		},
@@ -264,7 +256,7 @@ func buildSuite() suite {
 					IstioConfigLabelKey: "true",
 				}),
 				gen.SetConfigMapData(map[string]string{
-					"foo": "bar",
+					"root-cert.pem": "bar",
 				}),
 			),
 		},
@@ -280,7 +272,7 @@ func buildSuite() suite {
 					IstioConfigLabelKey: "true",
 				}),
 				gen.SetConfigMapData(map[string]string{
-					"foo": "bar",
+					"root-cert.pem": "bar",
 				}),
 			),
 		},
@@ -291,7 +283,7 @@ func buildSuite() suite {
 					IstioConfigLabelKey: "true",
 				}),
 				gen.SetConfigMapData(map[string]string{
-					"foo": "foo",
+					"root-cert.pem": "foo",
 				}),
 			),
 			expConfigMap: gen.ConfigMapFrom(baseConfigMap,
@@ -300,7 +292,7 @@ func buildSuite() suite {
 					IstioConfigLabelKey: "true",
 				}),
 				gen.SetConfigMapData(map[string]string{
-					"foo": "bar",
+					"root-cert.pem": "bar",
 				}),
 			),
 		},
@@ -321,9 +313,9 @@ func buildSuite() suite {
 					IstioConfigLabelKey: "true",
 				}),
 				gen.SetConfigMapData(map[string]string{
-					"foo": "bar",
-					"bar": "bar",
-					"123": "456",
+					"root-cert.pem": "bar",
+					"bar":           "bar",
+					"123":           "456",
 				}),
 			),
 		},
@@ -334,7 +326,7 @@ func buildSuite() suite {
 					IstioConfigLabelKey: "false",
 				}),
 				gen.SetConfigMapData(map[string]string{
-					"foo": "bar",
+					"root-cert.pem": "bar",
 				}),
 			),
 			expConfigMap: gen.ConfigMapFrom(baseConfigMap,
@@ -343,7 +335,7 @@ func buildSuite() suite {
 					IstioConfigLabelKey: "true",
 				}),
 				gen.SetConfigMapData(map[string]string{
-					"foo": "bar",
+					"root-cert.pem": "bar",
 				}),
 			),
 		},
@@ -354,7 +346,7 @@ func buildSuite() suite {
 					"foo-bar": "true",
 				}),
 				gen.SetConfigMapData(map[string]string{
-					"foo": "bar",
+					"root-cert.pem": "bar",
 				}),
 			),
 			expConfigMap: gen.ConfigMapFrom(baseConfigMap,
@@ -364,7 +356,7 @@ func buildSuite() suite {
 					"foo-bar":           "true",
 				}),
 				gen.SetConfigMapData(map[string]string{
-					"foo": "bar",
+					"root-cert.pem": "bar",
 				}),
 			),
 		},
@@ -376,8 +368,8 @@ func buildSuite() suite {
 					"foo":               "bar",
 				}),
 				gen.SetConfigMapData(map[string]string{
-					"foo": "bar",
-					"123": "456",
+					"root-cert.pem": "bar",
+					"123":           "456",
 				}),
 			),
 			expConfigMap: gen.ConfigMapFrom(baseConfigMap,
@@ -387,8 +379,8 @@ func buildSuite() suite {
 					"foo":               "bar",
 				}),
 				gen.SetConfigMapData(map[string]string{
-					"foo": "bar",
-					"123": "456",
+					"root-cert.pem": "bar",
+					"123":           "456",
 				}),
 			),
 		},

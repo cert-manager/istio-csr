@@ -23,25 +23,36 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"net/http"
+	"os"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/go-logr/logr"
 	cmapi "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1"
+	"github.com/jetstack/cert-manager/pkg/util/pki"
 	"istio.io/istio/pkg/spiffe"
 	pkiutil "istio.io/istio/security/pkg/pki/util"
 
 	"github.com/cert-manager/istio-csr/pkg/certmanager"
-	"github.com/cert-manager/istio-csr/pkg/util"
 )
 
 type Options struct {
-	TrustDomain    string
+	// TrustDomain is the trust domain to use for this mesh.
+	TrustDomain string
+
+	// RootCACertFile is an optional file location containing a PEM CA bundle. If
+	// non-empty, this CA will be used to populate the CA of the mesh.
 	RootCACertFile string
 
+	// ServingCertificateDuration is the duration requested for the gRPC service
+	// serving certificate.
 	ServingCertificateDuration time.Duration
+
+	// ServingCertificateDNSNames is the DNS names that will be requested for the
+	// gRPC service serving certificate. The service must be routable by clients
+	// by at least one of these DNS names.
 	ServingCertificateDNSNames []string
 }
 
@@ -59,111 +70,125 @@ type Provider struct {
 	cm *certmanager.Manager
 
 	lock      sync.RWMutex
-	readyz    *util.Check
 	tlsConfig *tls.Config
 }
 
 // NewProvider will return a new provider where a TLS config is ready to be fetched.
-func NewProvider(ctx context.Context,
-	log logr.Logger,
-	cm *certmanager.Manager,
-	readyz *util.Check,
-	opts Options,
-) (*Provider, error) {
-	p := &Provider{
-		opts:   opts,
-		log:    log.WithName("tls_provider"),
-		cm:     cm,
-		readyz: readyz,
-	}
+func NewProvider(log logr.Logger, cm *certmanager.Manager, opts Options) (*Provider, error) {
+	var (
+		rootCA []byte
+		err    error
+	)
 
 	if len(opts.RootCACertFile) > 0 {
-		rootCA, err := ioutil.ReadFile(opts.RootCACertFile)
+		rootCA, err = os.ReadFile(opts.RootCACertFile)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read root CA certificate file %s: %s",
 				opts.RootCACertFile, err)
 		}
-
-		p.rootCA = rootCA
 	}
 
-	p.log.Info("fetching initial serving certificate")
+	return &Provider{
+		opts:   opts,
+		log:    log.WithName("tls_provider"),
+		rootCA: rootCA,
+		cm:     cm,
+	}, nil
+}
 
-	// Before returning with the provider, we unser a valid, up-to-date TLS
+// Start will start the TLS provider. This will fetch a serving certificate and
+// provide a TLS config based on it. Keep this certificate renewed. Blocking
+// function.
+func (p *Provider) Start(ctx context.Context) error {
+	// Before returning with the provider, we set a valid, up-to-date TLS
 	// config is ready for serving.
-	p.mustFetchCertificate(ctx)
+	notAfter, err := p.fetchCertificate(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to fetch initial serving certificate: %w", err)
+	}
 
-	go func() {
-		for {
-			// Create a new timer every loop. Renew 2/3 into certificate duration
-			renewalTime := (2 * p.opts.ServingCertificateDuration) / 3
-			timer := time.NewTimer(renewalTime)
+	p.log.Info("fetched initial serving certificate")
 
-			p.log.Info("renewing serving certificate", "renewal-time", time.Now().Add(renewalTime))
+	for {
+		// Create a new timer every loop. Renew 2/3 into certificate duration
+		renewalTime := (2 * notAfter.Sub(time.Now())) / 3
+		timer := time.NewTimer(renewalTime)
 
-			select {
-			case <-ctx.Done():
-				p.readyz.Set(false)
-				p.log.Info("closing renewal", "ctx", ctx.Err())
-				timer.Stop()
-				return
-			case <-timer.C:
-				// Ensure we stop the timer after every tick to release resources
-				timer.Stop()
-			}
-
-			// Renew certificate at every tick
-			p.log.Info("renewing serving certificate")
-			p.mustFetchCertificate(ctx)
+		if !notAfter.IsZero() {
+			p.log.Info("waiting to renew certificate", "renewal-time", time.Now().Add(renewalTime))
 		}
-	}()
 
-	p.readyz.Set(true)
+		select {
+		case <-ctx.Done():
+			p.log.Info("closing renewal", "context", ctx.Err())
+			timer.Stop()
 
-	return p, nil
+			p.lock.Lock()
+			defer p.lock.Unlock()
+			// Set nil so readiness returns false
+			p.tlsConfig = nil
+
+			return nil
+
+		case <-timer.C:
+			// Ensure we stop the timer after every tick to release resources
+			timer.Stop()
+		}
+
+		// Renew certificate at every tick
+		p.log.Info("renewing serving certificate")
+		notAfter = p.mustFetchCertificate(ctx)
+		p.log.Info("fetched new serving certificate", "expiry-time", notAfter)
+	}
 }
 
 // mustFetchCertificate is a blocking func that will fetch a signed certificate
 // for serving. Will not return until a signed certificate has been
-// successfully fetched, for the context had been canceled.
-func (p *Provider) mustFetchCertificate(ctx context.Context) {
+// successfully fetched, or the context had been canceled.
+// Returns the NotAfter timestamp of the signed certificate.
+func (p *Provider) mustFetchCertificate(ctx context.Context) time.Time {
 	// Time to attempt to fetch a new certificate if the last failed.
 	ticker := time.NewTicker(time.Second * 20)
 	defer ticker.Stop()
 
 	for {
 		// Fetch a new serving certificate, signed by cert-manager.
-		if err := p.fetchCertificate(ctx); err != nil {
+		notAfter, err := p.fetchCertificate(ctx)
+		if err != nil {
 			p.log.Error(err, "failed to fetch new serving certificate, retrying")
 
 			// Cancel if the context has been canceled. Retry after tick.
 			select {
 			case <-ctx.Done():
-				return
+				return time.Time{}
 			case <-ticker.C:
 				continue
 			}
 		}
 
-		p.log.Info("fetched new serving certificate")
-
-		return
+		return notAfter
 	}
 }
 
-// TLSConfig should be used by consumers of the provider to get a TLS config
-// which will have the signed certificate and private key appropriately renewed
-func (p *Provider) TLSConfig() (*tls.Config, error) {
-	p.lock.RLock()
-	defer p.lock.RUnlock()
-	if p.tlsConfig == nil {
-		return nil, errors.New("provider not configured, TLS config not ready")
-	}
+// Config should be used by consumers of the provider to get a TLS config
+// which will have the signed certificate and private key appropriately
+// renewed. This function will block until a TLS config is ready.
+func (p *Provider) Config() *tls.Config {
+	for {
+		p.lock.RLock()
+		conf := p.tlsConfig
+		p.lock.RUnlock()
 
-	return &tls.Config{
-		GetConfigForClient: p.getConfigForClient,
-		ClientAuth:         tls.RequireAndVerifyClientCert,
-	}, nil
+		if conf == nil {
+			time.Sleep(time.Second / 4)
+			continue
+		}
+
+		return &tls.Config{
+			GetConfigForClient: p.getConfigForClient,
+			ClientAuth:         tls.RequireAndVerifyClientCert,
+		}
+	}
 }
 
 // getConfigForClient will return a TLS config based upon the current signed
@@ -174,18 +199,29 @@ func (p *Provider) getConfigForClient(_ *tls.ClientHelloInfo) (*tls.Config, erro
 	return p.tlsConfig, nil
 }
 
-// RootCA returns the configured CA certificate
+// RootCA returns the configured CA certificate. This function blocks until the
+// root CA has been populated.
 func (p *Provider) RootCA() []byte {
-	p.lock.RLock()
-	defer p.lock.RUnlock()
-	return p.rootCA
+	for {
+		p.lock.RLock()
+		rootCA := p.rootCA
+		p.lock.RUnlock()
+
+		if len(rootCA) == 0 {
+			time.Sleep(time.Second)
+			continue
+		}
+
+		return rootCA
+	}
 }
 
 // fetchCertificate will attempt to fetch a new signed certificate with a new
 // private key for serving. This will then be stored as the latest TLS config
 // for this provider to be fetched by new client connections. If this process
 // fails, returns error.
-func (p *Provider) fetchCertificate(ctx context.Context) error {
+// Returns the NotAfter timestamp that the new signed certificate expires.
+func (p *Provider) fetchCertificate(ctx context.Context) (time.Time, error) {
 	opts := pkiutil.CertOptions{
 		Host:       strings.Join(p.opts.ServingCertificateDNSNames, ","),
 		IsServer:   true,
@@ -196,12 +232,12 @@ func (p *Provider) fetchCertificate(ctx context.Context) error {
 	// Generate new CSR and private key for serving
 	csr, pk, err := pkiutil.GenCSR(opts)
 	if err != nil {
-		return fmt.Errorf("failed to generate serving private key and CSR: %s", err)
+		return time.Time{}, fmt.Errorf("failed to generate serving private key and CSR: %s", err)
 	}
 
 	bundle, err := p.cm.Sign(ctx, "istio-csr-serving", csr, p.opts.ServingCertificateDuration, []cmapi.KeyUsage{cmapi.UsageServerAuth})
 	if err != nil {
-		return fmt.Errorf("failed to sign serving certificate: %w", err)
+		return time.Time{}, fmt.Errorf("failed to sign serving certificate: %w", err)
 	}
 
 	p.log.Info("serving certificate ready")
@@ -220,11 +256,11 @@ func (p *Provider) fetchCertificate(ctx context.Context) error {
 	if len(p.rootCA) > 0 {
 		block, _ := pem.Decode(p.rootCA)
 		if block == nil {
-			return fmt.Errorf("failed to decode root cert PEM")
+			return time.Time{}, errors.New("failed to decode root cert PEM")
 		}
 		rootCert, err = x509.ParseCertificate(block.Bytes)
 		if err != nil {
-			return fmt.Errorf("failed to parse certificate: %v", err)
+			return time.Time{}, fmt.Errorf("failed to parse certificate: %v", err)
 		}
 	}
 
@@ -234,7 +270,7 @@ func (p *Provider) fetchCertificate(ctx context.Context) error {
 
 	tlsCert, err := tls.X509KeyPair(bundle.Certificate, pk)
 	if err != nil {
-		return err
+		return time.Time{}, err
 	}
 
 	rootCA := x509.NewCertPool()
@@ -257,5 +293,32 @@ func (p *Provider) fetchCertificate(ctx context.Context) error {
 		},
 	}
 
-	return nil
+	cert, err := pki.DecodeX509CertificateBytes(bundle.Certificate)
+	if err != nil {
+		return time.Time{}, err
+	}
+
+	return cert.NotAfter, nil
+}
+
+func (p *Provider) TrustDomain() string {
+	return p.opts.TrustDomain
+}
+
+// All istio-csr's need renewed service serving certificates.
+func (p *Provider) NeedLeaderElection() bool {
+	return false
+}
+
+// Check is used by the shared readiness manager to expose whether the tls
+// provider is ready.
+func (p *Provider) Check(_ *http.Request) error {
+	p.lock.RLock()
+	defer p.lock.RUnlock()
+
+	if p.tlsConfig != nil {
+		return nil
+	}
+
+	return errors.New("not ready")
 }
