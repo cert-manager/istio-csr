@@ -47,26 +47,21 @@ type Options struct {
 
 type caGetter func() []byte
 
-// CARoot manages reconciles a configmap in each namespace with the root CA
-// data
-
-// CARoot reconciles a configmap in each namespace with a desired set of data.
+// CARoot reconciles a configmap in each namespace with the root CA
+// data.
 type CARoot struct {
 	log logr.Logger
-	mgr manager.Manager
 }
 
 // namespace is a controller used for reconciles over Namespaces.
 type namespace struct {
-	log    logr.Logger
-	client client.Client
+	log logr.Logger
 	*enforcer
 }
 
 // configmap is a controller used for reconciling over ConfigMaps.
 type configmap struct {
-	log    logr.Logger
-	client client.Client
+	log logr.Logger
 	*enforcer
 }
 
@@ -94,12 +89,10 @@ func AddCARootController(log logr.Logger,
 
 	namespace := &namespace{
 		log:      log,
-		client:   mgr.GetClient(),
 		enforcer: enforcer,
 	}
 	configmap := &configmap{
 		log:      log,
-		client:   mgr.GetClient(),
 		enforcer: enforcer,
 	}
 
