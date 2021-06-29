@@ -65,8 +65,7 @@ func TestConfigMapReconcile(t *testing.T) {
 			client := buildClient(t, test)
 
 			c := &configmap{
-				log:    klogr.New(),
-				client: client,
+				log: klogr.New(),
 				enforcer: &enforcer{
 					client:        client,
 					rootCA:        func() []byte { return []byte("bar") },
@@ -147,8 +146,7 @@ func TestNamespaceReconcile(t *testing.T) {
 			client := buildClient(t, test)
 
 			ns := &namespace{
-				log:    klogr.New(),
-				client: client,
+				log: klogr.New(),
 				enforcer: &enforcer{
 					client:        client,
 					rootCA:        func() []byte { return []byte("bar") },
