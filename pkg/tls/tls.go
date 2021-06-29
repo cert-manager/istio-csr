@@ -122,6 +122,12 @@ func (p *Provider) Start(ctx context.Context) error {
 		case <-ctx.Done():
 			p.log.Info("closing renewal", "context", ctx.Err())
 			timer.Stop()
+
+			p.lock.Lock()
+			defer p.lock.Unlock()
+			// Set nil so readiness returns false
+			p.tlsConfig = nil
+
 			return nil
 
 		case <-timer.C:
