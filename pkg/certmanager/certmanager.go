@@ -18,6 +18,7 @@ package certmanager
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -29,6 +30,7 @@ import (
 	cmclient "github.com/jetstack/cert-manager/pkg/client/clientset/versioned/typed/certmanager/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
+	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/rest"
 )
 
@@ -110,17 +112,10 @@ func (m *Manager) Sign(ctx context.Context, identities string, csrPEM []byte, du
 	log := m.log.WithValues("namespace", cr.Namespace, "name", cr.Name, "identity", identities)
 	log.V(2).Info("created CertificateRequest")
 
-	cr, err = m.waitForCertificateRequest(ctx, log, cr)
-	if err != nil {
-		return Bundle{}, fmt.Errorf("failed to wait for CertificateRequest %s/%s to be signed: %w",
-			cr.Namespace, cr.Name, err)
-	}
-
-	log.V(2).Info("signed CertificateRequest")
-
-	// If we are not preserving CertificateRequests, delete from Kubernetes
+	// If we are not preserving CertificateRequests, always delete from
+	// Kubernetes on return.
 	if !m.opts.PreserveCertificateRequests {
-		go func() {
+		defer func() {
 			// Use the Background context so that this call is not cancelled by the
 			// gRPC context closing.
 			if err := m.client.Delete(context.Background(), cr.Name, metav1.DeleteOptions{}); err != nil {
@@ -132,7 +127,15 @@ func (m *Manager) Sign(ctx context.Context, identities string, csrPEM []byte, du
 		}()
 	}
 
-	return Bundle{Certificate: cr.Status.Certificate, CA: cr.Status.CA}, nil
+	signedCR, err := m.waitForCertificateRequest(ctx, log, cr)
+	if err != nil {
+		return Bundle{}, fmt.Errorf("failed to wait for CertificateRequest %s/%s to be signed: %w",
+			cr.Namespace, cr.Name, err)
+	}
+
+	log.V(2).Info("signed CertificateRequest")
+
+	return Bundle{Certificate: signedCR.Status.Certificate, CA: signedCR.Status.CA}, nil
 }
 
 // waitForCertificateRequest will set a watch for the CertificateRequest, and
@@ -175,5 +178,8 @@ func (m *Manager) waitForCertificateRequest(ctx context.Context, log logr.Logger
 
 		w := <-watcher.ResultChan()
 		cr = w.Object.(*cmapi.CertificateRequest)
+		if w.Type == watch.Deleted {
+			return cr, errors.New("created CertificateRequest has been unexpectedly deleted")
+		}
 	}
 }
