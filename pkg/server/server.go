@@ -105,7 +105,6 @@ func (s *Server) Start(ctx context.Context) error {
 	srvmetrics.EnableHandlingTimeHistogram(func(op *prom.HistogramOpts) { op.Namespace = "cert_manager_istio_csr" })
 	creds := credentials.NewTLS(s.tls.Config())
 	grpcServer := grpc.NewServer(
-		grpc.StreamInterceptor(srvmetrics.StreamServerInterceptor()),
 		grpc.UnaryInterceptor(srvmetrics.UnaryServerInterceptor()),
 		grpc.Creds(creds),
 	)
