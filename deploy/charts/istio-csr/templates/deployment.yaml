@@ -58,15 +58,16 @@ spec:
           - "--leader-election-namespace={{.Values.app.controller.leaderElectionNamespace}}"
           - "--root-ca-configmap-name={{.Values.app.controller.rootCAConfigMapName}}"
 
-      {{- if .Values.volumeMounts }}
-      volumeMounts:
-{{ toYaml .Values.volumeMounts | indent 12 }}
-      {{- end }}
+
+        {{- if .Values.volumeMounts }}
+        volumeMounts:
+{{ toYaml .Values.volumeMounts | indent 10 }}
+       {{- end }}
 
         resources:
           {{- toYaml .Values.resources | nindent 12 }}
 
       {{- if .Values.volumes }}
       volumes:
-{{ toYaml .Values.volumes | indent 8 }}
+{{ toYaml .Values.volumes | indent 6 }}
       {{- end }}
