@@ -22,6 +22,19 @@ app:
   metrics:
     # -- Port for exposing Prometheus metrics on 0.0.0.0 on path '/metrics'.
     port: 9402
+    # -- Service to expose metrics endpoint.
+    service:
+      # -- Create a Service resource to expose metrics endpoint.
+      enabled: true
+      # -- Service type to expose metrics.
+      type: ClusterIP
+      # -- ServiceMonitor resource for this Service.
+      servicemonitor:
+        enabled: false
+        prometheusInstance: default
+        interval: 10s
+        scrapeTimeout: 5s
+        labels: {}
 
   readinessProbe:
     # -- Container port to expose istio-csr HTTP readiness probe on default network interface.

@@ -29,6 +29,10 @@ A Helm chart for istio-csr
 | app.controller.rootCAConfigMapName | string | `"istio-ca-root-cert"` | Name of ConfigMap that should contain the root CA in all namespaces. |
 | app.logLevel | int | `1` | Verbosity of istio-csr logging. |
 | app.metrics.port | int | `9402` | Port for exposing Prometheus metrics on 0.0.0.0 on path '/metrics'. |
+| app.metrics.service | object | `{"enabled":true,"servicemonitor":{"enabled":false,"interval":"10s","labels":{},"prometheusInstance":"default","scrapeTimeout":"5s"},"type":"ClusterIP"}` | Service to expose metrics endpoint. |
+| app.metrics.service.enabled | bool | `true` | Create a Service resource to expose metrics endpoint. |
+| app.metrics.service.servicemonitor | object | `{"enabled":false,"interval":"10s","labels":{},"prometheusInstance":"default","scrapeTimeout":"5s"}` | ServiceMonitor resource for this Service. |
+| app.metrics.service.type | string | `"ClusterIP"` | Service type to expose metrics. |
 | app.readinessProbe.path | string | `"/readyz"` | Path to expose istio-csr HTTP readiness probe on default network interface. |
 | app.readinessProbe.port | int | `6060` | Container port to expose istio-csr HTTP readiness probe on default network interface. |
 | app.server.clusterID | string | `"Kubernetes"` | The istio cluster ID to verify incoming CSRs. |
