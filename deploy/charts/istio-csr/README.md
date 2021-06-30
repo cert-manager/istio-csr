@@ -31,11 +31,11 @@ A Helm chart for istio-csr
 | app.readinessProbe.path | string | `"/readyz"` | Path to expose istio-csr HTTP readiness probe on default network interface. |
 | app.readinessProbe.port | int | `6060` | Container port to expose istio-csr HTTP readiness probe on default network interface. |
 | app.server.clusterID | string | `"Kubernetes"` | The istio cluster ID to verify incoming CSRs. |
-| app.server.maxCertificateDuration | string | `"1h"` | Maximum validity duration that can be requested for a certificate. istio-csr will request a duration of the smaller of this value, and that of the incoming gRPC CSR. |
+| app.server.maxCertificateDuration | string | `"1h"` | Maximum validity duration that can be requested for a certificate. istio-csr will request a duration of the smaller of this value, and that of the incoming gRPC CSR. Based on NIST 800-204A recommendations (SM-DR13). https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf |
 | app.server.serving.address | string | `"0.0.0.0"` | Container address to serve istio-csr gRPC service. |
 | app.server.serving.port | int | `6443` | Container port to serve istio-csr gRPC service. |
 | app.tls.certificateDNSNames | list | `["cert-manager-istio-csr.cert-manager.svc"]` | The DNS names to request for the server's serving certificate which is presented to istio-agents. istio-agents must route to istio-csr using one of these DNS names. |
-| app.tls.certificateDuration | string | `"1h"` | Requested duration of gRPC serving certificate. Will be automatically renewed. |
+| app.tls.certificateDuration | string | `"1h"` | Requested duration of gRPC serving certificate. Will be automatically renewed. Based on NIST 800-204A recommendations (SM-DR13). https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf cert-manager does not allow a duration on Certificates less than 1 hour. |
 | app.tls.rootCAFile | string | `nil` | An optional file location to a PEM encoded root CA that the root CA ConfigMap in all namespaces will be populated with. If empty, the CA returned from cert-manager for the serving certificate will be used. |
 | app.tls.trustDomain | string | `"cluster.local"` | The Istio cluster's trust domain. |
 | image.pullPolicy | string | `"IfNotPresent"` | Kubernetes imagePullPolicy on Deployment. |
