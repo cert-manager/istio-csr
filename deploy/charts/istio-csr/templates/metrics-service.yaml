@@ -1,0 +1,18 @@
+{{- if .Values.app.metrics.service.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "cert-manager-istio-csr.name" . }}-metrics
+  labels:
+    app: {{ include "cert-manager-istio-csr.name" . }}
+{{ include "cert-manager-istio-csr.labels" . | indent 4 }}
+spec:
+  type: {{ .Values.app.metrics.service.type }}
+  ports:
+    - port: {{ .Values.app.metrics.port }}
+      targetPort: {{ .Values.app.metrics.port }}
+      protocol: TCP
+      name: metrics
+  selector:
+    app: {{ include "cert-manager-istio-csr.name" . }}
+{{- end }}

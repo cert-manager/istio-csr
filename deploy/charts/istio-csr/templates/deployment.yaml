@@ -21,6 +21,7 @@ spec:
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         ports:
         - containerPort: {{ .Values.app.server.serving.port }}
+        - containerPort: {{ .Values.app.metrics.port }}
         readinessProbe:
           httpGet:
             port: {{ .Values.app.readinessProbe.port }}
@@ -30,6 +31,7 @@ spec:
         command: ["cert-manager-istio-csr"]
         args:
           - "--log-level={{.Values.app.logLevel}}"
+          - "--metrics-port={{.Values.app.metrics.port}}"
           - "--readiness-probe-port={{.Values.app.readinessProbe.port}}"
           - "--readiness-probe-path={{.Values.app.readinessProbe.path}}"
 

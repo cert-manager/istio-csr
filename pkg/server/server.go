@@ -26,7 +26,9 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
+	grpcprom "github.com/grpc-ecosystem/go-grpc-prometheus"
 	cmapi "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1"
+	prom "github.com/prometheus/client_golang/prometheus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
@@ -38,13 +40,10 @@ import (
 	"istio.io/istio/security/pkg/server/ca/authenticate/kubeauth"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+	"sigs.k8s.io/controller-runtime/pkg/metrics"
 
 	"github.com/cert-manager/istio-csr/pkg/certmanager"
 	"github.com/cert-manager/istio-csr/pkg/tls"
-)
-
-const (
-	IdentitiesAnnotationKey = "istio.cert-manager.io/identities"
 )
 
 type Options struct {
@@ -102,8 +101,19 @@ func New(log logr.Logger,
 // Start is a blocking func that will run the client facing certificate service
 func (s *Server) Start(ctx context.Context) error {
 	// Setup the grpc server using the passed TLS config
+	srvmetrics := grpcprom.NewServerMetrics(func(op *prom.CounterOpts) { op.Namespace = "cert_manager_istio_csr" })
+	srvmetrics.EnableHandlingTimeHistogram(func(op *prom.HistogramOpts) { op.Namespace = "cert_manager_istio_csr" })
 	creds := credentials.NewTLS(s.tls.Config())
-	grpcServer := grpc.NewServer(grpc.Creds(creds))
+	grpcServer := grpc.NewServer(
+		grpc.UnaryInterceptor(srvmetrics.UnaryServerInterceptor()),
+		grpc.Creds(creds),
+	)
+
+	// Register gRPC Prometheus metrics
+	grpcprom.Register(grpcServer)
+	if err := metrics.Registry.Register(srvmetrics); err != nil {
+		return fmt.Errorf("failed to register gRPC Prometheus metrics: %w", err)
+	}
 
 	// listen on the configured address
 	listener, err := net.Listen("tcp", s.opts.ServingAddress)
