@@ -55,7 +55,10 @@ app:
     certificateDNSNames:
     - cert-manager-istio-csr.cert-manager.svc
     # -- Requested duration of gRPC serving certificate. Will be automatically renewed.
-    certificateDuration: 24h
+    # Based on NIST 800-204A recommendations (SM-DR13).
+    # https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf
+    # cert-manager does not allow a duration on Certificates less than 1 hour.
+    certificateDuration: 1h
 
   server:
     # -- The istio cluster ID to verify incoming CSRs.
@@ -63,7 +66,9 @@ app:
     # -- Maximum validity duration that can be requested for a certificate.
     # istio-csr will request a duration of the smaller of this value, and that of
     # the incoming gRPC CSR.
-    maxCertificateDuration: 24h
+    # Based on NIST 800-204A recommendations (SM-DR13).
+    # https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf
+    maxCertificateDuration: 1h
     serving:
       # -- Container address to serve istio-csr gRPC service.
       address: 0.0.0.0
