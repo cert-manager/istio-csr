@@ -12,6 +12,7 @@ require (
 	github.com/spf13/cobra v1.1.3
 	github.com/spf13/pflag v1.0.5
 	google.golang.org/grpc v1.38.0
+	google.golang.org/protobuf v1.26.0
 	istio.io/api v0.0.0-20210617183632-a1ac914aead5
 	istio.io/istio v0.0.0-20210621105413-9868a6392ce3
 	istio.io/pkg v0.0.0-20210618150320-2df9dbfcd1b1

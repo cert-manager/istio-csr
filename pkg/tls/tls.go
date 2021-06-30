@@ -83,14 +83,14 @@ type Provider struct {
 
 	rootCA []byte
 
-	cm *certmanager.Manager
+	cm certmanager.Interface
 
 	lock      sync.RWMutex
 	tlsConfig *tls.Config
 }
 
 // NewProvider will return a new provider where a TLS config is ready to be fetched.
-func NewProvider(log logr.Logger, cm *certmanager.Manager, opts Options) (*Provider, error) {
+func NewProvider(log logr.Logger, cm certmanager.Interface, opts Options) (*Provider, error) {
 	var (
 		rootCA []byte
 		err    error
@@ -116,8 +116,6 @@ func NewProvider(log logr.Logger, cm *certmanager.Manager, opts Options) (*Provi
 // provide a TLS config based on it. Keep this certificate renewed. Blocking
 // function.
 func (p *Provider) Start(ctx context.Context) error {
-	// Before returning with the provider, we set a valid, up-to-date TLS
-	// config is ready for serving.
 	notAfter, err := p.fetchCertificate(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to fetch initial serving certificate: %w", err)

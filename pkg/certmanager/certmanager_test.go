@@ -211,7 +211,7 @@ func Test_Sign(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			client := test.client()
-			m := &Manager{
+			m := &manager{
 				client: client.CertmanagerV1().CertificateRequests(gen.DefaultTestNamespace),
 				log:    klogr.New(),
 				opts: Options{
@@ -432,7 +432,7 @@ func Test_waitForCertificateRequest(t *testing.T) {
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			m := &Manager{
+			m := &manager{
 				client: test.client(),
 			}
 

@@ -50,10 +50,18 @@ type Options struct {
 	IssuerRef cmmeta.ObjectReference
 }
 
-// Manager is used for signing CSRs via cert-manager. Manager will create
+type Interface interface {
+	// Sign will create a CertificateRequest based on the provided inputs. It will
+	// wait for it to reach a terminal state, before optionally deleting it if
+	// preserving CertificateRequests if turned off. Will return the certificate
+	// bundle on successful signing.
+	Sign(ctx context.Context, identities string, csrPEM []byte, duration time.Duration, usages []cmapi.KeyUsage) (Bundle, error)
+}
+
+// manager is used for signing CSRs via cert-manager. manager will create
 // CertificateRequests and wait for them to be signed, before returning the
 // result.
-type Manager struct {
+type manager struct {
 	opts Options
 	log  logr.Logger
 
@@ -67,24 +75,21 @@ type Bundle struct {
 	CA          []byte
 }
 
-func New(log logr.Logger, restConfig *rest.Config, opts Options) (*Manager, error) {
+func New(log logr.Logger, restConfig *rest.Config, opts Options) (*manager, error) {
 	client, err := cmversioned.NewForConfig(restConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build cert-manager client: %s", err)
 	}
 
-	return &Manager{
+	return &manager{
 		log:    log.WithName("cert-manager"),
 		client: client.CertmanagerV1().CertificateRequests(opts.Namespace),
 		opts:   opts,
 	}, nil
 }
 
-// Sign will create a CertificateRequest based on the provided inputs. It will
-// wait for it to reach a terminal state, before optionally deleting it if
-// preserving CertificateRequests if turned off. Will return the certificate
-// bundle on successful signing.
-func (m *Manager) Sign(ctx context.Context, identities string, csrPEM []byte, duration time.Duration, usages []cmapi.KeyUsage) (Bundle, error) {
+// Sign will sign a request against the manager's configured client.
+func (m *manager) Sign(ctx context.Context, identities string, csrPEM []byte, duration time.Duration, usages []cmapi.KeyUsage) (Bundle, error) {
 	cr := &cmapi.CertificateRequest{
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: "istio-csr-",
@@ -142,7 +147,7 @@ func (m *Manager) Sign(ctx context.Context, identities string, csrPEM []byte, du
 // will return the CertificateRequest once it has reached a terminal state. If
 // the terminal state is either Denied or Failed, then this will also return an
 // error.
-func (m *Manager) waitForCertificateRequest(ctx context.Context, log logr.Logger, cr *cmapi.CertificateRequest) (*cmapi.CertificateRequest, error) {
+func (m *manager) waitForCertificateRequest(ctx context.Context, log logr.Logger, cr *cmapi.CertificateRequest) (*cmapi.CertificateRequest, error) {
 	watcher, err := m.client.Watch(ctx, metav1.ListOptions{
 		FieldSelector: fields.OneTermEqualSelector(metav1.ObjectNameField, cr.Name).String(),
 	})
