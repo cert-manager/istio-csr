@@ -99,8 +99,13 @@ app:
 
 # -- Optional extra volumes. Useful for mounting custom root CAs
 volumes: []
+#- name: root-ca
+#  secret:
+#    secretName: root-cert
 # -- Optional extra volume mounts. Useful for mounting custom root CAs
 volumeMounts: []
+#- name: root-ca
+#  mountPath: /etc/tls
 
 
 resources: {}
