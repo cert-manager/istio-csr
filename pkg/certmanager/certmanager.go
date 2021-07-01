@@ -50,7 +50,7 @@ type Options struct {
 	IssuerRef cmmeta.ObjectReference
 }
 
-type Interface interface {
+type Signer interface {
 	// Sign will create a CertificateRequest based on the provided inputs. It will
 	// wait for it to reach a terminal state, before optionally deleting it if
 	// preserving CertificateRequests if turned off. Will return the certificate

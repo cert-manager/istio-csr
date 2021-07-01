@@ -66,7 +66,7 @@ type Server struct {
 
 	auther security.Authenticator
 
-	cm  certmanager.Interface
+	cm  certmanager.Signer
 	tls *tls.Provider
 
 	ready bool
@@ -75,7 +75,7 @@ type Server struct {
 
 func New(log logr.Logger,
 	restConfig *rest.Config,
-	cm certmanager.Interface,
+	cm certmanager.Signer,
 	tls *tls.Provider,
 	opts Options,
 ) (*Server, error) {

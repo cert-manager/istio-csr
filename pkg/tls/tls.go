@@ -83,14 +83,14 @@ type Provider struct {
 
 	rootCA []byte
 
-	cm certmanager.Interface
+	cm certmanager.Signer
 
 	lock      sync.RWMutex
 	tlsConfig *tls.Config
 }
 
 // NewProvider will return a new provider where a TLS config is ready to be fetched.
-func NewProvider(log logr.Logger, cm certmanager.Interface, opts Options) (*Provider, error) {
+func NewProvider(log logr.Logger, cm certmanager.Signer, opts Options) (*Provider, error) {
 	var (
 		rootCA []byte
 		err    error
