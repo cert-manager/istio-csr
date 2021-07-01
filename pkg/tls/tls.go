@@ -186,21 +186,30 @@ func (p *Provider) mustFetchCertificate(ctx context.Context) time.Time {
 
 // Config should be used by consumers of the provider to get a TLS config
 // which will have the signed certificate and private key appropriately
-// renewed. This function will block until a TLS config is ready.
-func (p *Provider) Config() *tls.Config {
+// renewed.
+// This function will block until a TLS config is ready or the context has been
+// cancelled.
+func (p *Provider) Config(ctx context.Context) (*tls.Config, error) {
+	timer := time.NewTimer(time.Second / 4)
+	defer timer.Stop()
+
 	for {
 		p.lock.RLock()
 		conf := p.tlsConfig
 		p.lock.RUnlock()
 
-		if conf == nil {
-			time.Sleep(time.Second / 4)
-			continue
+		if conf != nil {
+			return &tls.Config{
+				GetConfigForClient: p.getConfigForClient,
+				ClientAuth:         tls.RequireAndVerifyClientCert,
+			}, nil
 		}
 
-		return &tls.Config{
-			GetConfigForClient: p.getConfigForClient,
-			ClientAuth:         tls.RequireAndVerifyClientCert,
+		select {
+		case <-timer.C:
+			timer.Reset(time.Second / 4)
+		case <-ctx.Done():
+			return nil, ctx.Err()
 		}
 	}
 }
