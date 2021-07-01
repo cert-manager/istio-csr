@@ -18,6 +18,7 @@ package certmanager
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -29,6 +30,7 @@ import (
 	cmclient "github.com/jetstack/cert-manager/pkg/client/clientset/versioned/typed/certmanager/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
+	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/rest"
 )
 
@@ -48,10 +50,18 @@ type Options struct {
 	IssuerRef cmmeta.ObjectReference
 }
 
-// Manager is used for signing CSRs via cert-manager. Manager will create
+type Interface interface {
+	// Sign will create a CertificateRequest based on the provided inputs. It will
+	// wait for it to reach a terminal state, before optionally deleting it if
+	// preserving CertificateRequests if turned off. Will return the certificate
+	// bundle on successful signing.
+	Sign(ctx context.Context, identities string, csrPEM []byte, duration time.Duration, usages []cmapi.KeyUsage) (Bundle, error)
+}
+
+// manager is used for signing CSRs via cert-manager. manager will create
 // CertificateRequests and wait for them to be signed, before returning the
 // result.
-type Manager struct {
+type manager struct {
 	opts Options
 	log  logr.Logger
 
@@ -65,24 +75,21 @@ type Bundle struct {
 	CA          []byte
 }
 
-func New(log logr.Logger, restConfig *rest.Config, opts Options) (*Manager, error) {
+func New(log logr.Logger, restConfig *rest.Config, opts Options) (*manager, error) {
 	client, err := cmversioned.NewForConfig(restConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build cert-manager client: %s", err)
 	}
 
-	return &Manager{
+	return &manager{
 		log:    log.WithName("cert-manager"),
 		client: client.CertmanagerV1().CertificateRequests(opts.Namespace),
 		opts:   opts,
 	}, nil
 }
 
-// Sign will create a CertificateRequest based on the provided inputs. It will
-// wait for it to reach a terminal state, before optionally deleting it if
-// preserving CertificateRequests if turned off. Will return the certificate
-// bundle on successful signing.
-func (m *Manager) Sign(ctx context.Context, identities string, csrPEM []byte, duration time.Duration, usages []cmapi.KeyUsage) (Bundle, error) {
+// Sign will sign a request against the manager's configured client.
+func (m *manager) Sign(ctx context.Context, identities string, csrPEM []byte, duration time.Duration, usages []cmapi.KeyUsage) (Bundle, error) {
 	cr := &cmapi.CertificateRequest{
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: "istio-csr-",
@@ -110,7 +117,25 @@ func (m *Manager) Sign(ctx context.Context, identities string, csrPEM []byte, du
 	log := m.log.WithValues("namespace", cr.Namespace, "name", cr.Name, "identity", identities)
 	log.V(2).Info("created CertificateRequest")
 
-	cr, err = m.waitForCertificateRequest(ctx, log, cr)
+	// If we are not preserving CertificateRequests, always delete from
+	// Kubernetes on return.
+	if !m.opts.PreserveCertificateRequests {
+		defer func() {
+			// Use go routine to prevent blocking on Delete call.
+			go func() {
+				// Use the Background context so that this call is not cancelled by the
+				// gRPC context closing.
+				if err := m.client.Delete(context.Background(), cr.Name, metav1.DeleteOptions{}); err != nil {
+					log.Error(err, "failed to delete CertificateRequest")
+					return
+				}
+
+				log.V(2).Info("deleted CertificateRequest")
+			}()
+		}()
+	}
+
+	signedCR, err := m.waitForCertificateRequest(ctx, log, cr)
 	if err != nil {
 		return Bundle{}, fmt.Errorf("failed to wait for CertificateRequest %s/%s to be signed: %w",
 			cr.Namespace, cr.Name, err)
@@ -118,28 +143,14 @@ func (m *Manager) Sign(ctx context.Context, identities string, csrPEM []byte, du
 
 	log.V(2).Info("signed CertificateRequest")
 
-	// If we are not preserving CertificateRequests, delete from Kubernetes
-	if !m.opts.PreserveCertificateRequests {
-		go func() {
-			// Use the Background context so that this call is not cancelled by the
-			// gRPC context closing.
-			if err := m.client.Delete(context.Background(), cr.Name, metav1.DeleteOptions{}); err != nil {
-				log.Error(err, "failed to delete CertificateRequest")
-				return
-			}
-
-			log.V(2).Info("deleted CertificateRequest")
-		}()
-	}
-
-	return Bundle{Certificate: cr.Status.Certificate, CA: cr.Status.CA}, nil
+	return Bundle{Certificate: signedCR.Status.Certificate, CA: signedCR.Status.CA}, nil
 }
 
 // waitForCertificateRequest will set a watch for the CertificateRequest, and
 // will return the CertificateRequest once it has reached a terminal state. If
 // the terminal state is either Denied or Failed, then this will also return an
 // error.
-func (m *Manager) waitForCertificateRequest(ctx context.Context, log logr.Logger, cr *cmapi.CertificateRequest) (*cmapi.CertificateRequest, error) {
+func (m *manager) waitForCertificateRequest(ctx context.Context, log logr.Logger, cr *cmapi.CertificateRequest) (*cmapi.CertificateRequest, error) {
 	watcher, err := m.client.Watch(ctx, metav1.ListOptions{
 		FieldSelector: fields.OneTermEqualSelector(metav1.ObjectNameField, cr.Name).String(),
 	})
@@ -175,5 +186,8 @@ func (m *Manager) waitForCertificateRequest(ctx context.Context, log logr.Logger
 
 		w := <-watcher.ResultChan()
 		cr = w.Object.(*cmapi.CertificateRequest)
+		if w.Type == watch.Deleted {
+			return cr, errors.New("created CertificateRequest has been unexpectedly deleted")
+		}
 	}
 }
