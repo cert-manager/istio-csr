@@ -19,6 +19,7 @@ package certmanager
 import (
 	"context"
 	"testing"
+	"time"
 
 	cmapi "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1"
 	cmmeta "github.com/jetstack/cert-manager/pkg/apis/meta/v1"
@@ -223,6 +224,9 @@ func Test_Sign(t *testing.T) {
 			if (err != nil) != test.expErr {
 				t.Errorf("unexpected error, exp=%t got=%v", test.expErr, err)
 			}
+
+			// Wait for delete go routine to finish
+			time.Sleep(time.Millisecond * 50)
 
 			if !apiequality.Semantic.DeepEqual(bundle, test.expBundle) {
 				t.Errorf("unexpected returned bundle, exp=%v got=%v", test.expBundle, bundle)
