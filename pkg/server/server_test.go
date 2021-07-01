@@ -41,7 +41,7 @@ func Test_CreateCertificate(t *testing.T) {
 	tests := map[string]struct {
 		icr func(t *testing.T) *securityapi.IstioCertificateRequest
 
-		cm          func(t *testing.T) certmanager.Interface
+		cm          func(t *testing.T) certmanager.Signer
 		maxDuration time.Duration
 
 		expResponse *securityapi.IstioCertificateResponse
@@ -55,7 +55,7 @@ func Test_CreateCertificate(t *testing.T) {
 					)),
 				}
 			},
-			cm:          func(t *testing.T) certmanager.Interface { return cmfake.New() },
+			cm:          func(t *testing.T) certmanager.Signer { return cmfake.New() },
 			expResponse: nil,
 			expErr:      status.Error(codes.Unauthenticated, "request authenticate failure"),
 		},
@@ -67,7 +67,7 @@ func Test_CreateCertificate(t *testing.T) {
 					)),
 				}
 			},
-			cm: func(t *testing.T) certmanager.Interface {
+			cm: func(t *testing.T) certmanager.Signer {
 				return cmfake.New().WithSign(func(_ context.Context, identity string, _ []byte, _ time.Duration, _ []cmapi.KeyUsage) (certmanager.Bundle, error) {
 					if identity != spiffeDomain {
 						t.Errorf("unexpected identity, exp=%s got=%s", spiffeDomain, identity)
@@ -88,7 +88,7 @@ func Test_CreateCertificate(t *testing.T) {
 					ValidityDuration: 60 * 30,
 				}
 			},
-			cm: func(t *testing.T) certmanager.Interface {
+			cm: func(t *testing.T) certmanager.Signer {
 				return cmfake.New().WithSign(func(_ context.Context, identity string, _ []byte, dur time.Duration, _ []cmapi.KeyUsage) (certmanager.Bundle, error) {
 					if identity != spiffeDomain {
 						t.Errorf("unexpected identity, exp=%s got=%s", spiffeDomain, identity)
@@ -119,7 +119,7 @@ func Test_CreateCertificate(t *testing.T) {
 					ValidityDuration: 60 * 60,
 				}
 			},
-			cm: func(t *testing.T) certmanager.Interface {
+			cm: func(t *testing.T) certmanager.Signer {
 				return cmfake.New().WithSign(func(_ context.Context, identity string, _ []byte, dur time.Duration, _ []cmapi.KeyUsage) (certmanager.Bundle, error) {
 					if identity != spiffeDomain {
 						t.Errorf("unexpected identity, exp=%s got=%s", spiffeDomain, identity)
