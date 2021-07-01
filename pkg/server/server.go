@@ -100,10 +100,15 @@ func New(log logr.Logger,
 
 // Start is a blocking func that will run the client facing certificate service
 func (s *Server) Start(ctx context.Context) error {
-	// Setup the grpc server using the passed TLS config
+	tlsConfig, err := s.tls.Config(ctx)
+	if err != nil {
+		return err
+	}
+
+	// Setup the grpc server using the provided TLS config
 	srvmetrics := grpcprom.NewServerMetrics(func(op *prom.CounterOpts) { op.Namespace = "cert_manager_istio_csr" })
 	srvmetrics.EnableHandlingTimeHistogram(func(op *prom.HistogramOpts) { op.Namespace = "cert_manager_istio_csr" })
-	creds := credentials.NewTLS(s.tls.Config())
+	creds := credentials.NewTLS(tlsConfig)
 	grpcServer := grpc.NewServer(
 		grpc.UnaryInterceptor(srvmetrics.UnaryServerInterceptor()),
 		grpc.Creds(creds),
