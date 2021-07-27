@@ -13,7 +13,7 @@ spec:
   # recommendations (SM-DR13).
   # https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf
   # cert-manager does not allow a duration on Certificates of less that 1 hour.
-  duration: 1h
+  duration: {{ .Values.app.tls.certificateDuration }}
   renewBefore: 30m
   privateKey:
     rotationPolicy: Always

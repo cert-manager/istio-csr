@@ -40,7 +40,7 @@ A Helm chart for istio-csr
 | app.server.serving.address | string | `"0.0.0.0"` | Container address to serve istio-csr gRPC service. |
 | app.server.serving.port | int | `6443` | Container port to serve istio-csr gRPC service. |
 | app.tls.certificateDNSNames | list | `["cert-manager-istio-csr.cert-manager.svc"]` | The DNS names to request for the server's serving certificate which is presented to istio-agents. istio-agents must route to istio-csr using one of these DNS names. |
-| app.tls.certificateDuration | string | `"1h"` | Requested duration of gRPC serving certificate. Will be automatically renewed. Based on NIST 800-204A recommendations (SM-DR13). https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf cert-manager does not allow a duration on Certificates less than 1 hour. |
+| app.tls.certificateDuration | string | `"1h"` | Requested duration of gRPC serving certificate and mounted istiod certificate. Will be automatically renewed. Based on NIST 800-204A recommendations (SM-DR13). https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf cert-manager does not allow a duration on Certificates less than 1 hour. |
 | app.tls.rootCAFile | string | `nil` | An optional file location to a PEM encoded root CA that the root CA ConfigMap in all namespaces will be populated with. If empty, the CA returned from cert-manager for the serving certificate will be used. |
 | app.tls.trustDomain | string | `"cluster.local"` | The Istio cluster's trust domain. |
 | image.pullPolicy | string | `"IfNotPresent"` | Kubernetes imagePullPolicy on Deployment. |
