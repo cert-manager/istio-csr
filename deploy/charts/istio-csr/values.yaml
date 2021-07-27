@@ -71,11 +71,18 @@ app:
     # of these DNS names.
     certificateDNSNames:
     - cert-manager-istio-csr.cert-manager.svc
-    # -- Requested duration of gRPC serving certificate. Will be automatically renewed.
+    # -- Requested duration of gRPC serving certificate. Will be automatically
+    # renewed.
     # Based on NIST 800-204A recommendations (SM-DR13).
     # https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf
-    # cert-manager does not allow a duration on Certificates less than 1 hour.
     certificateDuration: 1h
+    # -- Requested duration of istio's Certificate. Will be automatically
+    # renewed.
+    # Based on NIST 800-204A recommendations (SM-DR13).
+    # https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf
+    # Warning: cert-manager does not allow a duration on Certificates less than
+    # 1 hour.
+    istiodCertificateDuration: 1h
 
   server:
     # -- The istio cluster ID to verify incoming CSRs.
