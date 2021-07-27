@@ -48,7 +48,6 @@ spec:
           - "--serving-certificate-dns-names={{ . }}"
         {{- end  }}
           - "--serving-certificate-duration={{.Values.app.tls.certificateDuration}}"
-          - "--serving-certificate-duration={{.Values.app.tls.certificateDuration}}"
           - "--trust-domain={{.Values.app.tls.trustDomain}}"
 
           # server
