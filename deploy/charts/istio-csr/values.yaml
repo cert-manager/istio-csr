@@ -99,6 +99,10 @@ app:
       # -- Container port to serve istio-csr gRPC service.
       port: 6443
 
+  istio:
+    # -- The istio revisions that are currently installed in the cluster.
+    revisions: []
+
   controller:
     leaderElectionNamespace: istio-system
     # -- Name of ConfigMap that should contain the root CA in all namespaces.

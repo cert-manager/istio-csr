@@ -5,9 +5,18 @@ metadata:
   namespace: istio-system
 spec:
   dnsNames:
+  {{- if .Values.app.istio.revisions }}
+  {{- $revisions := dict -}}
+  {{- range $revision := .Values.app.istio.revisions -}}
+  {{- if eq $revision "default" }}{{ $revision = "" }}{{ end }}
+  {{- if ne $revision "" }}{{ $revision = print "-" $revision }}{{ end }}
+  - istiod{{$revision}}.istio-system.svc
+  {{- end }}
+  {{- else }}
   - istiod.istio-system.svc
+  {{- end }}
   uris:
-    - spiffe://cluster.local/ns/istio-system/sa/istiod-service-account
+  - spiffe://{{.Values.app.tls.trustDomain}}/ns/istio-system/sa/istiod-service-account
   secretName: istiod-tls
   # Here we use a duration of 1 hour by default based on NIST 800-204A
   # recommendations (SM-DR13).
