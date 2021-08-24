@@ -5,10 +5,15 @@ metadata:
   namespace: istio-system
 spec:
   dnsNames:
-  {{- if .Values.app.istio.revisions }}
   {{- $revisions := dict -}}
+  {{- if .Values.app.istio.revisions }}
   {{- range $revision := .Values.app.istio.revisions -}}
   {{- if eq $revision "default" }}{{ $revision = "" }}{{ end }}
+  {{- if hasKey $revisions $revision }}
+  {{- printf "Duplicate revisions defined %s" $revision | fail -}}
+  {{- else -}}
+  {{- $_ := set $revisions $revision $revision -}}
+  {{- end -}}
   {{- if ne $revision "" }}{{ $revision = print "-" $revision }}{{ end }}
   - istiod{{$revision}}.istio-system.svc
   {{- end }}
