@@ -101,7 +101,7 @@ app:
 
   istio:
     # -- The istio revisions that are currently installed in the cluster.
-    revisions: []
+    revisions: ["default"]
 
   controller:
     leaderElectionNamespace: istio-system
