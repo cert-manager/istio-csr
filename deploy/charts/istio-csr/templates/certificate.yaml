@@ -4,6 +4,7 @@ metadata:
   name: istiod
   namespace: istio-system
 spec:
+  commonName: istiod.istio-system.svc
   dnsNames:
   {{- $revisions := dict -}}
   {{- if .Values.app.istio.revisions }}
