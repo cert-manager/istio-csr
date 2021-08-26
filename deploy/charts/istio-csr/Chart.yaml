@@ -4,7 +4,7 @@ name: cert-manager-istio-csr
 type: application
 description: A Helm chart for istio-csr
 
-home: https://github.com/jetstack/istio-csr
+home: https://github.com/cert-manager/istio-csr
 maintainers:
 - name: joshvanl
   email: joshua.vanleeuwen@jetstack.io
@@ -13,4 +13,4 @@ sources:
 - https://github.com/cert-manager/istio-csr
 
 appVersion: v0.2.0
-version: v0.2.1
+version: v0.2.2
