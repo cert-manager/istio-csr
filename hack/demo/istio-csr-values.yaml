@@ -1,9 +1,9 @@
 replicaCount: 3
 
 image:
-  repository: localhost:5000/cert-manager-istio-csr
-  tag: v0.2.1
-  pullPolicy: Always
+  repository: quay.io/jetstack/cert-manager-istio-csr
+  tag: canary
+  pullPolicy: Never
 
 service:
   port: 443
