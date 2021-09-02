@@ -17,6 +17,7 @@ ARCH   ?= $(shell go env GOARCH)
 ISTIO_VERSION ?= 1.10.0
 K8S_VERSION ?= 1.21.1
 HELM_VERSION ?= 3.4.1
+IMAGE_PLATFORMS ?= linux/amd64,linux/arm64,linux/arm/v7,linux/ppc64le
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Linux)
@@ -39,15 +40,15 @@ lint:
 
 build: ## build cert-manager-istio-csr
 	mkdir -p $(BINDIR)
-	CGO_ENABLED=0 go build -o ./bin/cert-manager-istio-csr  ./cmd/.
+	CGO_ENABLED=0 go build -v -o ./bin/cert-manager-istio-csr  ./cmd/.
 
 verify: test build ## tests and builds cert-manager-istio-csr
 
-build_image_binary: ## builds image binary
-	GOARCH=$(ARCH) GOOS=linux CGO_ENABLED=0 go build -o ./bin/cert-manager-istio-csr-linux  ./cmd/.
-
-image: build_image_binary ## build docker image from binary
-	docker build -t quay.io/jetstack/cert-manager-istio-csr:v0.2.0 .
+# image will only build and store the image locally, targeted in OCI format.
+# To actually push an image to the public repo, replace the `--output` flag and
+# arguments to `--push`.
+image: ## build docker image targeting all supported platforms
+	docker buildx build --platform=$(IMAGE_PLATFORMS) -t quay.io/jetstack/cert-manager-istio-csr:v0.2.1 --output type=oci,dest=./bin/cert-manager-istio-csr-oci .
 
 clean: ## clean up created files
 	rm -rf \
@@ -56,7 +57,7 @@ clean: ## clean up created files
 
 all: test build docker ## runs test, build and docker
 
-demo: depend build test build_image_binary ## create kind cluster and deploy demo
+demo: depend build test ## create kind cluster and deploy demo
 	./hack/demo/deploy-demo.sh $(K8S_VERSION) $(ISTIO_VERSION)
 	$(BINDIR)/kubectl label namespace default istio-injection=enabled
 

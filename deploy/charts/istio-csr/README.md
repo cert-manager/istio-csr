@@ -1,10 +1,10 @@
 # cert-manager-istio-csr
 
-![Version: v0.2.1](https://img.shields.io/badge/Version-v0.2.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.2.0](https://img.shields.io/badge/AppVersion-v0.2.0-informational?style=flat-square)
+![Version: v0.2.3](https://img.shields.io/badge/Version-v0.2.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.2.1](https://img.shields.io/badge/AppVersion-v0.2.1-informational?style=flat-square)
 
 A Helm chart for istio-csr
 
-**Homepage:** <https://github.com/jetstack/istio-csr>
+**Homepage:** <https://github.com/cert-manager/istio-csr>
 
 ## Maintainers
 
@@ -27,6 +27,7 @@ A Helm chart for istio-csr
 | app.certmanager.preserveCertificateRequests | bool | `false` | Don't delete created CertificateRequests once they have been signed. |
 | app.controller.leaderElectionNamespace | string | `"istio-system"` |  |
 | app.controller.rootCAConfigMapName | string | `"istio-ca-root-cert"` | Name of ConfigMap that should contain the root CA in all namespaces. |
+| app.istio.revisions | list | `["default"]` | The istio revisions that are currently installed in the cluster. Changing this field will modify the DNS names that will be requested for the istiod certificate. The common name for the istiod certificate is hard coded to the `default` revision DNS name. Some issuers may require that the common name on certificates match one of the DNS names. If 1. Your issuer has this constraint, and 2. You are not using `default` as a revision, add the `default` revision here anyway. The resulting certificate will include a DNS name that won't be used, but will pass this constraint. |
 | app.logLevel | int | `1` | Verbosity of istio-csr logging. |
 | app.metrics.port | int | `9402` | Port for exposing Prometheus metrics on 0.0.0.0 on path '/metrics'. |
 | app.metrics.service | object | `{"enabled":true,"servicemonitor":{"enabled":false,"interval":"10s","labels":{},"prometheusInstance":"default","scrapeTimeout":"5s"},"type":"ClusterIP"}` | Service to expose metrics endpoint. |
@@ -46,7 +47,7 @@ A Helm chart for istio-csr
 | app.tls.trustDomain | string | `"cluster.local"` | The Istio cluster's trust domain. |
 | image.pullPolicy | string | `"IfNotPresent"` | Kubernetes imagePullPolicy on Deployment. |
 | image.repository | string | `"quay.io/jetstack/cert-manager-istio-csr"` | Target image repository. |
-| image.tag | string | `"v0.2.0"` | Target image version tag. |
+| image.tag | string | `"v0.2.1"` | Target image version tag. |
 | replicaCount | int | `1` | Number of replicas of istio-csr to run. |
 | resources | object | `{}` |  |
 | service.port | int | `443` | Service port to expose istio-csr gRPC service. |
