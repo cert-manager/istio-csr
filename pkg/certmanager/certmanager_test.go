@@ -422,15 +422,8 @@ func Test_waitForCertificateRequest(t *testing.T) {
 				return client.CertmanagerV1().CertificateRequests(gen.DefaultTestNamespace)
 			},
 
-			expResult: gen.CertificateRequest("test-cr",
-				gen.AddCertificateRequestStatusCondition(cmapi.CertificateRequestCondition{
-					Type:   cmapi.CertificateRequestConditionReady,
-					Status: cmmeta.ConditionFalse,
-					Reason: "random condition",
-				}),
-			),
-
-			expErr: true,
+			expResult: gen.CertificateRequest("test-cr"),
+			expErr:    true,
 		},
 	}
 
