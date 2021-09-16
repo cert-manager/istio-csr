@@ -18,6 +18,7 @@ package server
 
 import (
 	"context"
+	"crypto/x509"
 	"errors"
 	"fmt"
 	"net"
@@ -28,6 +29,7 @@ import (
 	"github.com/go-logr/logr"
 	grpcprom "github.com/grpc-ecosystem/go-grpc-prometheus"
 	cmapi "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1"
+	"github.com/jetstack/cert-manager/pkg/util/pki"
 	prom "github.com/prometheus/client_golang/prometheus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -67,18 +69,13 @@ type Server struct {
 	auther security.Authenticator
 
 	cm  certmanager.Signer
-	tls *tls.Provider
+	tls tls.Interface
 
 	ready bool
 	lock  sync.RWMutex
 }
 
-func New(log logr.Logger,
-	restConfig *rest.Config,
-	cm certmanager.Signer,
-	tls *tls.Provider,
-	opts Options,
-) (*Server, error) {
+func New(log logr.Logger, restConfig *rest.Config, cm certmanager.Signer, tls tls.Interface, opts Options) (*Server, error) {
 
 	kubeClient, err := kubernetes.NewForConfig(restConfig)
 	if err != nil {
@@ -175,19 +172,18 @@ func (s *Server) CreateCertificate(ctx context.Context, icr *securityapi.IstioCe
 		return nil, status.Error(codes.Internal, "failed to sign certificate request")
 	}
 
-	// Parse returned signed certificate
-	respCertChain := []string{string(bundle.Certificate)}
-	if len(bundle.CA) > 0 {
-		// If the request returns a CA certificate, add to the response chain
-		respCertChain = append(respCertChain, string(bundle.CA))
+	certChain, err := s.parseCertificateBundle(bundle)
+	if err != nil {
+		log.Error(err, "failed to parse and verify signed certificate chain from issuer")
+		return nil, status.Error(codes.Internal, "failed to parse and verify signed certificate from issuer")
 	}
 
 	// Build client response object
 	response := &securityapi.IstioCertificateResponse{
-		CertChain: respCertChain,
+		CertChain: certChain,
 	}
 
-	log.V(2).Info("workload CertificateRequest signed", "identities", identities)
+	log.V(2).Info("workload CertificateRequest signed")
 
 	// Return response to the client
 	return response, nil
@@ -208,4 +204,51 @@ func (s *Server) Check(_ *http.Request) error {
 		return nil
 	}
 	return errors.New("not ready")
+}
+
+// parseCertificateChain will attempt to parse the certmanager certificate
+// bundle, and return a chain of certificates with the last being the root CAs
+// bundle.
+// This function will ensure the chain is a flat linked list, and is valid for
+// at least one of the root CAs.
+func (s *Server) parseCertificateBundle(bundle certmanager.Bundle) ([]string, error) {
+	// Parse returned signed certificate chain. Append root CA validate it is a
+	// flat chain.
+	respBundle, err := pki.ParseSingleCertificateChainPEM(bundle.Certificate)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse and verify chain returned from issuer: %w", err)
+	}
+
+	// Verify that the signed chain is a member of one of the root CAs.
+	respCerts, err := pki.DecodeX509CertificateChainBytes(respBundle.ChainPEM)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode certificate chain returned from issuer: %w", err)
+	}
+
+	intermediatePool := x509.NewCertPool()
+	for _, intermediate := range respCerts[1:] {
+		intermediatePool.AddCert(intermediate)
+	}
+
+	rootCAsPEM, rootCAsPool := s.tls.RootCAs()
+	opts := x509.VerifyOptions{
+		Intermediates: intermediatePool,
+		Roots:         rootCAsPool,
+		KeyUsages:     []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
+	}
+	if _, err := respCerts[0].Verify(opts); err != nil {
+		return nil, fmt.Errorf("failed to verify the issued certificate chain against the current mesh roots: %w", err)
+	}
+
+	// Build the certificate chain, and tag on the rootCAs as the last entry.
+	var certChain []string
+	for _, cert := range respCerts {
+		certEncoded, err := pki.EncodeX509(cert)
+		if err != nil {
+			return nil, fmt.Errorf("failed to encode signed certificate: %w", err)
+		}
+		certChain = append(certChain, string(certEncoded))
+	}
+
+	return append(certChain, string(rootCAsPEM)), nil
 }
