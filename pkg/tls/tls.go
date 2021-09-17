@@ -17,6 +17,7 @@ limitations under the License.
 package tls
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
 	"crypto/x509"
@@ -34,6 +35,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"istio.io/istio/pkg/spiffe"
 	pkiutil "istio.io/istio/security/pkg/pki/util"
+	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/metrics"
 
 	"github.com/cert-manager/istio-csr/pkg/certmanager"
@@ -68,6 +70,10 @@ type Interface interface {
 	// certificates and root CAs.
 	// This func blocks until the tls.Config is available.
 	Config(ctx context.Context) (*tls.Config, error)
+
+	// SubscribeRootCAsEvent will return a channel that a message will be passed
+	// when a root CA changes.
+	SubscribeRootCAsEvent() <-chan event.GenericEvent
 }
 
 type Options struct {
@@ -102,8 +108,9 @@ type Provider struct {
 
 	cm certmanager.Signer
 
-	lock      sync.RWMutex
-	tlsConfig *tls.Config
+	lock          sync.RWMutex
+	tlsConfig     *tls.Config
+	subscriptions []chan<- event.GenericEvent
 }
 
 // NewProvider will return a new provider where a TLS config is ready to be fetched.
@@ -303,25 +310,16 @@ func (p *Provider) fetchCertificate(ctx context.Context) (time.Time, error) {
 
 	p.log.Info("serving certificate ready")
 
-	p.lock.Lock()
-	defer p.lock.Unlock()
-
 	// If we are not using a custom root CA, then overwrite the existing with
 	// what was responded.
 	if len(p.opts.RootCAsCertFile) == 0 {
-		rootCAsCerts, err := pki.DecodeX509CertificateChainBytes(bundle.CA)
-		if err != nil {
-			return time.Time{}, fmt.Errorf("failed to parse CA returned from issuer: %w", err)
+		if err := p.loadCAsRoot(bundle.CA); err != nil {
+			return time.Time{}, fmt.Errorf("failed to load CA from issuer response: %w", err)
 		}
-
-		rootCAsPool := x509.NewCertPool()
-		for _, rootCert := range rootCAsCerts {
-			rootCAsPool.AddCert(rootCert)
-		}
-
-		p.rootCAsPEM = bundle.CA
-		p.rootCAsPool = rootCAsPool
 	}
+
+	p.lock.Lock()
+	defer p.lock.Unlock()
 
 	// Parse the root CA
 	if len(p.rootCAsPEM) == 0 || p.rootCAsPool == nil {
@@ -386,4 +384,45 @@ func (p *Provider) Check(_ *http.Request) error {
 	}
 
 	return errors.New("not ready")
+}
+
+// SubscribeRootCAsEvent will return a channel that a message will be passed
+// when a root CA changes.
+func (p *Provider) SubscribeRootCAsEvent() <-chan event.GenericEvent {
+	p.lock.Lock()
+	defer p.lock.Unlock()
+	sub := make(chan event.GenericEvent)
+
+	p.subscriptions = append(p.subscriptions, sub)
+	return sub
+}
+
+// loadCAsRoot will load and update the current root CAs with the given root
+// CAs PEM bundle. Is a no-op if the root CAs bundle has not changed.
+func (p *Provider) loadCAsRoot(rootCAsPEM []byte) error {
+	p.lock.Lock()
+	defer p.lock.Unlock()
+
+	// If the root CAs bundle has not been changed, return early
+	if !bytes.Equal(p.rootCAsPEM, rootCAsPEM) {
+		return nil
+	}
+
+	rootCAsCerts, err := pki.DecodeX509CertificateChainBytes(rootCAsPEM)
+	if err != nil {
+		return fmt.Errorf("failed to decode bundle CA returned from issuer: %w", err)
+	}
+
+	rootCAsPool := x509.NewCertPool()
+	for _, rootCert := range rootCAsCerts {
+		rootCAsPool.AddCert(rootCert)
+	}
+
+	p.rootCAsPEM = rootCAsPEM
+	p.rootCAsPool = rootCAsPool
+	for _, sub := range p.subscriptions {
+		go func() { sub <- event.GenericEvent{} }()
+	}
+
+	return nil
 }
