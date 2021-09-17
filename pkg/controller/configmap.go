@@ -47,11 +47,12 @@ type Options struct {
 	// leader election of each controller.
 	LeaderElectionNamespace string
 
-	// Log is the logger used by controllers.
-	Log logr.Logger
-
 	// TLS is the tls provider that is used for updating the config map.
 	TLS tls.Interface
+
+	// Manager is the controller-runtime Manager that the controller will be
+	// registered against.
+	Manager manager.Manager
 }
 
 // configmap is the controller that is responsible for ensuring that all
@@ -74,16 +75,16 @@ type configmap struct {
 	tls tls.Interface
 }
 
-func AddConfigMapController(ctx context.Context, mgr manager.Manager, opts Options) error {
+func AddConfigMapController(ctx context.Context, log logr.Logger, opts Options) error {
 	c := &configmap{
-		client: mgr.GetClient(),
-		lister: mgr.GetCache(),
-		log:    opts.Log.WithName("controller").WithName("configmap"),
+		client: opts.Manager.GetClient(),
+		lister: opts.Manager.GetCache(),
+		log:    log.WithName("controller").WithName("configmap"),
 		tls:    opts.TLS,
 	}
 
 	// Only reconcile config maps that match the well known name
-	if err := ctrl.NewControllerManagedBy(mgr).
+	if err := ctrl.NewControllerManagedBy(opts.Manager).
 		// Reconcile ConfigMaps but only cache metadata
 		For(new(corev1.ConfigMap), builder.OnlyMetadata, builder.WithPredicates(predicate.NewPredicateFuncs(func(obj client.Object) bool {
 			// Only process ConfigMaps with the istio configmap name
@@ -145,6 +146,9 @@ func (c *configmap) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resul
 		return ctrl.Result{}, nil
 	}
 
+	rootCAsPEMBytes, _ := c.tls.RootCAs()
+	rootCAsPEM := string(rootCAsPEMBytes)
+
 	// Check ConfigMap exists, and has the correct data.
 	var configMap corev1.ConfigMap
 	err = c.client.Get(ctx, client.ObjectKey{Namespace: req.Namespace, Name: configMapNameIstioRoot}, &configMap)
@@ -159,7 +163,7 @@ func (c *configmap) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resul
 				Labels:    map[string]string{configMapLabelKey: "true"},
 			},
 			Data: map[string]string{
-				"root-cert.pem": string(c.tls.RootCA()),
+				"root-cert.pem": rootCAsPEM,
 			},
 		})
 	}
@@ -187,8 +191,8 @@ func (c *configmap) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resul
 	}
 
 	// If the ConfigMap doesn't have the expected key value, update.
-	if data, ok := configMap.Data["root-cert.pem"]; !ok || data != string(c.tls.RootCA()) {
-		configMap.Data["root-cert.pem"] = string(c.tls.RootCA())
+	if data, ok := configMap.Data["root-cert.pem"]; !ok || data != rootCAsPEM {
+		configMap.Data["root-cert.pem"] = rootCAsPEM
 		updateNeeded = true
 	}
 
