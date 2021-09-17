@@ -152,8 +152,7 @@ func (c *configmap) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resul
 		return ctrl.Result{}, nil
 	}
 
-	rootCAsPEMBytes, _ := c.tls.RootCAs()
-	rootCAsPEM := string(rootCAsPEMBytes)
+	rootCAsPEM := string(c.tls.RootCAs().PEM)
 
 	// Check ConfigMap exists, and has the correct data.
 	var configMap corev1.ConfigMap

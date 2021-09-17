@@ -24,7 +24,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"os"
 	"strings"
 	"sync"
 	"time"
@@ -39,6 +38,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/metrics"
 
 	"github.com/cert-manager/istio-csr/pkg/certmanager"
+	"github.com/cert-manager/istio-csr/pkg/tls/rootca"
 )
 
 var (
@@ -64,7 +64,7 @@ type Interface interface {
 	// RootCAs returns the root CA PEM bundle as well as an *x509.CertPool
 	// containing the decoded CA certificates.
 	// This func blocks until the CA certificates are available.
-	RootCAs() ([]byte, *x509.CertPool)
+	RootCAs() rootca.RootCAs
 
 	// Config provides a tls.Config that is updated with updated serving
 	// certificates and root CAs.
@@ -103,8 +103,7 @@ type Provider struct {
 	opts Options
 	log  logr.Logger
 
-	rootCAsPEM  []byte
-	rootCAsPool *x509.CertPool
+	rootCAs rootca.RootCAs
 
 	cm certmanager.Signer
 
@@ -115,39 +114,10 @@ type Provider struct {
 
 // NewProvider will return a new provider where a TLS config is ready to be fetched.
 func NewProvider(log logr.Logger, cm certmanager.Signer, opts Options) (*Provider, error) {
-	log = log.WithName("tls_provider")
-
-	var (
-		rootCAsPEM  []byte
-		rootCAsPool *x509.CertPool
-	)
-
-	if len(opts.RootCAsCertFile) > 0 {
-		var err error
-		rootCAsPEM, err = os.ReadFile(opts.RootCAsCertFile)
-		if err != nil {
-			return nil, fmt.Errorf("failed to read root CAs certificate file %q: %w",
-				opts.RootCAsCertFile, err)
-		}
-
-		rootCAsCerts, err := pki.DecodeX509CertificateChainBytes(rootCAsPEM)
-		if err != nil {
-			return nil, fmt.Errorf("failed to decode root CAs in certificate file %q: %w",
-				opts.RootCAsCertFile, err)
-		}
-
-		rootCAsPool = x509.NewCertPool()
-		for _, rootCert := range rootCAsCerts {
-			rootCAsPool.AddCert(rootCert)
-		}
-	}
-
 	return &Provider{
-		opts:        opts,
-		log:         log,
-		rootCAsPEM:  rootCAsPEM,
-		rootCAsPool: rootCAsPool,
-		cm:          cm,
+		opts: opts,
+		log:  log.WithName("tls-provider"),
+		cm:   cm,
 	}, nil
 }
 
@@ -155,6 +125,26 @@ func NewProvider(log logr.Logger, cm certmanager.Signer, opts Options) (*Provide
 // provide a TLS config based on it. Keep this certificate renewed. Blocking
 // function.
 func (p *Provider) Start(ctx context.Context) error {
+	if len(p.opts.RootCAsCertFile) > 0 {
+		rootCAsChan, err := rootca.Watch(ctx, p.log, p.opts.RootCAsCertFile)
+		if err != nil {
+			return err
+		}
+
+		go func() {
+			for {
+				select {
+				case <-ctx.Done():
+					return
+				case rootCAs := <-rootCAsChan:
+					p.lock.Lock()
+					p.rootCAs = rootCAs
+					p.lock.Unlock()
+				}
+			}
+		}()
+	}
+
 	notAfter, err := p.fetchCertificate(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to fetch initial serving certificate: %w", err)
@@ -263,19 +253,18 @@ func (p *Provider) getConfigForClient(_ *tls.ClientHelloInfo) (*tls.Config, erro
 
 // RootCAs returns the configured CA certificate. This function blocks until
 // the root CA has been populated.
-func (p *Provider) RootCAs() ([]byte, *x509.CertPool) {
+func (p *Provider) RootCAs() rootca.RootCAs {
 	for {
 		p.lock.RLock()
-		rootCAsPEM := p.rootCAsPEM
-		rootCAsPool := p.rootCAsPool
+		rootCAs := p.rootCAs
 		p.lock.RUnlock()
 
-		if len(rootCAsPEM) == 0 || rootCAsPool == nil {
+		if len(rootCAs.PEM) == 0 || rootCAs.CertPool == nil {
 			time.Sleep(time.Second)
 			continue
 		}
 
-		return rootCAsPEM, rootCAsPool
+		return rootCAs
 	}
 }
 
@@ -322,13 +311,13 @@ func (p *Provider) fetchCertificate(ctx context.Context) (time.Time, error) {
 	defer p.lock.Unlock()
 
 	// Parse the root CA
-	if len(p.rootCAsPEM) == 0 || p.rootCAsPool == nil {
+	if len(p.rootCAs.PEM) == 0 || p.rootCAs.CertPool == nil {
 		return time.Time{}, errors.New("root CA certificate is not defined")
 	}
 
 	// Build the client certificate verifier based upon the root certificate
 	peerCertVerifier := spiffe.NewPeerCertVerifier()
-	if err := peerCertVerifier.AddMappingFromPEM(p.opts.TrustDomain, p.rootCAsPEM); err != nil {
+	if err := peerCertVerifier.AddMappingFromPEM(p.opts.TrustDomain, p.rootCAs.PEM); err != nil {
 		return time.Time{}, fmt.Errorf("failed to add root CAs to SPIFFE peer certificate verifier: %w", err)
 	}
 
@@ -405,7 +394,7 @@ func (p *Provider) loadCAsRoot(rootCAsPEM []byte) error {
 	defer p.lock.Unlock()
 
 	// If the root CAs bundle has not been changed, return early
-	if bytes.Equal(p.rootCAsPEM, rootCAsPEM) {
+	if bytes.Equal(p.rootCAs.PEM, rootCAsPEM) {
 		return nil
 	}
 
@@ -419,8 +408,7 @@ func (p *Provider) loadCAsRoot(rootCAsPEM []byte) error {
 		rootCAsPool.AddCert(rootCert)
 	}
 
-	p.rootCAsPEM = rootCAsPEM
-	p.rootCAsPool = rootCAsPool
+	p.rootCAs = rootca.RootCAs{PEM: rootCAsPEM, CertPool: rootCAsPool}
 	for i := range p.subscriptions {
 		go func(i int) { p.subscriptions[i] <- event.GenericEvent{} }(i)
 	}
