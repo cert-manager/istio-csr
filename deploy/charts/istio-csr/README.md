@@ -26,7 +26,6 @@ A Helm chart for istio-csr
 | app.certmanager.namespace | string | `"istio-system"` | Namespace to create CertificateRequests for both istio-csr's serving certificate and incoming gRPC CSRs. |
 | app.certmanager.preserveCertificateRequests | bool | `false` | Don't delete created CertificateRequests once they have been signed. |
 | app.controller.leaderElectionNamespace | string | `"istio-system"` |  |
-| app.controller.rootCAConfigMapName | string | `"istio-ca-root-cert"` | Name of ConfigMap that should contain the root CA in all namespaces. |
 | app.istio.revisions | list | `["default"]` | The istio revisions that are currently installed in the cluster. Changing this field will modify the DNS names that will be requested for the istiod certificate. The common name for the istiod certificate is hard coded to the `default` revision DNS name. Some issuers may require that the common name on certificates match one of the DNS names. If 1. Your issuer has this constraint, and 2. You are not using `default` as a revision, add the `default` revision here anyway. The resulting certificate will include a DNS name that won't be used, but will pass this constraint. |
 | app.logLevel | int | `1` | Verbosity of istio-csr logging. |
 | app.metrics.port | int | `9402` | Port for exposing Prometheus metrics on 0.0.0.0 on path '/metrics'. |
