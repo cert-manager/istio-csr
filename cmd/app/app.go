@@ -112,6 +112,7 @@ func NewCommand(ctx context.Context) *cobra.Command {
 				return fmt.Errorf("failed to add grpc server as runnable: %w", err)
 			}
 
+			// Add the ConfigMap controller that propagates the root CAs.
 			if err := controller.AddConfigMapController(ctx, opts.Logr, controller.Options{
 				LeaderElectionNamespace: opts.Controller.LeaderElectionNamespace,
 				TLS:                     tls,

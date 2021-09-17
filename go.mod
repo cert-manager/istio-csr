@@ -11,6 +11,7 @@ require (
 	github.com/prometheus/client_golang v1.11.0
 	github.com/spf13/cobra v1.2.1
 	github.com/spf13/pflag v1.0.5
+	github.com/stretchr/testify v1.7.0
 	google.golang.org/grpc v1.38.0
 	google.golang.org/protobuf v1.26.0
 	istio.io/api v0.0.0-20210617183632-a1ac914aead5
