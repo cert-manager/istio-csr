@@ -81,7 +81,8 @@ e2e: demo ## build demo cluster and runs end to end tests
 	./hack/demo/destroy-demo.sh
 
 .PHONY: carotation
-carotation:
+carotation: depend ## run ca rotation test
+	./test/carotation/run.sh
 
 .PHONY: depend
 depend: $(BINDIR)/istioctl-$(ISTIO_VERSION) $(BINDIR)/ginkgo $(BINDIR)/kubectl $(BINDIR)/kind $(BINDIR)/helm

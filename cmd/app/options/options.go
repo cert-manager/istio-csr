@@ -102,6 +102,10 @@ func (o *Options) Complete() error {
 		log.Info("WARNING!: --root-ca-file is not defined which means the root CA will be discovered by the configured issuer.")
 		log.Info("WARNING!: It is strongly recommended that a root CA bundle be statically defined.")
 		log.Info("------------------------------------------------------------------------------------------------------------")
+	} else {
+		log.Info("-----------------------------------------------------------------")
+		log.Info("Using root CAs from file: " + o.TLS.RootCAsCertFile)
+		log.Info("-----------------------------------------------------------------")
 	}
 
 	return nil
