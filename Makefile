@@ -27,49 +27,60 @@ ifeq ($(UNAME_S),Darwin)
 	OS := darwin
 endif
 
+.PHONY: help
 help:  ## display this help
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n\nTargets:\n"} /^[a-zA-Z0-9_-]+:.*?##/ { printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
 
-.PHONY: help test build verify image clean all demo docker e2e depend
-
+.PHONY: test
 test: lint ## test cert-manager-istio-csr
 	go test $$(go list ./pkg/... ./cmd/...)
 
+.PHONY: lint
 lint: boilerplate vet ## run code linting tests
 
+.PHONY: vet
 vet:
 	go vet -v ./...
 
+.PHONY: boilerplate
 boilerplate:
 	./hack/verify-boilerplate.sh
 
+.PHONY: build
 build: ## build cert-manager-istio-csr
 	mkdir -p $(BINDIR)
 	CGO_ENABLED=0 go build -v -o ./bin/cert-manager-istio-csr  ./cmd/.
 
+.PHONY: verify
 verify: test build ## tests and builds cert-manager-istio-csr
 
 # image will only build and store the image locally, targeted in OCI format.
 # To actually push an image to the public repo, replace the `--output` flag and
 # arguments to `--push`.
+.PHONY: image
 image: ## build docker image targeting all supported platforms
 	docker buildx build --platform=$(IMAGE_PLATFORMS) -t quay.io/jetstack/cert-manager-istio-csr:v0.2.1 --output type=oci,dest=./bin/cert-manager-istio-csr-oci .
 
+.PHONY: clean
 clean: ## clean up created files
 	rm -rf \
 		$(BINDIR) \
 		_artifacts
 
+.PHONY: all
 all: test build docker ## runs test, build and docker
 
+.PHONY: demo
 demo: depend build test ## create kind cluster and deploy demo
 	./hack/demo/deploy-demo.sh $(K8S_VERSION) $(ISTIO_VERSION)
 	$(BINDIR)/kubectl label namespace default istio-injection=enabled
 
+.PHONY: e2e
 e2e: demo ## build demo cluster and runs end to end tests
 	./hack/run-e2e.sh
 	./hack/demo/destroy-demo.sh
 
+.PHONY: depend
 depend: $(BINDIR)/istioctl-$(ISTIO_VERSION) $(BINDIR)/ginkgo $(BINDIR)/kubectl $(BINDIR)/kind $(BINDIR)/helm
 
 $(BINDIR)/istioctl-$(ISTIO_VERSION):

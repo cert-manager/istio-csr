@@ -95,8 +95,7 @@ func AddConfigMapController(ctx context.Context, log logr.Logger, opts Options) 
 		tls:    opts.TLS,
 	}
 
-	// Only reconcile config maps that match the well known name
-	if err := ctrl.NewControllerManagedBy(opts.Manager).
+	return ctrl.NewControllerManagedBy(opts.Manager).
 		// Reconcile ConfigMaps but only cache metadata
 		For(new(corev1.ConfigMap), builder.OnlyMetadata, builder.WithPredicates(predicate.NewPredicateFuncs(func(obj client.Object) bool {
 			// Only process ConfigMaps with the istio configmap name
@@ -127,12 +126,7 @@ func AddConfigMapController(ctx context.Context, log logr.Logger, opts Options) 
 		)).
 
 		// Complete controller.
-		Complete(c); err != nil {
-
-		return fmt.Errorf("failed to create ConfigMap controller: %s", err)
-	}
-
-	return nil
+		Complete(c)
 }
 
 // Reconcile is the main ConfigMap Reconcile loop. It will ensure that the

@@ -399,12 +399,13 @@ func (p *Provider) SubscribeRootCAsEvent() <-chan event.GenericEvent {
 
 // loadCAsRoot will load and update the current root CAs with the given root
 // CAs PEM bundle. Is a no-op if the root CAs bundle has not changed.
+// Sends an event to root CAs subscribers if the data has changed.
 func (p *Provider) loadCAsRoot(rootCAsPEM []byte) error {
 	p.lock.Lock()
 	defer p.lock.Unlock()
 
 	// If the root CAs bundle has not been changed, return early
-	if !bytes.Equal(p.rootCAsPEM, rootCAsPEM) {
+	if bytes.Equal(p.rootCAsPEM, rootCAsPEM) {
 		return nil
 	}
 
