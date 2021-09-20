@@ -18,6 +18,7 @@ package controller
 
 import (
 	"context"
+	"crypto/x509"
 	"fmt"
 
 	"github.com/go-logr/logr"
@@ -45,7 +46,7 @@ type Options struct {
 	LeaderElectionNamespace string
 }
 
-type caGetter func() []byte
+type caGetter func() ([]byte, *x509.CertPool)
 
 // CARoot reconciles a configmap in each namespace with the root CA
 // data.
@@ -69,7 +70,7 @@ type configmap struct {
 // ConfigMap name.
 type enforcer struct {
 	client        client.Client
-	rootCA        caGetter
+	rootCAs       caGetter
 	configMapName string
 }
 
@@ -83,7 +84,7 @@ func AddCARootController(log logr.Logger,
 
 	enforcer := &enforcer{
 		client:        mgr.GetClient(),
-		rootCA:        rootCA,
+		rootCAs:       rootCA,
 		configMapName: opts.ConfigMapName,
 	}
 
@@ -171,12 +172,13 @@ func (e *enforcer) configmap(ctx context.Context, log logr.Logger, namespace str
 		cm = new(corev1.ConfigMap)
 	)
 
-	rootCA := fmt.Sprintf("%s", e.rootCA())
+	rootCAsPEMBytes, _ := e.rootCAs()
+	rootCAsPEM := string(rootCAsPEMBytes)
 
 	// Build the data which should be present in the well-known configmap in
 	// all namespaces.
 	rootCAConfigData := map[string]string{
-		"root-cert.pem": rootCA,
+		"root-cert.pem": rootCAsPEM,
 	}
 
 	log = log.WithValues("configmap", namespacedName.String())
@@ -201,12 +203,12 @@ func (e *enforcer) configmap(ctx context.Context, log logr.Logger, namespace str
 	}
 
 	var notMatch bool
-	if data, ok := cm.Data["root-cert.pem"]; !ok || data != rootCA {
+	if data, ok := cm.Data["root-cert.pem"]; !ok || data != rootCAsPEM {
 		if cm.Data == nil {
 			cm.Data = make(map[string]string)
 		}
 
-		cm.Data["root-cert.pem"] = rootCA
+		cm.Data["root-cert.pem"] = rootCAsPEM
 		notMatch = true
 	}
 

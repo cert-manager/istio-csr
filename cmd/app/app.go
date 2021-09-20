@@ -113,7 +113,7 @@ func NewCommand(ctx context.Context) *cobra.Command {
 			}
 
 			// Build and run the namespace controller to distribute the root CA
-			err = controller.AddCARootController(opts.Logr, mgr, tls.RootCA, opts.Controller)
+			err = controller.AddCARootController(opts.Logr, mgr, tls.RootCAs, opts.Controller)
 			if err != nil {
 				return fmt.Errorf("failed to add CA root controller: %w", err)
 			}

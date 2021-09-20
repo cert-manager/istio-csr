@@ -18,6 +18,7 @@ package controller
 
 import (
 	"context"
+	"crypto/x509"
 	"reflect"
 	"testing"
 
@@ -68,7 +69,7 @@ func TestConfigMapReconcile(t *testing.T) {
 				log: klogr.New(),
 				enforcer: &enforcer{
 					client:        client,
-					rootCA:        func() []byte { return []byte("bar") },
+					rootCAs:       func() ([]byte, *x509.CertPool) { return []byte("bar"), nil },
 					configMapName: testNamespacedName.Name,
 				},
 			}
@@ -149,7 +150,7 @@ func TestNamespaceReconcile(t *testing.T) {
 				log: klogr.New(),
 				enforcer: &enforcer{
 					client:        client,
-					rootCA:        func() []byte { return []byte("bar") },
+					rootCAs:       func() ([]byte, *x509.CertPool) { return []byte("bar"), nil },
 					configMapName: testNamespacedName.Name,
 				},
 			}
@@ -179,7 +180,7 @@ func TestEnforcerConfigMap(t *testing.T) {
 			client := buildClient(t, test)
 			enforcer := &enforcer{
 				client:        client,
-				rootCA:        func() []byte { return []byte("bar") },
+				rootCAs:       func() ([]byte, *x509.CertPool) { return []byte("bar"), nil },
 				configMapName: testNamespacedName.Name,
 			}
 

@@ -91,6 +91,13 @@ func (o *Options) Complete() error {
 		return fmt.Errorf("failed to build kubernetes rest config: %s", err)
 	}
 
+	if len(o.TLS.RootCAsCertFile) == 0 {
+		log.Info("------------------------------------------------------------------------------------------------------------")
+		log.Info("WARNING!: --root-ca-file is not defined which means the root CA will be discovered by the configured issuer.")
+		log.Info("WARNING!: It is strongly recommended that a root CA bundle be statically defined.")
+		log.Info("------------------------------------------------------------------------------------------------------------")
+	}
+
 	return nil
 }
 
@@ -146,9 +153,8 @@ func (o *Options) addTLSFlags(fs *pflag.FlagSet) {
 		"trust-domain", "cluster.local",
 		"The Istio cluster's trust domain.")
 
-	fs.StringVar(&o.TLS.RootCACertFile,
-		"root-ca-file", "",
-		"File location of a PEM encoded Root CA bundle to be used as root of "+
+	fs.StringVar(&o.TLS.RootCAsCertFile, "root-ca-file", "",
+		"File location of a PEM encoded Roots CA bundle to be used as root of "+
 			"trust for TLS in the mesh. If empty, the CA returned from the "+
 			"cert-manager issuer will be used.")
 
