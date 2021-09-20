@@ -57,8 +57,6 @@ spec:
 
           # controller
           - "--leader-election-namespace={{.Values.app.controller.leaderElectionNamespace}}"
-          - "--root-ca-configmap-name={{.Values.app.controller.rootCAConfigMapName}}"
-
 
         {{- if .Values.volumeMounts }}
         volumeMounts:

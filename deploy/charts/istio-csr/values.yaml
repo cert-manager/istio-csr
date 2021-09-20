@@ -113,8 +113,6 @@ app:
 
   controller:
     leaderElectionNamespace: istio-system
-    # -- Name of ConfigMap that should contain the root CA in all namespaces.
-    rootCAConfigMapName: istio-ca-root-cert
 
 # -- Optional extra volumes. Useful for mounting custom root CAs
 volumes: []

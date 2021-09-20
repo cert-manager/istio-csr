@@ -32,7 +32,6 @@ import (
 	"k8s.io/klog/v2/klogr"
 
 	"github.com/cert-manager/istio-csr/pkg/certmanager"
-	"github.com/cert-manager/istio-csr/pkg/controller"
 	"github.com/cert-manager/istio-csr/pkg/server"
 	"github.com/cert-manager/istio-csr/pkg/tls"
 )
@@ -58,10 +57,17 @@ type Options struct {
 	// API.
 	RestConfig *rest.Config
 
+	Controller  OptionsController
 	CertManager certmanager.Options
 	TLS         tls.Options
 	Server      server.Options
-	Controller  controller.Options
+}
+
+// OptionsController is the Controller specific options
+type OptionsController struct {
+	// LeaderElectionNamespace is the namespace that the leader election lease is
+	// held in.
+	LeaderElectionNamespace string
 }
 
 func New() *Options {
@@ -208,10 +214,6 @@ func (o *Options) addServerFlags(fs *pflag.FlagSet) {
 }
 
 func (o *Options) addControllerFlags(fs *pflag.FlagSet) {
-	fs.StringVar(&o.Controller.ConfigMapName,
-		"root-ca-configmap-name", "istio-ca-root-cert",
-		"The ConfigMap name to store the root CA certificate in each namespace.")
-
 	fs.StringVar(&o.Controller.LeaderElectionNamespace,
 		"leader-election-namespace", "istio-system",
 		"Namespace to use for controller leader election.")

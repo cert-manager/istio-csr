@@ -21,6 +21,8 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 
+	"sigs.k8s.io/controller-runtime/pkg/event"
+
 	cmtls "github.com/cert-manager/istio-csr/pkg/tls"
 )
 
@@ -28,16 +30,18 @@ var _ cmtls.Interface = &FakeTLS{}
 
 // FakeTLS is a fake implementation of tls.Interface that can be used for testing.
 type FakeTLS struct {
-	funcTrustDomain func() string
-	funcRootCAs     func() ([]byte, *x509.CertPool)
-	funcConfig      func(ctx context.Context) (*tls.Config, error)
+	funcTrustDomain           func() string
+	funcRootCAs               func() ([]byte, *x509.CertPool)
+	funcConfig                func(ctx context.Context) (*tls.Config, error)
+	funcSubscribeRootCAsEvent func() <-chan event.GenericEvent
 }
 
 func New() *FakeTLS {
 	return &FakeTLS{
-		funcTrustDomain: func() string { return "" },
-		funcRootCAs:     func() ([]byte, *x509.CertPool) { return nil, nil },
-		funcConfig:      func(_ context.Context) (*tls.Config, error) { return nil, nil },
+		funcTrustDomain:           func() string { return "" },
+		funcRootCAs:               func() ([]byte, *x509.CertPool) { return nil, nil },
+		funcConfig:                func(_ context.Context) (*tls.Config, error) { return nil, nil },
+		funcSubscribeRootCAsEvent: func() <-chan event.GenericEvent { return make(chan event.GenericEvent) },
 	}
 }
 
@@ -56,4 +60,8 @@ func (f *FakeTLS) RootCAs() ([]byte, *x509.CertPool) {
 
 func (f *FakeTLS) Config(ctx context.Context) (*tls.Config, error) {
 	return f.funcConfig(ctx)
+}
+
+func (f *FakeTLS) SubscribeRootCAsEvent() <-chan event.GenericEvent {
+	return f.funcSubscribeRootCAsEvent()
 }
