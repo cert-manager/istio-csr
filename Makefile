@@ -59,7 +59,7 @@ verify: test build ## tests and builds cert-manager-istio-csr
 # arguments to `--push`.
 .PHONY: image
 image: ## build docker image targeting all supported platforms
-	docker buildx build --platform=$(IMAGE_PLATFORMS) -t quay.io/jetstack/cert-manager-istio-csr:v0.2.1 --output type=oci,dest=./bin/cert-manager-istio-csr-oci .
+	docker buildx build --platform=$(IMAGE_PLATFORMS) -t quay.io/jetstack/cert-manager-istio-csr:v0.3.0 --output type=oci,dest=./bin/cert-manager-istio-csr-oci .
 
 .PHONY: clean
 clean: ## clean up created files
