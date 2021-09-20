@@ -139,6 +139,10 @@ func (p *Provider) Start(ctx context.Context) error {
 				case rootCAs := <-rootCAsChan:
 					p.lock.Lock()
 					p.rootCAs = rootCAs
+					// Broadcast update to subscribers
+					for i := range p.subscriptions {
+						go func(i int) { p.subscriptions[i] <- event.GenericEvent{} }(i)
+					}
 					p.lock.Unlock()
 				}
 			}

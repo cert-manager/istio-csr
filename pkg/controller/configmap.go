@@ -111,7 +111,7 @@ func AddConfigMapController(ctx context.Context, log logr.Logger, opts Options) 
 
 		// If the CA roots change then reconcile all ConfigMaps
 		Watches(&source.Channel{Source: c.tls.SubscribeRootCAsEvent()}, handler.EnqueueRequestsFromMapFunc(
-			func(obj client.Object) []reconcile.Request {
+			func(_ client.Object) []reconcile.Request {
 				var namespaceList corev1.NamespaceList
 				if err := c.lister.List(ctx, &namespaceList); err != nil {
 					c.log.Error(err, "failed to list namespaces, exiting...")
@@ -208,7 +208,7 @@ func (c *configmap) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resul
 	}
 
 	if updateNeeded {
-		log.V(3).Info("updating ConfigMap")
+		log.Info("updating ConfigMap data")
 		return ctrl.Result{}, c.client.Update(ctx, &configMap)
 	}
 

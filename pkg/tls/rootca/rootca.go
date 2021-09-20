@@ -72,8 +72,8 @@ func (w watcher) start(ctx context.Context) (<-chan RootCAs, error) {
 
 	go func() {
 		w.log.Info("starting root CAs file watcher")
-		timer := time.NewTicker(w.syncPeriod)
-		defer timer.Stop()
+		ticker := time.NewTicker(w.syncPeriod)
+		defer ticker.Stop()
 
 		// Send initial root CAs state
 		broadcastChan <- *rootCAs
@@ -85,15 +85,18 @@ func (w watcher) start(ctx context.Context) (<-chan RootCAs, error) {
 				w.log.Info("closing root CAs file watcher")
 				return
 
-			case <-timer.C:
+			case <-ticker.C:
 				w.log.V(3).Info("checking for root CA changes on file")
 
 				rootCAs, err := w.loadRootCAsFile()
 				if err != nil {
 					w.log.Error(err, "failed to load root CAs file")
+					continue
 				}
 
-				if rootCAs != nil {
+				if rootCAs == nil {
+					w.log.V(3).Info("no root CA changes on file")
+				} else {
 					w.log.Info("root CAs changed on file, broadcasting update")
 					w.rootCAsPEM = rootCAs.PEM
 					broadcastChan <- *rootCAs
