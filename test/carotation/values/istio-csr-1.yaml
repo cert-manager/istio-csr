@@ -1,0 +1,32 @@
+image:
+  repository: quay.io/jetstack/cert-manager-istio-csr
+  tag: canary
+  pullPolicy: Never
+
+app:
+  logLevel: 3
+
+  certmanager:
+    namespace: istio-system
+    preserveCertificateRequests: true
+    issuer:
+      group: cert-manager.io
+      kind: Issuer
+      name: istio-int-1
+
+  tls:
+    trustDomain: foo.bar
+    rootCAFile: /var/run/secrets/istio-csr/ca.pem
+    certificateDuration: 20s
+
+  controller:
+    rootCAConfigMapName: istio-ca-root-cert
+
+
+volumes:
+- name: istio-root-certs
+  secret:
+    secretName: istio-root-certs
+volumeMounts:
+- name: istio-root-certs
+  mountPath: /var/run/secrets/istio-csr

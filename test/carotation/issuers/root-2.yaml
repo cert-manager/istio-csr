@@ -1,0 +1,57 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: istio-root-2
+  namespace: istio-system
+spec:
+  isCA: true
+  duration: 2160h
+  secretName: istio-root-2
+  commonName: istio-root-2
+  subject:
+    organizations:
+    - cluster.local
+    - cert-manager-root-2
+  issuerRef:
+    name: selfsigned
+    kind: Issuer
+    group: cert-manager.io
+
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: istio-root-2
+  namespace: istio-system
+spec:
+  ca:
+    secretName: istio-root-2
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: istio-int-2
+  namespace: istio-system
+spec:
+  isCA: true
+  duration: 2160h
+  secretName: istio-int-2
+  commonName: istio-int-2
+  subject:
+    organizations:
+    - cluster.local
+    - cert-manager
+  issuerRef:
+    name: istio-root-2
+    kind: Issuer
+    group: cert-manager.io
+
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: istio-int-2
+  namespace: istio-system
+spec:
+  ca:
+    secretName: istio-int-2
