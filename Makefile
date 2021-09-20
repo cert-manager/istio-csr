@@ -80,6 +80,9 @@ e2e: demo ## build demo cluster and runs end to end tests
 	./hack/run-e2e.sh
 	./hack/demo/destroy-demo.sh
 
+.PHONY: carotation
+carotation:
+
 .PHONY: depend
 depend: $(BINDIR)/istioctl-$(ISTIO_VERSION) $(BINDIR)/ginkgo $(BINDIR)/kubectl $(BINDIR)/kind $(BINDIR)/helm
 

@@ -130,13 +130,17 @@ var _ = framework.CasesDescribe("CA Root Controller", func() {
 		Expect(expectRootCAExists(ctx, f, ns.Name, rootCA)).NotTo(HaveOccurred())
 
 		By("if the config map contents is deleted, it should revert the changes")
-		cm, err = f.KubeClientSet.CoreV1().ConfigMaps(ns.Name).Get(ctx, "istio-ca-root-cert", metav1.GetOptions{})
-		Expect(err).NotTo(HaveOccurred())
+		Eventually(func() error {
+			cm, err = f.KubeClientSet.CoreV1().ConfigMaps(ns.Name).Get(ctx, "istio-ca-root-cert", metav1.GetOptions{})
+			if err != nil {
+				return err
+			}
 
-		delete(cm.Data, cmmeta.TLSCAKey)
+			delete(cm.Data, cmmeta.TLSCAKey)
 
-		cm, err = f.KubeClientSet.CoreV1().ConfigMaps(ns.Name).Update(ctx, cm, metav1.UpdateOptions{})
-		Expect(err).NotTo(HaveOccurred())
+			cm, err = f.KubeClientSet.CoreV1().ConfigMaps(ns.Name).Update(ctx, cm, metav1.UpdateOptions{})
+			return err
+		}).Should(BeNil())
 
 		Expect(expectRootCAExists(ctx, f, ns.Name, rootCA)).NotTo(HaveOccurred())
 	})
