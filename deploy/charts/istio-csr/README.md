@@ -1,6 +1,6 @@
 # cert-manager-istio-csr
 
-![Version: v0.2.3](https://img.shields.io/badge/Version-v0.2.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.2.1](https://img.shields.io/badge/AppVersion-v0.2.1-informational?style=flat-square)
+![Version: v0.3.0](https://img.shields.io/badge/Version-v0.3.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.3.0](https://img.shields.io/badge/AppVersion-v0.3.0-informational?style=flat-square)
 
 A Helm chart for istio-csr
 
@@ -46,7 +46,7 @@ A Helm chart for istio-csr
 | app.tls.trustDomain | string | `"cluster.local"` | The Istio cluster's trust domain. |
 | image.pullPolicy | string | `"IfNotPresent"` | Kubernetes imagePullPolicy on Deployment. |
 | image.repository | string | `"quay.io/jetstack/cert-manager-istio-csr"` | Target image repository. |
-| image.tag | string | `"v0.2.1"` | Target image version tag. |
+| image.tag | string | `"v0.3.0"` | Target image version tag. |
 | replicaCount | int | `1` | Number of replicas of istio-csr to run. |
 | resources | object | `{}` |  |
 | service.port | int | `443` | Service port to expose istio-csr gRPC service. |
