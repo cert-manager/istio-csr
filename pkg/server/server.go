@@ -88,7 +88,7 @@ func New(log logr.Logger, restConfig *rest.Config, cm certmanager.Signer, tls tl
 
 	return &Server{
 		opts:   opts,
-		log:    log.WithName("grpc_server").WithValues("serving_addr", opts.ServingAddress),
+		log:    log.WithName("grpc-server").WithValues("serving-addr", opts.ServingAddress),
 		auther: auther,
 		cm:     cm,
 		tls:    tls,
@@ -230,10 +230,10 @@ func (s *Server) parseCertificateBundle(bundle certmanager.Bundle) ([]string, er
 		intermediatePool.AddCert(intermediate)
 	}
 
-	rootCAsPEM, rootCAsPool := s.tls.RootCAs()
+	rootCAs := s.tls.RootCAs()
 	opts := x509.VerifyOptions{
 		Intermediates: intermediatePool,
-		Roots:         rootCAsPool,
+		Roots:         rootCAs.CertPool,
 		KeyUsages:     []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
 	}
 	if _, err := respCerts[0].Verify(opts); err != nil {
@@ -250,5 +250,5 @@ func (s *Server) parseCertificateBundle(bundle certmanager.Bundle) ([]string, er
 		certChain = append(certChain, string(certEncoded))
 	}
 
-	return append(certChain, string(rootCAsPEM)), nil
+	return append(certChain, string(rootCAs.PEM)), nil
 }

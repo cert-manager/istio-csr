@@ -24,6 +24,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/event"
 
 	cmtls "github.com/cert-manager/istio-csr/pkg/tls"
+	"github.com/cert-manager/istio-csr/pkg/tls/rootca"
 )
 
 var _ cmtls.Interface = &FakeTLS{}
@@ -31,7 +32,7 @@ var _ cmtls.Interface = &FakeTLS{}
 // FakeTLS is a fake implementation of tls.Interface that can be used for testing.
 type FakeTLS struct {
 	funcTrustDomain           func() string
-	funcRootCAs               func() ([]byte, *x509.CertPool)
+	funcRootCAs               func() rootca.RootCAs
 	funcConfig                func(ctx context.Context) (*tls.Config, error)
 	funcSubscribeRootCAsEvent func() <-chan event.GenericEvent
 }
@@ -39,14 +40,14 @@ type FakeTLS struct {
 func New() *FakeTLS {
 	return &FakeTLS{
 		funcTrustDomain:           func() string { return "" },
-		funcRootCAs:               func() ([]byte, *x509.CertPool) { return nil, nil },
+		funcRootCAs:               func() rootca.RootCAs { return rootca.RootCAs{} },
 		funcConfig:                func(_ context.Context) (*tls.Config, error) { return nil, nil },
 		funcSubscribeRootCAsEvent: func() <-chan event.GenericEvent { return make(chan event.GenericEvent) },
 	}
 }
 
 func (f *FakeTLS) WithRootCAs(rootCAsPEM []byte, rootCAsPool *x509.CertPool) *FakeTLS {
-	f.funcRootCAs = func() ([]byte, *x509.CertPool) { return rootCAsPEM, rootCAsPool }
+	f.funcRootCAs = func() rootca.RootCAs { return rootca.RootCAs{PEM: rootCAsPEM, CertPool: rootCAsPool} }
 	return f
 }
 
@@ -54,7 +55,7 @@ func (f *FakeTLS) TrustDomain() string {
 	return f.funcTrustDomain()
 }
 
-func (f *FakeTLS) RootCAs() ([]byte, *x509.CertPool) {
+func (f *FakeTLS) RootCAs() rootca.RootCAs {
 	return f.funcRootCAs()
 }
 
