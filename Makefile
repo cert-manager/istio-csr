@@ -35,7 +35,12 @@ help:  ## display this help
 test: lint ## test cert-manager-istio-csr
 	go test $$(go list ./pkg/... ./cmd/...)
 
-lint:
+lint: boilerplate vet ## run code linting tests
+
+vet:
+	go vet -v ./...
+
+boilerplate:
 	./hack/verify-boilerplate.sh
 
 build: ## build cert-manager-istio-csr

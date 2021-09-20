@@ -61,6 +61,8 @@ type configmap struct {
 	// client is a Kubernetes client that makes calls to the API for every
 	// request.
 	// Should be used for creating and updating resources.
+	// This is a seperate delegating client which doesn't cache ConfigMaps, see
+	// https://github.com/kubernetes-sigs/controller-runtime/issues/1454
 	client client.Client
 
 	// lister makes requests to the informer cache. Beware that resources who's
@@ -76,8 +78,18 @@ type configmap struct {
 }
 
 func AddConfigMapController(ctx context.Context, log logr.Logger, opts Options) error {
+	noCacheClient, err := client.NewDelegatingClient(client.NewDelegatingClientInput{
+		CacheReader:       opts.Manager.GetCache(),
+		Client:            opts.Manager.GetClient(),
+		UncachedObjects:   []client.Object{new(corev1.ConfigMap)},
+		CacheUnstructured: false,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to build non-cached client for ConfigMaps: %w", err)
+	}
+
 	c := &configmap{
-		client: opts.Manager.GetClient(),
+		client: noCacheClient,
 		lister: opts.Manager.GetCache(),
 		log:    log.WithName("controller").WithName("configmap"),
 		tls:    opts.TLS,
@@ -94,7 +106,7 @@ func AddConfigMapController(ctx context.Context, log logr.Logger, opts Options) 
 		// Watch all Namespaces. Cache whole Namespace to include Phase Status.
 		Watches(&source.Kind{Type: new(corev1.Namespace)}, handler.EnqueueRequestsFromMapFunc(
 			func(obj client.Object) []reconcile.Request {
-				return []reconcile.Request{reconcile.Request{types.NamespacedName{Namespace: obj.GetName(), Name: configMapNameIstioRoot}}}
+				return []reconcile.Request{reconcile.Request{NamespacedName: types.NamespacedName{Namespace: obj.GetName(), Name: configMapNameIstioRoot}}}
 			},
 		)).
 

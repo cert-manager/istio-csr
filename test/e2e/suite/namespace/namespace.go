@@ -167,6 +167,4 @@ func expectRootCAExists(ctx context.Context, f *framework.Framework, ns string, 
 			continue
 		}
 	}
-
-	return nil
 }

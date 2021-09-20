@@ -420,8 +420,8 @@ func (p *Provider) loadCAsRoot(rootCAsPEM []byte) error {
 
 	p.rootCAsPEM = rootCAsPEM
 	p.rootCAsPool = rootCAsPool
-	for _, sub := range p.subscriptions {
-		go func() { sub <- event.GenericEvent{} }()
+	for i := range p.subscriptions {
+		go func(i int) { p.subscriptions[i] <- event.GenericEvent{} }(i)
 	}
 
 	return nil
