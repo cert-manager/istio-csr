@@ -85,7 +85,7 @@ carotation: depend ## run ca rotation test
 	./test/carotation/run.sh
 
 .PHONY: depend
-depend: $(BINDIR)/istioctl-$(ISTIO_VERSION) $(BINDIR)/ginkgo $(BINDIR)/kubectl $(BINDIR)/kind $(BINDIR)/helm
+depend: $(BINDIR)/istioctl-$(ISTIO_VERSION) $(BINDIR)/ginkgo $(BINDIR)/kubectl $(BINDIR)/kind $(BINDIR)/helm $(BINDIR)/jq
 
 $(BINDIR)/istioctl-$(ISTIO_VERSION):
 	mkdir -p $(BINDIR)
@@ -109,3 +109,6 @@ $(BINDIR)/helm:
 $(BINDIR)/kubectl:
 	curl -o ./bin/kubectl -LO "https://storage.googleapis.com/kubernetes-release/release/$(shell curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/$(OS)/$(ARCH)/kubectl"
 	chmod +x ./bin/kubectl
+
+$(BINDIR)/jq:
+	go build -o $(BINDIR)/jq github.com/itchyny/gojq/cmd/gojq
