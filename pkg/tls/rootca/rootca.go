@@ -22,8 +22,8 @@ import (
 	"crypto/x509"
 	"fmt"
 	"os"
-	"time"
 
+	"github.com/fsnotify/fsnotify"
 	"github.com/go-logr/logr"
 	"github.com/jetstack/cert-manager/pkg/util/pki"
 )
@@ -43,26 +43,20 @@ type RootCAs struct {
 type watcher struct {
 	log logr.Logger
 
-	filepath   string
-	rootCAsPEM []byte
-	syncPeriod time.Duration
+	filepath      string
+	rootCAsPEM    []byte
+	broadcastChan chan RootCAs
 }
 
 // Watch watches the given filepath for changes, and writes to the returned
 // channel the new state when it changes. The first event is the initial state
 // of the root CAs file.
 func Watch(ctx context.Context, log logr.Logger, filepath string) (<-chan RootCAs, error) {
-	return (&watcher{
-		log:        log.WithName("root-ca-watcher").WithValues("file", filepath),
-		filepath:   filepath,
-		syncPeriod: time.Second * 10,
-	}).start(ctx)
-}
-
-// start will start the watcher. First RootCAs channel event is the first
-// initial file state.
-func (w watcher) start(ctx context.Context) (<-chan RootCAs, error) {
-	broadcastChan := make(chan RootCAs)
+	w := &watcher{
+		log:           log.WithName("root-ca-watcher").WithValues("file", filepath),
+		filepath:      filepath,
+		broadcastChan: make(chan RootCAs),
+	}
 
 	w.log.Info("loading root CAs bundle")
 	rootCAs, err := w.loadRootCAsFile()
@@ -70,13 +64,20 @@ func (w watcher) start(ctx context.Context) (<-chan RootCAs, error) {
 		return nil, fmt.Errorf("failed to load root CA bundle: %w", err)
 	}
 
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create file watch: %w", err)
+	}
+
+	if err := watcher.Add(w.filepath); err != nil {
+		return nil, fmt.Errorf("failed to add root CAs file for watching %q: %w", w.filepath, err)
+	}
+
 	go func() {
-		w.log.Info("starting root CAs file watcher")
-		ticker := time.NewTicker(w.syncPeriod)
-		defer ticker.Stop()
+		defer watcher.Close()
 
 		// Send initial root CAs state
-		broadcastChan <- *rootCAs
+		w.broadcastChan <- *rootCAs
 		w.rootCAsPEM = rootCAs.PEM
 
 		for {
@@ -85,27 +86,49 @@ func (w watcher) start(ctx context.Context) (<-chan RootCAs, error) {
 				w.log.Info("closing root CAs file watcher")
 				return
 
-			case <-ticker.C:
-				w.log.V(3).Info("checking for root CA changes on file")
+			case event := <-watcher.Events:
+				w.log.V(3).Info("received event from file watcher", "event", event.Op.String())
 
-				rootCAs, err := w.loadRootCAsFile()
-				if err != nil {
-					w.log.Error(err, "failed to load root CAs file")
-					continue
+				// Watch for remove events, since this is actually the syslink being
+				// changed in the volume mount.
+				if event.Op == fsnotify.Remove {
+					watcher.Remove(event.Name)
+					if err := watcher.Add(w.filepath); err != nil {
+						w.log.Error(err, "failed to add new file watch")
+					}
+					w.reloadConfig()
 				}
 
-				if rootCAs == nil {
-					w.log.V(3).Info("no root CA changes on file")
-				} else {
-					w.log.Info("root CAs changed on file, broadcasting update")
-					w.rootCAsPEM = rootCAs.PEM
-					broadcastChan <- *rootCAs
+				// Also allow normal files to be modified and reloaded.
+				if event.Op&fsnotify.Write == fsnotify.Write {
+					w.reloadConfig()
 				}
+
+			case err := <-watcher.Errors:
+				w.log.Error(err, "errors watching root CAs file")
 			}
 		}
 	}()
 
-	return broadcastChan, nil
+	return w.broadcastChan, nil
+}
+
+// reloadConfig will load root CAs file, and if changed from the current state,
+// will broadcast the update.
+func (w *watcher) reloadConfig() {
+	rootCAs, err := w.loadRootCAsFile()
+	if err != nil {
+		w.log.Error(err, "failed to load root CAs file")
+		return
+	}
+
+	if rootCAs == nil {
+		w.log.V(3).Info("no root CA changes on file")
+	} else {
+		w.log.Info("root CAs changed on file, broadcasting update")
+		w.rootCAsPEM = rootCAs.PEM
+		w.broadcastChan <- *rootCAs
+	}
 }
 
 // loadRootCAsFile will read the root CAs from the configured file, and if

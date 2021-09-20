@@ -41,17 +41,11 @@ func Test_Watch(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	w := watcher{
-		log:        klogr.New(),
-		filepath:   filepath,
-		syncPeriod: time.Millisecond * 10,
-	}
-
 	ctx, cancel := context.WithCancel(context.TODO())
 	defer cancel()
 
 	t.Log("starting watcher")
-	rootCAsChan, err := w.start(ctx)
+	rootCAsChan, err := Watch(ctx, klogr.New(), filepath)
 	if err != nil {
 		t.Fatal(err)
 	}
