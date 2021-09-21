@@ -50,8 +50,11 @@ ClusterIssuer installed earlier.
 
 > ⚠️ It is highly recommended that the root CA certificates are statically
 > defined in istio-csr. If they are not, istio-csr will "discover" the root CA
-> certificates when requesting its serving certificate, effectively making
-> istio-csr [TOFU](https://en.wikipedia.org/wiki/Trust_on_first_use).
+> certificates when requesting its serving certificate. Although discovering the
+> root CAs reduces operational complexity, using CA pinning with a static bundle
+> is less venerable to
+> [signer hijacking attacks](https://github.com/cert-manager/istio-csr/issues/103#issuecomment-923882792),
+> for example if a signer's token (such as cert-manager-controller) was stolen.
 
 #### Discover root CAs installation
 
@@ -63,6 +66,10 @@ $ helm install -n cert-manager cert-manager-istio-csr jetstack/cert-manager-isti
 ```
 
 #### Load root CAs from file ca.pem (Preferred)
+
+We use a Secret volume here to source the root CAs, however projects such as
+[secrets-store-csi-driver](https://github.com/kubernetes-sigs/secrets-store-csi-driver)
+are great options for improving security further.
 
 ```terminal
 $ helm repo add jetstack https://charts.jetstack.io
