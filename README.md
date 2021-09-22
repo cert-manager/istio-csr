@@ -52,7 +52,7 @@ ClusterIssuer installed earlier.
 > defined in istio-csr. If they are not, istio-csr will "discover" the root CA
 > certificates when requesting its serving certificate. Although discovering the
 > root CAs reduces operational complexity, using CA pinning with a static bundle
-> is less venerable to
+> is less vulnerable to
 > [signer hijacking attacks](https://github.com/cert-manager/istio-csr/issues/103#issuecomment-923882792),
 > for example if a signer's token (such as cert-manager-controller) was stolen.
 
