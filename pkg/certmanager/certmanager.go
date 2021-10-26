@@ -185,12 +185,14 @@ func (m *manager) waitForCertificateRequest(ctx context.Context, log logr.Logger
 		log.V(3).Info("waiting for CertificateRequest to become ready")
 
 		for {
-			w := <-watcher.ResultChan()
+			w, ok := <-watcher.ResultChan()
+			if !ok {
+				return cr, errors.New("watcher channel closed")
+			}
 			if w.Type == watch.Deleted {
 				return cr, errors.New("created CertificateRequest has been unexpectedly deleted")
 			}
 
-			var ok bool
 			cr, ok = w.Object.(*cmapi.CertificateRequest)
 			if !ok {
 				log.Error(nil, "got unexpected object response from watcher", "object", w.Object)
