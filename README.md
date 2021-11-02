@@ -94,7 +94,7 @@ guide](https://istio.io/latest/docs/setup/platform-setup/openshift/).
 
 Finally, install Istio. Istio must be installed using the IstioOperator
 configuration changes within
-[`./hack/istio-config-x.yaml`](./hack/istio-config-1.10.0.yaml). Later versions
+[`./hack/istio-config-x.yaml`](./hack/istio-config-1.11.4.yaml). Later versions
 of Istio share the same config.
 
 For OpenShift set the profile as `--set profile=openshift`.
