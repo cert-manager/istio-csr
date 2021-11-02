@@ -83,6 +83,7 @@ app:
     # Warning: cert-manager does not allow a duration on Certificates less than
     # 1 hour.
     istiodCertificateDuration: 1h
+    istiodCertificateRenewBefore: 30m
 
   server:
     # -- The istio cluster ID to verify incoming CSRs.

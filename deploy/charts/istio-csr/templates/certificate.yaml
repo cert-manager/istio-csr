@@ -30,7 +30,7 @@ spec:
   # Warning: cert-manager does not allow a duration on Certificates of less
   # than 1 hour.
   duration: {{ .Values.app.tls.istiodCertificateDuration }}
-  renewBefore: 30m
+  renewBefore: {{ .Values.app.tls.istiodCertificateRenewBefore }}
   privateKey:
     rotationPolicy: Always
     algorithm: RSA
