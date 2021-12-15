@@ -1,7 +1,17 @@
-<p align="center"><img src="https://github.com/jetstack/cert-manager/blob/master/logo/logo.png" width="250x" /></p>
-</a>
-<a href="https://godoc.org/github.com/cert-manager/istio-csr"><img src="https://godoc.org/github.com/cert-manager/istio-csr?status.svg"></a>
-<a href="https://goreportcard.com/report/github.com/cert-manager/istio-csr"><img alt="Go Report Card" src="https://goreportcard.com/badge/github.com/cert-manager/istio-csr" /></a></p>
+<p align="center">
+  <img src="https://raw.githubusercontent.com/jetstack/cert-manager/master/logo/logo.png" width="250x" alt="cert-manager project logo" />
+</p>
+<p align="center">
+  <a href="https://godoc.org/github.com/cert-manager/istio-csr">
+    <img src="https://godoc.org/github.com/cert-manager/istio-csr?status.svg">
+  </a>
+  <a href="https://goreportcard.com/report/github.com/cert-manager/istio-csr">
+    <img alt="Go Report Card" src="https://goreportcard.com/badge/github.com/cert-manager/istio-csr" />
+  </a>
+  <a href="https://artifacthub.io/packages/search?repo=cert-manager">
+    <img alt="artifact hub badge" src="https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/cert-manager">
+  </a>
+</p>
 
 # istio-csr
 
