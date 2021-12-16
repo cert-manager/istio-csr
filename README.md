@@ -17,107 +17,84 @@
 
 istio-csr is an agent that allows for [Istio](https://istio.io) workload and
 control plane components to be secured using
-[cert-manager](https://cert-manager.io). Certificates facilitating mTLS, inter
-and intra cluster, will be signed, delivered and renewed using [cert-manager
+[cert-manager](https://cert-manager.io).
+
+Certificates facilitating mTLS &mdash; both inter
+and intra-cluster &mdash; will be signed, delivered and renewed using [cert-manager
 issuers](https://cert-manager.io/docs/concepts/issuer).
 
-⚠️ Currently supports Istio versions v1.7+
-
-⚠️ Currently supports cert-manager versions v1.3+
+istio-csr supports Istio v1.7+ and cert-manager v1.3+
 
 ---
 
-## Installation
+## Getting Started Guide For istio-csr
 
-### Installing cert-manager
+We have [a guide](./docs/getting_started.md) for setting up istio-csr in a fresh [kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation) cluster.
 
-Firstly, [cert-manager must be
-installed](https://cert-manager.io/docs/installation/) in your cluster.
+Following the guide is the best way to see istio-csr in action.
 
-### Issuer or ClusterIssuer
-An Issuer or ClusterIssuer must be configured which will be used to sign Istio
-certificates against.
+If you've already seen istio-csr in action or if you're experienced with running Istio and just want quick installation instructions, read on for more details.
 
-Here are examples of CA [Issuer](./docs/example-issuer.yaml) and
-[ClusterIssuer](./docs/example-cluster-issuer.yaml) configurations that are
-bootstrapped through self-signed issuers. It is advised to not use the CA Issuer
-type in production environments, and instead use an issuer who's CA private key
-material does not reside within the cluster.
+## Lower-Level Details (For Experienced Istio Users)
 
-> It is important to use an issuer type that is able to sign Istio mTLS workload
-> certificates (SPIFFE URI SANs) and
-> [istiod serving certificates](./deploy/charts/istio-csr/templates/certificate.yaml).
-> ACME issuers will not work.
+⚠️  The [getting started](./docs/getting_started.md) guide is a better place if you just want to try istio-csr out!
 
-If using an Issuer rather than the ClusterIssuer type, the Issuer must reside in
-the same namespace as that configured by `--certificate-namespace` on istio-csr,
-`istio-system` by default.
+Running istio-csr requires a few steps and preconditions in order:
 
-### Installing istio-csr
+1. A cluster _without_ Istio already installed
+2. cert-manager [installed](https://cert-manager.io/docs/installation/) in the cluster
+3. An `Issuer` or `ClusterIssuer` which will be used to issue Istio certificates
+4. istio-csr installed (likely via helm)
+5. Istio [installed](https://istio.io/latest/docs/setup/install/istioctl/) with some custom config required, e.g. using [the example config](./docs/istio-config-getting-started.yaml).
 
-Next, install istio-csr into the cluster, configured to use the Issuer or
-ClusterIssuer installed earlier.
+### Why Custom Istio Install Manifests?
 
-> ⚠️ It is highly recommended that the root CA certificates are statically
-> defined in istio-csr. If they are not, istio-csr will "discover" the root CA
-> certificates when requesting its serving certificate. Although discovering the
-> root CAs reduces operational complexity, using CA pinning with a static bundle
-> is less vulnerable to
-> [signer hijacking attacks](https://github.com/cert-manager/istio-csr/issues/103#issuecomment-923882792),
-> for example if a signer's token (such as cert-manager-controller) was stolen.
+If you take a look at the contents of [the example Istio install manifest](./docs/istio-config-getting-started.yaml) there are a few
+custom configuration options which are important.
 
-#### Discover root CAs installation
+Required changes include setting `ENABLE_CA_SERVER` to `false` and setting the `caAddress` from which Istio will
+request certificates; replacing the CA server is the whole point of istio-csr!
 
-```terminal
-$ helm repo add jetstack https://charts.jetstack.io
-$ helm repo update
-$ kubectl create namespace istio-system
-$ helm install -n cert-manager cert-manager-istio-csr jetstack/cert-manager-istio-csr
-```
+Mounting and statically specifying the root CA is also an important recommended step. Without a manually specified
+root CA istio-csr defaults to trying to discover root CAs automatically, which could theoretically lead to a
+[signer hijacking attack](https://github.com/cert-manager/istio-csr/issues/103#issuecomment-923882792) if for example
+a signer's token was stolen (such as the cert-manager controller's token).
 
-#### Load root CAs from file ca.pem (Preferred)
+### Issuer or ClusterIssuer?
 
-We use a Secret volume here to source the root CAs, however projects such as
-[secrets-store-csi-driver](https://github.com/kubernetes-sigs/secrets-store-csi-driver)
-are great options for improving security further.
+Unless you know you need a `ClusterIssuer` we'd recommend starting with an `Issuer`, since it should be easier to reason about
+the access controls for an Issuer; they're namespaced and so naturally a little more limited in scope.
 
-```terminal
-$ helm repo add jetstack https://charts.jetstack.io
-$ helm repo update
-$ kubectl create namespace istio-system
-$ kubectl create secret generic istio-root-ca --from-file=ca.pem=ca.pem -n cert-manager
-$ helm install -n cert-manager cert-manager-istio-csr jetstack/cert-manager-istio-csr \
-  --set "app.tls.rootCAFile=/var/run/secrets/istio-csr/ca.pem" \
-  --set "volumeMounts[0].name=root-ca" \
-  --set "volumeMounts[0].mountPath=/var/run/secrets/istio-csr" \
-  --set "volumes[0].name=root-ca" \
-  --set "volumes[0].secret.secretName=istio-root-ca"
-```
+That said, if you view your entire Kubernetes cluster as being a trust domain itself, then a ClusterIssuer is the more natural
+fit. The best choice will depend on your specific situation.
 
-All helm value options can be found [here](./deploy/charts/istio-csr/README.md).
+Our [getting started guide](./docs/getting_started.md) uses an `Issuer`.
 
-### Installing Istio
+### Which Issuer Type?
 
-If you are running Openshift, prepare the cluster for Istio.
-Follow instructions from Istio [platform setup
-guide](https://istio.io/latest/docs/setup/platform-setup/openshift/).
+Whether you choose to use an `Issuer` or a `ClusterIssuer`, you'll also need to choose the type of issuer you want such as:
 
-Finally, install Istio. Istio must be installed using the IstioOperator
-configuration changes within
-[`./hack/istio-config-x.yaml`](./hack/istio-config-1.11.4.yaml). Later versions
-of Istio share the same config.
+- [CA](https://cert-manager.io/docs/configuration/ca/)
+- [Vault](https://cert-manager.io/docs/configuration/vault/)
+- or an [external issuer](https://cert-manager.io/docs/configuration/external/)
 
-For OpenShift set the profile as `--set profile=openshift`.
+The key requirement is that arbitrary values can be placed into the `subjectAltName` (SAN) X.509 extension, since
+Istio places SPIFFE IDs there.
 
-These config options are required in order for the CA Server to be disabled in
-istiod, ensure Istio workloads request certificates from istio-csr, and the
-istiod certificates and keys are mounted from the Certificate created when
-installing istio-csr.
+That means that the ACME issuer **will not work** &mdash; publicly trusted certificates such as those issued by Let's Encrypt
+don't allow arbitrary entries in the SAN, for very good reasons.
 
+If you're already using [Hashicorp Vault](https://www.vaultproject.io/) then the Vault issuer is an obvious choice. If
+you want to control your own PKI entirely, we'd recommend the CA issuer. The choice is ultimately yours.
 
-## How
+### Installing istio-csr After Istio
 
-The cert-manager Istio agent implements the gRPC Istio certificate service which
-authenticates, authorizes, and signs incoming certificate signing requests from
-Istio workloads. This matches the behaviour of istiod in a typical installation,
-however enables these certificates to be signed through cert-manager.
+This is unsupported because it's exceptionally difficult to do safely. It's likely that installing istio-csr _after_ Istio isn't
+possible to do without downtime, since installing istio-csr second would require a time period where all Istio sidecars trust
+both the old Istio-managed CA and the new cert-manager controlled CA.
+
+## How Does istio-csr Work?
+
+istio-csr implements the gRPC Istio certificate service which authenticates, authorizes, and signs incoming certificate signing requests from Istio workloads, routing all certificate handling through cert-manager installed in the cluster.
+
+This seamlessly matches the behaviour of istiod in a typical installation, while allowing certificate management through cert-manager.

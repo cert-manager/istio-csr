@@ -1,3 +1,7 @@
+# NB: We generally recommend using Issuers rather than ClusterIssuers with istio-csr.
+# Issuers are easier to scope, and therefore easier to reason about in terms of security.
+
+# SelfSigned issuers are useful for creating root certificates
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
@@ -5,6 +9,11 @@ metadata:
 spec:
   selfSigned: {}
 ---
+# Request a self-signed certificate from our ClusterIssuer; this will function as our
+# issuing root certificate when we pass it into a CA ClusterIssuer.
+
+# It's generally fine to issue root certificates like this one with long lifespans;
+# the certificates which istio-csr issues will be much shorter lived.
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
@@ -12,9 +21,12 @@ metadata:
   namespace: cert-manager
 spec:
   isCA: true
-  duration: 2160h # 90d
+  duration: 87600h # 10 years
   secretName: istio-ca
   commonName: istio-ca
+  privateKey:
+    algorithm: ECDSA
+    size: 256
   subject:
     organizations:
     - cluster.local
@@ -24,6 +36,7 @@ spec:
     kind: ClusterIssuer
     group: cert-manager.io
 ---
+# Create a CA issuer using our root. This will be the ClusterIssuer which istio-csr will use.
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
