@@ -2,7 +2,7 @@
 
 ![Version: v0.3.1](https://img.shields.io/badge/Version-v0.3.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.3.0](https://img.shields.io/badge/AppVersion-v0.3.0-informational?style=flat-square)
 
-A Helm chart for istio-csr
+istio-csr enables the use of cert-manager for issuing certificates in Istio service meshes
 
 **Homepage:** <https://github.com/cert-manager/istio-csr>
 
@@ -10,7 +10,7 @@ A Helm chart for istio-csr
 
 | Name | Email | Url |
 | ---- | ------ | --- |
-| joshvanl | joshua.vanleeuwen@jetstack.io | https://cert-manager.io |
+| cert-manager-maintainers | cert-manager-maintainers@googlegroups.com | https://cert-manager.io |
 
 ## Source Code
 
