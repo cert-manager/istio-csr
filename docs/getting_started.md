@@ -112,7 +112,7 @@ The custom manifest does the following:
 First we download our demo manifest and then we apply it.
 
 ```console
-curl -sSL https://raw.githubusercontent.com/cert-manager/istio-csr/main/docs/istio-config-getting_started.yaml > istio-install-config.yaml
+curl -sSL https://raw.githubusercontent.com/cert-manager/istio-csr/main/docs/istio-config-getting-started.yaml > istio-install-config.yaml
 ```
 
 You may wish to inspect and tweak `istio-install-config.yaml` if you know what you're doing,
