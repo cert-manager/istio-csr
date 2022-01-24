@@ -24,6 +24,7 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/rest"
@@ -68,6 +69,14 @@ type OptionsController struct {
 	// LeaderElectionNamespace is the namespace that the leader election lease is
 	// held in.
 	LeaderElectionNamespace string
+
+	// NamespaceFilter is the filter applied to select the namespaces that
+	// receives the istio-root-ca ConfigMap
+	NamespaceFilter string
+
+	// NamespaceSelector is the parsed filter applied to select the namespaces that
+	// receives the istio-root-ca ConfigMap
+	NamespaceSelector labels.Selector
 }
 
 func New() *Options {
@@ -95,6 +104,11 @@ func (o *Options) Complete() error {
 	o.RestConfig, err = o.kubeConfigFlags.ToRESTConfig()
 	if err != nil {
 		return fmt.Errorf("failed to build kubernetes rest config: %s", err)
+	}
+
+	o.Controller.NamespaceSelector, err = labels.Parse(o.Controller.NamespaceFilter)
+	if err != nil {
+		return err
 	}
 
 	if len(o.TLS.RootCAsCertFile) == 0 {
@@ -221,4 +235,8 @@ func (o *Options) addControllerFlags(fs *pflag.FlagSet) {
 	fs.StringVar(&o.Controller.LeaderElectionNamespace,
 		"leader-election-namespace", "istio-system",
 		"Namespace to use for controller leader election.")
+
+	fs.StringVar(&o.Controller.NamespaceFilter,
+		"namespace-filter", "",
+		"Filter used to select the namespaces where the controller creates istio-ca-root-cert ConfigMap")
 }

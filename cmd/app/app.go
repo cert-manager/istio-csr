@@ -117,6 +117,7 @@ func NewCommand(ctx context.Context) *cobra.Command {
 				LeaderElectionNamespace: opts.Controller.LeaderElectionNamespace,
 				TLS:                     tls,
 				Manager:                 mgr,
+				NamespaceSelector:       opts.Controller.NamespaceSelector,
 			}); err != nil {
 				return fmt.Errorf("failed to add CA root controller: %w", err)
 			}
