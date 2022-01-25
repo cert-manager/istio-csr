@@ -56,7 +56,7 @@ type Options struct {
 	Manager manager.Manager
 
 	// NamespaceSelector filters the namespace to creates the istio-ca-root-cert ConfigMap
-	NamespaceSelector labels.Selector
+	NamespaceSelector string
 }
 
 // configmap is the controller that is responsible for ensuring that all
@@ -95,12 +95,17 @@ func AddConfigMapController(ctx context.Context, log logr.Logger, opts Options) 
 		return fmt.Errorf("failed to build non-cached client for ConfigMaps: %w", err)
 	}
 
+	namespaceSelector, err := labels.Parse(opts.NamespaceSelector)
+	if err != nil {
+		return fmt.Errorf("failed to parse namespace selector: %w", err)
+	}
+
 	c := &configmap{
 		client:            noCacheClient,
 		lister:            opts.Manager.GetCache(),
 		log:               log.WithName("controller").WithName("configmap"),
 		tls:               opts.TLS,
-		namespaceSelector: opts.NamespaceSelector,
+		namespaceSelector: namespaceSelector,
 	}
 
 	return ctrl.NewControllerManagedBy(opts.Manager).
