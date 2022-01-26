@@ -68,6 +68,10 @@ type OptionsController struct {
 	// LeaderElectionNamespace is the namespace that the leader election lease is
 	// held in.
 	LeaderElectionNamespace string
+
+	// ConfigMapNamespaceSelector is the selector to filter on the namespaces that
+	// receives the istio-root-ca ConfigMap
+	ConfigMapNamespaceSelector string
 }
 
 func New() *Options {
@@ -221,4 +225,9 @@ func (o *Options) addControllerFlags(fs *pflag.FlagSet) {
 	fs.StringVar(&o.Controller.LeaderElectionNamespace,
 		"leader-election-namespace", "istio-system",
 		"Namespace to use for controller leader election.")
+
+	fs.StringVar(&o.Controller.ConfigMapNamespaceSelector,
+		"configmap-namespace-selector", "",
+		"Selector to filter on namespaces where the controller creates istio-ca-root-cert"+
+			" ConfigMap. Supports '=', '==', and '!='.(e.g. -l key1=value1,key2=value2)")
 }

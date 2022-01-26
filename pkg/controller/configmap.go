@@ -26,6 +26,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
@@ -53,6 +54,9 @@ type Options struct {
 	// Manager is the controller-runtime Manager that the controller will be
 	// registered against.
 	Manager manager.Manager
+
+	// NamespaceSelector filters the namespace to creates the istio-ca-root-cert ConfigMap
+	ConfigMapNamespaceSelector string
 }
 
 // configmap is the controller that is responsible for ensuring that all
@@ -75,6 +79,9 @@ type configmap struct {
 
 	// tls provides the RootCA data that is propagated.
 	tls tls.Interface
+
+	// namespaceSelector filters the namespace to creates the istio-ca-root-cert ConfigMap
+	namespaceSelector labels.Selector
 }
 
 func AddConfigMapController(ctx context.Context, log logr.Logger, opts Options) error {
@@ -88,11 +95,17 @@ func AddConfigMapController(ctx context.Context, log logr.Logger, opts Options) 
 		return fmt.Errorf("failed to build non-cached client for ConfigMaps: %w", err)
 	}
 
+	namespaceSelector, err := labels.Parse(opts.ConfigMapNamespaceSelector)
+	if err != nil {
+		return fmt.Errorf("failed to parse namespace selector: %w", err)
+	}
+
 	c := &configmap{
-		client: noCacheClient,
-		lister: opts.Manager.GetCache(),
-		log:    log.WithName("controller").WithName("configmap"),
-		tls:    opts.TLS,
+		client:            noCacheClient,
+		lister:            opts.Manager.GetCache(),
+		log:               log.WithName("controller").WithName("configmap"),
+		tls:               opts.TLS,
+		namespaceSelector: namespaceSelector,
 	}
 
 	return ctrl.NewControllerManagedBy(opts.Manager).
@@ -145,6 +158,14 @@ func (c *configmap) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resul
 	}
 	if err != nil {
 		return ctrl.Result{}, err
+	}
+
+	// Ignore namespace that does not match the selector
+	if !c.namespaceSelector.Matches(labels.Set(namespace.GetLabels())) {
+		c.log.V(3).
+			WithValues("selector", c.namespaceSelector.String(), "namespace", namespace.GetName()).
+			Info("Ignoring namespace because it does not match the selector")
+		return ctrl.Result{}, nil
 	}
 
 	if namespace.Status.Phase == corev1.NamespaceTerminating {

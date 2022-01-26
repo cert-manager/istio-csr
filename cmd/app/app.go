@@ -114,9 +114,10 @@ func NewCommand(ctx context.Context) *cobra.Command {
 
 			// Add the ConfigMap controller that propagates the root CAs.
 			if err := controller.AddConfigMapController(ctx, opts.Logr, controller.Options{
-				LeaderElectionNamespace: opts.Controller.LeaderElectionNamespace,
-				TLS:                     tls,
-				Manager:                 mgr,
+				LeaderElectionNamespace:    opts.Controller.LeaderElectionNamespace,
+				TLS:                        tls,
+				Manager:                    mgr,
+				ConfigMapNamespaceSelector: opts.Controller.ConfigMapNamespaceSelector,
 			}); err != nil {
 				return fmt.Errorf("failed to add CA root controller: %w", err)
 			}
