@@ -70,7 +70,7 @@ func NewCommand(ctx context.Context) *cobra.Command {
 			mlog := opts.Logr.WithName("manager")
 			eventBroadcaster := record.NewBroadcaster()
 			eventBroadcaster.StartLogging(func(format string, args ...interface{}) { mlog.V(3).Info(fmt.Sprintf(format, args...)) })
-			eventBroadcaster.StartRecordingToSink(&clientv1.EventSinkImpl{Interface: cl.CoreV1().Events("istio-system")})
+			eventBroadcaster.StartRecordingToSink(&clientv1.EventSinkImpl{Interface: cl.CoreV1().Events(opts.CertManager.Namespace)})
 
 			mgr, err := ctrl.NewManager(opts.RestConfig, ctrl.Options{
 				Scheme:                        intscheme,
