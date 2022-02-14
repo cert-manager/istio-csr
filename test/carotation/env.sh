@@ -15,12 +15,12 @@
 # limitations under the License.
 
 export K8S_NAMESPACE="${K8S_NAMESPACE:-istio-system}"
-export CERT_MANAGER_VERSION="${CERT_MANAGER_VERSION:-1.4.0}"
+export CERT_MANAGER_VERSION="${CERT_MANAGER_VERSION:-1.7.1}"
 export ISTIO_AGENT_IMAGE="${CERT_MANAGER_ISTIO_AGENT_IMAGE:-quay.io/jetstack/cert-manager-istio-csr:canary}"
 export KUBECTL_BIN="${KUBECTL_BIN:-./bin/kubectl}"
 export HELM_BIN="${HELM_BIN:-./bin/helm}"
 export KIND_BIN="${KIND_BIN:-./bin/kind}"
 export TEST_DIR="${ROOT_DIR:-./test/carotation}"
-export ISTIO_VERSION="${ISTIO_VERSION:-1.11.4}"
+export ISTIO_VERSION="${ISTIO_VERSION:-1.13.0}"
 export ISTIO_BIN="${ISTIO_BIN:-./bin/istioctl-$ISTIO_VERSION}"
 export JQ_BIN="${JQ_BIN:-./bin/jq}"
