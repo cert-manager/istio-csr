@@ -173,3 +173,7 @@ func (c *certmanagerClient) Close() {
 		c.conn.Close()
 	}
 }
+
+func (c *certmanagerClient) GetRootCertBundle() ([]string, error) {
+	return []string{string(c.caTLSRootCert)}, nil
+}
