@@ -14,24 +14,24 @@ require (
 	github.com/spf13/cobra v1.3.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.7.0
-	google.golang.org/grpc v1.44.0
-	google.golang.org/protobuf v1.27.1
-	istio.io/api v0.0.0-20220208030606-6253688c0c91
-	istio.io/istio v0.0.0-20220210020327-75ee7514615d
-	istio.io/pkg v0.0.0-20220124192405-be5366984e00
-	k8s.io/api v0.23.3
-	k8s.io/apimachinery v0.23.3
-	k8s.io/cli-runtime v0.23.3
-	k8s.io/client-go v0.23.3
-	k8s.io/component-base v0.23.3
+	google.golang.org/grpc v1.45.0
+	google.golang.org/protobuf v1.27.2-0.20220217170731-3992ea83a23c
+	istio.io/api v0.0.0-20220321204700-df273f3844e9
+	istio.io/istio v0.0.0-20220322062323-93f56e1696c8
+	istio.io/pkg v0.0.0-20220321205000-3aabc2db3b5d
+	k8s.io/api v0.23.4
+	k8s.io/apimachinery v0.23.4
+	k8s.io/cli-runtime v0.23.4
+	k8s.io/client-go v0.23.4
+	k8s.io/component-base v0.23.4
 	k8s.io/klog/v2 v2.40.1
-	sigs.k8s.io/controller-runtime v0.11.0
+	sigs.k8s.io/controller-runtime v0.11.1
 	sigs.k8s.io/kind v0.11.1
 )
 
 require (
 	cloud.google.com/go v0.100.2 // indirect
-	cloud.google.com/go/compute v1.2.0 // indirect
+	cloud.google.com/go/compute v1.3.0 // indirect
 	cloud.google.com/go/logging v1.4.2 // indirect
 	github.com/Azure/go-autorest v14.2.0+incompatible // indirect
 	github.com/Azure/go-autorest/autorest v0.11.20 // indirect
@@ -87,7 +87,7 @@ require (
 	github.com/lestrrat-go/blackmagic v1.0.0 // indirect
 	github.com/lestrrat-go/httpcc v1.0.0 // indirect
 	github.com/lestrrat-go/iter v1.0.1 // indirect
-	github.com/lestrrat-go/jwx v1.2.18 // indirect
+	github.com/lestrrat-go/jwx v1.2.19 // indirect
 	github.com/lestrrat-go/option v1.0.0 // indirect
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de // indirect
 	github.com/mailru/easyjson v0.7.6 // indirect
@@ -119,26 +119,26 @@ require (
 	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd // indirect
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
-	golang.org/x/sys v0.0.0-20220128215802-99c3d69c2c27 // indirect
+	golang.org/x/sys v0.0.0-20220222160653-b146bcec3beb // indirect
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
 	golang.org/x/text v0.3.7 // indirect
-	golang.org/x/time v0.0.0-20211116232009-f0f3c7e86c11 // indirect
+	golang.org/x/time v0.0.0-20220210224613-90d013bbcef8 // indirect
 	golang.org/x/tools v0.1.8 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
-	google.golang.org/api v0.66.0 // indirect
+	google.golang.org/api v0.69.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20220202230416-2a053f022f0d // indirect
+	google.golang.org/genproto v0.0.0-20220222154240-daf995802d7b // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
-	istio.io/gogo-genproto v0.0.0-20220203154911-542602f9bf4f // indirect
+	istio.io/gogo-genproto v0.0.0-20220314210524-818959c51ace // indirect
 	k8s.io/apiextensions-apiserver v0.23.1 // indirect
 	k8s.io/kube-aggregator v0.23.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20220124234850-424119656bbf // indirect
-	k8s.io/utils v0.0.0-20220127004650-9b3446523e65 // indirect
+	k8s.io/utils v0.0.0-20220210201930-3a6ce19ff2f9 // indirect
 	sigs.k8s.io/json v0.0.0-20211020170558-c049b76a60c6 // indirect
 	sigs.k8s.io/kustomize/api v0.10.1 // indirect
 	sigs.k8s.io/kustomize/kyaml v0.13.0 // indirect

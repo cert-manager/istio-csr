@@ -85,7 +85,7 @@ func New(log logr.Logger, restConfig *rest.Config, cm certmanager.Signer, tls tl
 
 	meshcnf := mesh.DefaultMeshConfig()
 	meshcnf.TrustDomain = tls.TrustDomain()
-	auther := kubeauth.NewKubeJWTAuthenticator(mesh.NewFixedWatcher(&meshcnf), kubeClient, cluster.ID(opts.ClusterID), nil, jwt.PolicyThirdParty)
+	auther := kubeauth.NewKubeJWTAuthenticator(mesh.NewFixedWatcher(meshcnf), kubeClient, cluster.ID(opts.ClusterID), nil, jwt.PolicyThirdParty)
 
 	return &Server{
 		opts:   opts,
