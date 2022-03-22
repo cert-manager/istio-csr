@@ -36,6 +36,7 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/status"
 	securityapi "istio.io/api/security/v1alpha1"
+	"istio.io/istio/pkg/cluster"
 	"istio.io/istio/pkg/config/mesh"
 	"istio.io/istio/pkg/jwt"
 	"istio.io/istio/pkg/security"
@@ -84,7 +85,7 @@ func New(log logr.Logger, restConfig *rest.Config, cm certmanager.Signer, tls tl
 
 	meshcnf := mesh.DefaultMeshConfig()
 	meshcnf.TrustDomain = tls.TrustDomain()
-	auther := kubeauth.NewKubeJWTAuthenticator(mesh.NewFixedWatcher(&meshcnf), kubeClient, opts.ClusterID, nil, jwt.PolicyThirdParty)
+	auther := kubeauth.NewKubeJWTAuthenticator(mesh.NewFixedWatcher(&meshcnf), kubeClient, cluster.ID(opts.ClusterID), nil, jwt.PolicyThirdParty)
 
 	return &Server{
 		opts:   opts,
