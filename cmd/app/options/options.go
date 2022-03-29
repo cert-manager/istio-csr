@@ -112,6 +112,17 @@ func (o *Options) Complete() error {
 		log.Info("-----------------------------------------------------------------")
 	}
 
+	if o.CertManager.PreserveCertificateRequests {
+		log.Info("------------------------------------------------------------------------------------------------------------")
+		log.Info("WARNING!: --preserve-certificate-requests is enabled. Do not enable this option in")
+		log.Info("WARNING!: production, or environments with any non-trivial number of workloads for an")
+		log.Info("WARNING!: extended period of time. Doing so will balloon the resource consumption of")
+		log.Info("WARNING!: ETCD, the API server, and istio-csr, leading to errors and slow down.")
+		log.Info("WARNING!: This option is intended for debugging purposes only, for limited periods of")
+		log.Info("WARNING!: time.")
+		log.Info("------------------------------------------------------------------------------------------------------------")
+	}
+
 	return nil
 }
 
