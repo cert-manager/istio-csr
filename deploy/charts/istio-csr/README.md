@@ -1,6 +1,6 @@
 # cert-manager-istio-csr
 
-![Version: v0.4.0](https://img.shields.io/badge/Version-v0.4.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.4.0](https://img.shields.io/badge/AppVersion-v0.4.0-informational?style=flat-square)
+![Version: v0.4.1](https://img.shields.io/badge/Version-v0.4.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.4.0](https://img.shields.io/badge/AppVersion-v0.4.0-informational?style=flat-square)
 
 istio-csr enables the use of cert-manager for issuing certificates in Istio service meshes
 
@@ -24,7 +24,7 @@ istio-csr enables the use of cert-manager for issuing certificates in Istio serv
 | app.certmanager.issuer.kind | string | `"Issuer"` | Issuer kind set on created CertificateRequests for both istio-csr's serving certificate and incoming gRPC CSRs. |
 | app.certmanager.issuer.name | string | `"istio-ca"` | Issuer name set on created CertificateRequests for both istio-csr's serving certificate and incoming gRPC CSRs. |
 | app.certmanager.namespace | string | `"istio-system"` | Namespace to create CertificateRequests for both istio-csr's serving certificate and incoming gRPC CSRs. |
-| app.certmanager.preserveCertificateRequests | bool | `false` | Don't delete created CertificateRequests once they have been signed. |
+| app.certmanager.preserveCertificateRequests | bool | `false` | Don't delete created CertificateRequests once they have been signed. WARNING: do not enable this option in production, or environments with any non-trivial number of workloads for an extended period of time. Doing so will balloon the resource consumption of both ETCD and the API server, leading to errors and slow down. This option is intended for debugging purposes only, for limited periods of time. |
 | app.controller.leaderElectionNamespace | string | `"istio-system"` |  |
 | app.istio.revisions | list | `["default"]` | The istio revisions that are currently installed in the cluster. Changing this field will modify the DNS names that will be requested for the istiod certificate. The common name for the istiod certificate is hard coded to the `default` revision DNS name. Some issuers may require that the common name on certificates match one of the DNS names. If 1. Your issuer has this constraint, and 2. You are not using `default` as a revision, add the `default` revision here anyway. The resulting certificate will include a DNS name that won't be used, but will pass this constraint. |
 | app.logLevel | int | `1` | Verbosity of istio-csr logging. |
