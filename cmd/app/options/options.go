@@ -191,7 +191,9 @@ func (o *Options) addCertManagerFlags(fs *pflag.FlagSet) {
 	fs.BoolVarP(&o.CertManager.PreserveCertificateRequests,
 		"preserve-certificate-requests", "d", false,
 		"If enabled, will preserve created CertificateRequests, rather than "+
-			"deleting when they are ready.")
+			"deleting when they are ready. *WARNING*: do not use in production "+
+			"environments as over time requests will consume large amounts of etcd and "+
+			"API server resources.")
 
 	fs.StringVarP(&o.CertManager.Namespace,
 		"certificate-namespace", "c", "istio-system",
