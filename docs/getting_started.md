@@ -218,10 +218,20 @@ kubectl logs $(kubectl get pod -n $NAMESPACE -o jsonpath="{.items...metadata.nam
 
 You should see some early logs similar to this example:
 
+istio v1.12 and earlier versions:
+
 ```
 2022-01-13T16:51:58.495493Z	info	CA Endpoint cert-manager-istio-csr.cert-manager.svc:443, provider Citadel
 2022-01-13T16:51:58.495817Z	info	Using CA cert-manager-istio-csr.cert-manager.svc:443 cert with certs: var/run/secrets/istio/root-cert.pem
 2022-01-13T16:51:58.495941Z	info	citadelclient	Citadel client using custom root cert: cert-manager-istio-csr.cert-manager.svc:443
+```
+
+istio v1.13+
+
+```
+2022-01-13T16:51:58.495493Z	info	CA Endpoint cert-manager-istio-csr.cert-manager.svc:443, provider Citadel
+2022-01-13T16:51:58.495817Z	info	Using CA cert-manager-istio-csr.cert-manager.svc:443 cert with certs: var/run/secrets/istio/root-cert.pem
+2022-01-13T16:51:58.495941Z	info	citadelclient	Citadel client using custom root cert: var/run/secrets/istio/root-cert.pem
 ```
 
 Finally we can inspect the certificate being used in memory by Envoy. This one liner should return you the certificate being used:
