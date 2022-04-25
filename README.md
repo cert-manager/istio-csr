@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/jetstack/cert-manager/master/logo/logo.png" width="250x" alt="cert-manager project logo" />
+  <img src="https://raw.githubusercontent.com/cert-manager/cert-manager/d7a3a3976785bd5717d9d06b115878feaf257597/logo/logo.png" height="241" width="250" alt="cert-manager project logo" />
 </p>
 <p align="center">
   <a href="https://godoc.org/github.com/cert-manager/istio-csr">
