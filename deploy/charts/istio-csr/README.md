@@ -20,6 +20,7 @@ istio-csr enables the use of cert-manager for issuing certificates in Istio serv
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| affinity | object | `{}` | Node affinity for pod assignment. |
 | app.certmanager.issuer.group | string | `"cert-manager.io"` | Issuer group name set on created CertificateRequests for both istio-csr's serving certificate and incoming gRPC CSRs. |
 | app.certmanager.issuer.kind | string | `"Issuer"` | Issuer kind set on created CertificateRequests for both istio-csr's serving certificate and incoming gRPC CSRs. |
 | app.certmanager.issuer.name | string | `"istio-ca"` | Issuer name set on created CertificateRequests for both istio-csr's serving certificate and incoming gRPC CSRs. |
@@ -48,10 +49,12 @@ istio-csr enables the use of cert-manager for issuing certificates in Istio serv
 | image.pullPolicy | string | `"IfNotPresent"` | Kubernetes imagePullPolicy on Deployment. |
 | image.repository | string | `"quay.io/jetstack/cert-manager-istio-csr"` | Target image repository. |
 | image.tag | string | `"v0.4.0"` | Target image version tag. |
+| nodeSelector | object | `{}` | Node labels for pod assignment. |
 | replicaCount | int | `1` | Number of replicas of istio-csr to run. |
 | resources | object | `{}` |  |
 | service.port | int | `443` | Service port to expose istio-csr gRPC service. |
 | service.type | string | `"ClusterIP"` | Service type to expose istio-csr gRPC service. |
+| tolerations | list | `[]` | Node tolerations for pod assignment. |
 | volumeMounts | list | `[]` | Optional extra volume mounts. Useful for mounting custom root CAs |
 | volumes | list | `[]` | Optional extra volumes. Useful for mounting custom root CAs |
 
