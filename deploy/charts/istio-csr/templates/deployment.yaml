@@ -15,6 +15,18 @@ spec:
         app: {{ include "cert-manager-istio-csr.name" . }}
     spec:
       serviceAccountName: {{ include "cert-manager-istio-csr.name" . }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
       - name: {{ include "cert-manager-istio-csr.name" . }}
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
