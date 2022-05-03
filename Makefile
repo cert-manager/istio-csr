@@ -36,7 +36,7 @@ test: lint ## test cert-manager-istio-csr
 	go test $$(go list ./pkg/... ./cmd/...)
 
 .PHONY: lint
-lint: boilerplate vet ## run code linting tests
+lint: boilerplate helm-docs vet ## run code linting tests
 
 .PHONY: vet
 vet:
@@ -45,6 +45,10 @@ vet:
 .PHONY: boilerplate
 boilerplate:
 	./hack/verify-boilerplate.sh
+
+.PHONY: helm-docs
+helm-docs: depend # verify helm-docs
+	./hack/verify-helm-docs.sh
 
 .PHONY: build
 build: ## build cert-manager-istio-csr
@@ -85,7 +89,7 @@ carotation: depend ## run ca rotation test
 	./test/carotation/run.sh
 
 .PHONY: depend
-depend: $(BINDIR)/istioctl-$(ISTIO_VERSION) $(BINDIR)/ginkgo $(BINDIR)/kubectl $(BINDIR)/kind $(BINDIR)/helm $(BINDIR)/jq
+depend: $(BINDIR)/istioctl-$(ISTIO_VERSION) $(BINDIR)/ginkgo $(BINDIR)/kubectl $(BINDIR)/kind $(BINDIR)/helm $(BINDIR)/jq $(BINDIR)/helm-docs
 
 $(BINDIR)/istioctl-$(ISTIO_VERSION):
 	mkdir -p $(BINDIR)
@@ -112,3 +116,6 @@ $(BINDIR)/kubectl:
 
 $(BINDIR)/jq:
 	go build -o $(BINDIR)/jq github.com/itchyny/gojq/cmd/gojq
+
+$(BINDIR)/helm-docs:
+	go build -o $(BINDIR)/helm-docs github.com/norwoodj/helm-docs/cmd/helm-docs
