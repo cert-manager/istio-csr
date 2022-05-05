@@ -89,6 +89,8 @@ app:
     # 1 hour.
     istiodCertificateDuration: 1h
     istiodCertificateRenewBefore: 30m
+    # Create the default certificate as part of install.
+    issueDefaultCertificate: true
 
   server:
     # -- The istio cluster ID to verify incoming CSRs.

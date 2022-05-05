@@ -44,6 +44,7 @@ istio-csr enables the use of cert-manager for issuing certificates in Istio serv
 | app.tls.certificateDuration | string | `"1h"` | Requested duration of gRPC serving certificate. Will be automatically renewed. Based on NIST 800-204A recommendations (SM-DR13). https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf |
 | app.tls.istiodCertificateDuration | string | `"1h"` | Requested duration of istio's Certificate. Will be automatically renewed. Based on NIST 800-204A recommendations (SM-DR13). https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf Warning: cert-manager does not allow a duration on Certificates less than 1 hour. |
 | app.tls.istiodCertificateRenewBefore | string | `"30m"` |  |
+| app.tls.issueDefaultCertificate | bool | `true` | Create the default certificate as part of install. |
 | app.tls.rootCAFile | string | `nil` | An optional file location to a PEM encoded root CA that the root CA ConfigMap in all namespaces will be populated with. If empty, the CA returned from cert-manager for the serving certificate will be used. |
 | app.tls.trustDomain | string | `"cluster.local"` | The Istio cluster's trust domain. |
 | image.pullPolicy | string | `"IfNotPresent"` | Kubernetes imagePullPolicy on Deployment. |

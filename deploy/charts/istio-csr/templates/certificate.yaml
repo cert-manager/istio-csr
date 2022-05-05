@@ -1,3 +1,4 @@
+{{- if .Values.app.tls.issueDefaultCertificate }}
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
@@ -40,3 +41,4 @@ spec:
     name: {{ .Values.app.certmanager.issuer.name }}
     kind: {{ .Values.app.certmanager.issuer.kind }}
     group: {{ .Values.app.certmanager.issuer.group }}
+{{- end }}
