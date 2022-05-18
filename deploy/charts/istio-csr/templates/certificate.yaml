@@ -1,4 +1,4 @@
-{{- if .Values.app.tls.issueDefaultCertificate }}
+{{- if .Values.app.tls.istiodCertificateEnable }}
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
