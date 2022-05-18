@@ -1,6 +1,7 @@
 # -- Number of replicas of istio-csr to run.
 replicaCount: 1
 
+
 image:
   # -- Target image repository.
   repository: quay.io/jetstack/cert-manager-istio-csr
@@ -8,6 +9,9 @@ image:
   tag: v0.4.0
   # -- Kubernetes imagePullPolicy on Deployment.
   pullPolicy: IfNotPresent
+
+  # Pull secret name for private repository hosting of istio-csr
+  pullSecret:
 
 service:
   # -- Service type to expose istio-csr gRPC service.
