@@ -1,7 +1,6 @@
 # -- Number of replicas of istio-csr to run.
 replicaCount: 1
 
-
 image:
   # -- Target image repository.
   repository: quay.io/jetstack/cert-manager-istio-csr
