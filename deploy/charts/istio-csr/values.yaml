@@ -10,7 +10,7 @@ image:
   pullPolicy: IfNotPresent
 
   # -- Pull secret name for private repository hosting of istio-csr
-  pullSecret:
+  pullSecretName: ""
 
 service:
   # -- Service type to expose istio-csr gRPC service.

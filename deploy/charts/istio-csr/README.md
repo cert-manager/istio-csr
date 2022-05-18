@@ -50,7 +50,7 @@ istio-csr enables the use of cert-manager for issuing certificates in Istio serv
 | app.tls.rootCAFile | string | `nil` | An optional file location to a PEM encoded root CA that the root CA ConfigMap in all namespaces will be populated with. If empty, the CA returned from cert-manager for the serving certificate will be used. |
 | app.tls.trustDomain | string | `"cluster.local"` | The Istio cluster's trust domain. |
 | image.pullPolicy | string | `"IfNotPresent"` | Kubernetes imagePullPolicy on Deployment. |
-| image.pullSecret | string | `nil` |  |
+| image.pullSecretName | string | `""` | Pull secret name for private repository hosting of istio-csr |
 | image.repository | string | `"quay.io/jetstack/cert-manager-istio-csr"` | Target image repository. |
 | image.tag | string | `"v0.4.0"` | Target image version tag. |
 | nodeSelector | object | `{}` |  |
