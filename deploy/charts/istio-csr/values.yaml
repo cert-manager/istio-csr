@@ -9,7 +9,7 @@ image:
   # -- Kubernetes imagePullPolicy on Deployment.
   pullPolicy: IfNotPresent
 
-  # Pull secret name for private repository hosting of istio-csr
+  # -- Pull secret name for private repository hosting of istio-csr
   pullSecret:
 
 service:
