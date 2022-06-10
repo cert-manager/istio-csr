@@ -1,7 +1,7 @@
 #!/bin/bash
 
 K8S_NAMESPACE="${K8S_NAMESPACE:-istio-system}"
-CERT_MANAGER_VERSION="${CERT_MANAGER_VERSION:-1.7.1}"
+CERT_MANAGER_VERSION="${CERT_MANAGER_VERSION:-1.8.0}"
 ISTIO_AGENT_IMAGE="${CERT_MANAGER_ISTIO_AGENT_IMAGE:-quay.io/jetstack/cert-manager-istio-csr:canary}"
 KUBECTL_BIN="${KUBECTL_BIN:-./bin/kubectl}"
 HELM_BIN="${HELM_BIN:-./bin/helm}"
