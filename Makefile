@@ -16,7 +16,6 @@ BINDIR ?= $(CURDIR)/bin
 ARCH   ?= $(shell go env GOARCH)
 ISTIO_VERSION ?= 1.14.1
 K8S_VERSION ?= 1.21.1
-HELM_VERSION ?= 3.6.0
 IMAGE_PLATFORMS ?= linux/amd64,linux/arm64,linux/arm/v7,linux/ppc64le
 
 UNAME_S := $(shell uname -s)
@@ -99,23 +98,20 @@ $(BINDIR)/istioctl-$(ISTIO_VERSION):
 	mv $(BINDIR)/istioctl-$(ISTIO_VERSION)-tmp $(BINDIR)/istioctl-$(ISTIO_VERSION)
 
 $(BINDIR)/ginkgo:
-	go build -o $(BINDIR)/ginkgo github.com/onsi/ginkgo/ginkgo
+	cd hack/tools && go build -o $(BINDIR)/ginkgo github.com/onsi/ginkgo/ginkgo
 
 $(BINDIR)/kind:
-	go build -o $(BINDIR)/kind sigs.k8s.io/kind
+	cd hack/tools && go build -o $(BINDIR)/kind sigs.k8s.io/kind
 
 $(BINDIR)/helm:
-	curl -o $(BINDIR)/helm.tar.gz -LO "https://get.helm.sh/helm-v$(HELM_VERSION)-$(OS)-$(ARCH).tar.gz"
-	tar -C $(BINDIR) -xzf $(BINDIR)/helm.tar.gz
-	cp $(BINDIR)/$(OS)-$(ARCH)/helm $(BINDIR)/helm
-	rm -r $(BINDIR)/$(OS)-$(ARCH) $(BINDIR)/helm.tar.gz
+	cd hack/tools && go build -o $(BINDIR)/helm-docs github.com/norwoodj/helm-docs/cmd/helm-docs
 
 $(BINDIR)/kubectl:
 	curl -o ./bin/kubectl -LO "https://storage.googleapis.com/kubernetes-release/release/$(shell curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/$(OS)/$(ARCH)/kubectl"
 	chmod +x ./bin/kubectl
 
 $(BINDIR)/jq:
-	go build -o $(BINDIR)/jq github.com/itchyny/gojq/cmd/gojq
+	cd hack/tools && go build -o $(BINDIR)/jq github.com/itchyny/gojq/cmd/gojq
 
 $(BINDIR)/helm-docs:
-	go build -o $(BINDIR)/helm-docs github.com/norwoodj/helm-docs/cmd/helm-docs
+	cd hack/tools && go build -o $(BINDIR)/helm-docs github.com/norwoodj/helm-docs/cmd/helm-docs
