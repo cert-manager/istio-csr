@@ -104,7 +104,7 @@ $(BINDIR)/kind:
 	cd hack/tools && go build -o $(BINDIR)/kind sigs.k8s.io/kind
 
 $(BINDIR)/helm:
-	cd hack/tools && go build -o $(BINDIR)/helm-docs github.com/norwoodj/helm-docs/cmd/helm-docs
+	cd hack/tools && go build -o $(BINDIR)/helm helm.sh/helm/v3/cmd/helm
 
 $(BINDIR)/kubectl:
 	curl -o ./bin/kubectl -LO "https://storage.googleapis.com/kubernetes-release/release/$(shell curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/$(OS)/$(ARCH)/kubectl"
