@@ -20,7 +20,7 @@ import (
 	"context"
 	"time"
 
-	cmapi "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1"
+	cmapi "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 
 	"github.com/cert-manager/istio-csr/pkg/certmanager"
 )

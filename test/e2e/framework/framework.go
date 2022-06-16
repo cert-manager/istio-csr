@@ -17,7 +17,7 @@ limitations under the License.
 package framework
 
 import (
-	cmversioned "github.com/jetstack/cert-manager/pkg/client/clientset/versioned"
+	cmversioned "github.com/cert-manager/cert-manager/pkg/client/clientset/versioned"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"k8s.io/cli-runtime/pkg/genericclioptions"

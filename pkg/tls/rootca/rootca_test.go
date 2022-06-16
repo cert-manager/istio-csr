@@ -26,7 +26,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jetstack/cert-manager/pkg/util/pki"
+	"github.com/cert-manager/cert-manager/pkg/util/pki"
 	"github.com/stretchr/testify/assert"
 	"k8s.io/klog/v2/klogr"
 )

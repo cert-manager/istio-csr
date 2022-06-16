@@ -26,10 +26,10 @@ import (
 	"sync"
 	"time"
 
+	cmapi "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
+	"github.com/cert-manager/cert-manager/pkg/util/pki"
 	"github.com/go-logr/logr"
 	grpcprom "github.com/grpc-ecosystem/go-grpc-prometheus"
-	cmapi "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1"
-	"github.com/jetstack/cert-manager/pkg/util/pki"
 	prom "github.com/prometheus/client_golang/prometheus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -64,6 +64,8 @@ type Options struct {
 
 // Server is the implementation of the istio CreateCertificate service
 type Server struct {
+	securityapi.UnimplementedIstioCertificateServiceServer
+
 	opts Options
 	log  logr.Logger
 
