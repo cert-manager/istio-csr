@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 BINDIR="${BINDIR:-$(pwd)/bin}"
 KUBECTL_BIN="${KUBECTL_BIN:-./bin/kind}"
