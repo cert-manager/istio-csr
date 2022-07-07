@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 KIND_BIN="${KIND_BIN:-./bin/kind}"
 

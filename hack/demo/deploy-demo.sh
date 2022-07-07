@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 K8S_NAMESPACE="${K8S_NAMESPACE:-istio-system}"
 CERT_MANAGER_VERSION="${CERT_MANAGER_VERSION:-1.8.0}"

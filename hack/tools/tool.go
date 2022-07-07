@@ -8,6 +8,7 @@ package tools
 
 import (
 	_ "github.com/itchyny/gojq/cmd/gojq"
+	_ "github.com/norwoodj/helm-docs/cmd/helm-docs"
 	_ "github.com/onsi/ginkgo/ginkgo"
 	_ "sigs.k8s.io/kind"
 )
