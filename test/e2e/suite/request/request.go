@@ -28,8 +28,10 @@ import (
 	cmapi "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	authv1 "k8s.io/api/authentication/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/utils/pointer"
 
 	"github.com/cert-manager/istio-csr/test/e2e/framework"
 	cmclient "github.com/cert-manager/istio-csr/test/e2e/suite/internal/client"
@@ -76,24 +78,15 @@ var _ = framework.CasesDescribe("Request Authentication", func() {
 
 		saName = sa.Name
 
-		var secrets []corev1.ObjectReference
-		for len(secrets) == 0 {
-			time.Sleep(time.Millisecond * 100)
-
-			sa, err := f.KubeClientSet.CoreV1().ServiceAccounts(namespace).Get(context.TODO(), saName, metav1.GetOptions{})
-			Expect(err).NotTo(HaveOccurred())
-
-			secrets = sa.Secrets
-		}
-
-		secret, err := f.KubeClientSet.CoreV1().Secrets(namespace).Get(context.TODO(), secrets[0].Name, metav1.GetOptions{})
+		token, err := f.KubeClientSet.CoreV1().ServiceAccounts(namespace).CreateToken(context.TODO(), saName, &authv1.TokenRequest{
+			Spec: authv1.TokenRequestSpec{
+				Audiences:         []string{"istio-ca"},
+				ExpirationSeconds: pointer.Int64(1200),
+			},
+		}, metav1.CreateOptions{})
 		Expect(err).NotTo(HaveOccurred())
 
-		saTokenBytes, ok := secret.Data[corev1.ServiceAccountTokenKey]
-		if !ok {
-			Expect(secret, "expected Service Account token present in secret").NotTo(HaveOccurred())
-		}
-		saToken = string(saTokenBytes)
+		saToken = token.Status.Token
 	})
 
 	JustAfterEach(func() {
