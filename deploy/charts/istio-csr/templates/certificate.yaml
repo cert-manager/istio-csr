@@ -35,7 +35,7 @@ spec:
   privateKey:
     rotationPolicy: Always
     algorithm: RSA
-    size: 2048
+    size: 4096 
   revisionHistoryLimit: 1
   issuerRef:
     name: {{ .Values.app.certmanager.issuer.name }}
