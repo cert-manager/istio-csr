@@ -287,7 +287,7 @@ func (p *Provider) fetchCertificate(ctx context.Context) (time.Time, error) {
 		Host:       strings.Join(p.opts.ServingCertificateDNSNames, ","),
 		IsServer:   true,
 		TTL:        p.opts.ServingCertificateDuration,
-		RSAKeySize: 2048,
+		RSAKeySize: 4096,
 	}
 
 	// Generate new CSR and private key for serving
