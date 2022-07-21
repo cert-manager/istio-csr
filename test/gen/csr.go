@@ -36,7 +36,7 @@ var (
 
 func init() {
 	var err error
-	sk, err = rsa.GenerateKey(rand.Reader, 4096)
+	sk, err = rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
 		panic(err)
 	}
@@ -68,7 +68,7 @@ func CSR(mods ...CSRModifier) ([]byte, error) {
 
 	opts := pkiutil.CertOptions{
 		IsServer:   true,
-		RSAKeySize: 4096,
+		RSAKeySize: 2048,
 	}
 
 	csr, err := pkiutil.GenCSRTemplate(opts)

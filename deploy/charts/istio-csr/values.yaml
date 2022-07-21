@@ -108,6 +108,8 @@ app:
       address: 0.0.0.0
       # -- Container port to serve istio-csr gRPC service.
       port: 6443
+      # -- Number of bits to use for the server's serving certificate (RSAKeySize).
+      certificateKeySize: 2048
 
   istio:
     # -- The istio revisions that are currently installed in the cluster.

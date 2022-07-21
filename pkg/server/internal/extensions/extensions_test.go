@@ -65,7 +65,7 @@ var (
 )
 
 func TestValidateCSRExtentions(t *testing.T) {
-	sk, err := pkiutil.GenerateRSAPrivateKey(4096)
+	sk, err := pkiutil.GenerateRSAPrivateKey(2048)
 	if err != nil {
 		t.Fatal(err)
 	}
