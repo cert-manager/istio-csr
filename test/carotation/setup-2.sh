@@ -27,10 +27,10 @@ $KUBECTL_BIN apply -f $TEST_DIR/issuers/.
 
 echo ">> waiting for issuers to become ready"
 $KUBECTL_BIN get issuers -n istio-system
-$KUBECTL_BIN wait -n istio-system --for=condition=ready issuer istio-root-1
-$KUBECTL_BIN wait -n istio-system --for=condition=ready issuer istio-root-2
-$KUBECTL_BIN wait -n istio-system --for=condition=ready issuer istio-int-1
-$KUBECTL_BIN wait -n istio-system --for=condition=ready issuer istio-int-2
+$KUBECTL_BIN wait --timeout=180s -n istio-system --for=condition=ready issuer istio-root-1
+$KUBECTL_BIN wait --timeout=180s -n istio-system --for=condition=ready issuer istio-root-2
+$KUBECTL_BIN wait --timeout=180s -n istio-system --for=condition=ready issuer istio-int-1
+$KUBECTL_BIN wait --timeout=180s -n istio-system --for=condition=ready issuer istio-int-2
 $KUBECTL_BIN get issuers -n istio-system
 
 echo ">> extracting roots of trust"

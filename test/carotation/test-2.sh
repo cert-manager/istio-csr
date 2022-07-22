@@ -22,7 +22,7 @@ echo "======================================"
 echo ">> rotating the CA being used"
 
 echo ">> reinstalling istio-csr with new issuer"
-$KUBECTL_BIN delete deploy -n cert-manager cert-manager-istio-csr --wait
+$KUBECTL_BIN delete deploy -n cert-manager cert-manager-istio-csr --wait --timeout=180s
 $HELM_BIN upgrade -i cert-manager-istio-csr ./deploy/charts/istio-csr -n cert-manager --values $TEST_DIR/values/istio-csr-2.yaml --wait
 sleep 5s
 
