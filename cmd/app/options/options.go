@@ -196,8 +196,8 @@ func (o *Options) addTLSFlags(fs *pflag.FlagSet) {
 		"A list of DNS names to request for the server's serving certificate which will be "+
 			"presented to istio-agents.")
 
-	fs.StringVar(&o.TLS.ServingCertificateKeySize,
-		"serving-certificate-key-size", "2048",
+	fs.IntVar(&o.TLS.ServingCertificateKeySize,
+		"serving-certificate-key-size", 2048,
 		"Number of bits to use for the server's serving certificate (RSAKeySize).")
 
 }
