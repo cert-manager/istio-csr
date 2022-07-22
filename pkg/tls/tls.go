@@ -95,7 +95,7 @@ type Options struct {
 
 	// ServingCertificateKeySize is the number of bits to use for the serving
 	// certificate RSAKeySize. The default is 2048.
-	ServingCertificateKeySize string
+	ServingCertificateKeySize int
 }
 
 // Provider is used to provide a tls config containing an automatically renewed
