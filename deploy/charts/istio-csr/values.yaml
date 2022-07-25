@@ -91,6 +91,8 @@ app:
     istiodCertificateRenewBefore: 30m
     # Create the default certificate as part of install.
     istiodCertificateEnable: true
+    # Number of bits to use for istiod-tls RSAKey
+    istiodPrivateKeySize: 2048
 
   server:
     # -- The istio cluster ID to verify incoming CSRs.
@@ -106,6 +108,8 @@ app:
       address: 0.0.0.0
       # -- Container port to serve istio-csr gRPC service.
       port: 6443
+      # -- Number of bits to use for the server's serving certificate (RSAKeySize).
+      certificateKeySize: 2048
 
   istio:
     # -- The istio revisions that are currently installed in the cluster.

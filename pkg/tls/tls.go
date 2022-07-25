@@ -92,6 +92,10 @@ type Options struct {
 	// gRPC service serving certificate. The service must be routable by clients
 	// by at least one of these DNS names.
 	ServingCertificateDNSNames []string
+
+	// ServingCertificateKeySize is the number of bits to use for the serving
+	// certificate RSAKeySize. The default is 2048.
+	ServingCertificateKeySize int
 }
 
 // Provider is used to provide a tls config containing an automatically renewed
@@ -287,7 +291,7 @@ func (p *Provider) fetchCertificate(ctx context.Context) (time.Time, error) {
 		Host:       strings.Join(p.opts.ServingCertificateDNSNames, ","),
 		IsServer:   true,
 		TTL:        p.opts.ServingCertificateDuration,
-		RSAKeySize: 2048,
+		RSAKeySize: p.opts.ServingCertificateKeySize,
 	}
 
 	// Generate new CSR and private key for serving

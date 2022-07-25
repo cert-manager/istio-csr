@@ -35,7 +35,7 @@ spec:
   privateKey:
     rotationPolicy: Always
     algorithm: RSA
-    size: 2048
+    size: {{ .Values.app.tls.istiodPrivateKeySize }}
   revisionHistoryLimit: 1
   issuerRef:
     name: {{ .Values.app.certmanager.issuer.name }}

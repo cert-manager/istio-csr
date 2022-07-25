@@ -66,6 +66,7 @@ spec:
           - "--cluster-id={{.Values.app.server.clusterID}}"
           - "--max-client-certificate-duration={{.Values.app.server.maxCertificateDuration}}"
           - "--serving-address={{.Values.app.server.serving.address}}:{{.Values.app.server.serving.port}}"
+          - "--serving-certificate-key-size={{.Values.app.server.serving.certificateKeySize}}"
 
           # controller
           - "--leader-election-namespace={{.Values.app.controller.leaderElectionNamespace}}"
