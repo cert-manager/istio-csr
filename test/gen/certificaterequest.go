@@ -17,7 +17,7 @@ limitations under the License.
 package gen
 
 import (
-	cmapi "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1"
+	cmapi "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 )
 
 type CertificateRequestModifier func(*cmapi.CertificateRequest)

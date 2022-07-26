@@ -23,8 +23,8 @@ import (
 	"fmt"
 	"testing"
 
-	cmapi "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1"
-	pkiutil "github.com/jetstack/cert-manager/pkg/util/pki"
+	cmapi "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
+	pkiutil "github.com/cert-manager/cert-manager/pkg/util/pki"
 )
 
 var (

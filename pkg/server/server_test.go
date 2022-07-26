@@ -27,14 +27,13 @@ import (
 	"testing"
 	"time"
 
-	cmapi "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1"
-	"github.com/jetstack/cert-manager/pkg/util/pki"
+	cmapi "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
+	"github.com/cert-manager/cert-manager/pkg/util/pki"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 	securityapi "istio.io/api/security/v1alpha1"
-	apiequality "k8s.io/apimachinery/pkg/api/equality"
 	"k8s.io/klog/v2/klogr"
 
 	"github.com/cert-manager/istio-csr/pkg/certmanager"
@@ -206,9 +205,7 @@ func Test_CreateCertificate(t *testing.T) {
 				t.Errorf("unexpected error, exp=%v got=%v", test.expErr, err)
 			}
 
-			if !apiequality.Semantic.DeepEqual(resp, test.expResponse) {
-				t.Errorf("unexpected response, exp=%v got=%v", test.expResponse, resp)
-			}
+			assert.Equal(t, test.expResponse, resp)
 		})
 	}
 }

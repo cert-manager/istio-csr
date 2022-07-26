@@ -25,7 +25,7 @@ import (
 	"reflect"
 	"time"
 
-	cmapi "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1"
+	cmapi "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	authv1 "k8s.io/api/authentication/v1"

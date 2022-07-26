@@ -22,7 +22,7 @@ import (
 
 	utilerrors "k8s.io/apimachinery/pkg/util/errors"
 
-	cmmeta "github.com/jetstack/cert-manager/pkg/apis/meta/v1"
+	cmmeta "github.com/cert-manager/cert-manager/pkg/apis/meta/v1"
 )
 
 type Config struct {
