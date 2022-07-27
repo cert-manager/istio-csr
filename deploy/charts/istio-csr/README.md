@@ -52,6 +52,7 @@ istio-csr enables the use of cert-manager for issuing certificates in Istio serv
 | image.pullPolicy | string | `"IfNotPresent"` | Kubernetes imagePullPolicy on Deployment. |
 | image.repository | string | `"quay.io/jetstack/cert-manager-istio-csr"` | Target image repository. |
 | image.tag | string | `"v0.4.0"` | Target image version tag. |
+| imagePullSecrets | list | `[]` | Optional secrets used for pulling the istio-csr container image. |
 | nodeSelector | object | `{}` |  |
 | replicaCount | int | `1` | Number of replicas of istio-csr to run. |
 | resources | object | `{}` |  |
