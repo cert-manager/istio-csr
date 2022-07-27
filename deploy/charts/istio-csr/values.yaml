@@ -9,8 +9,8 @@ image:
   # -- Kubernetes imagePullPolicy on Deployment.
   pullPolicy: IfNotPresent
 
-  # -- Pull secret name for private repository hosting of istio-csr
-  pullSecretName: ""
+# -- Optional secrets used for pulling the istio-csr container image.
+imagePullSecrets: []
 
 service:
   # -- Service type to expose istio-csr gRPC service.
