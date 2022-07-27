@@ -23,7 +23,7 @@ Certificates facilitating mTLS &mdash; both inter
 and intra-cluster &mdash; will be signed, delivered and renewed using [cert-manager
 issuers](https://cert-manager.io/docs/concepts/issuer).
 
-istio-csr supports Istio v1.7+ and cert-manager v1.3+
+istio-csr supports Istio v1.10+ and cert-manager v1.3+
 
 ---
 
