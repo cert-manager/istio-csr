@@ -42,6 +42,7 @@ istio-csr enables the use of cert-manager for issuing certificates in Istio serv
 | app.server.maxCertificateDuration | string | `"1h"` | Maximum validity duration that can be requested for a certificate. istio-csr will request a duration of the smaller of this value, and that of the incoming gRPC CSR. Based on NIST 800-204A recommendations (SM-DR13). https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf |
 | app.server.serving.address | string | `"0.0.0.0"` | Container address to serve istio-csr gRPC service. |
 | app.server.serving.certificateKeySize | int | `2048` | Number of bits to use for the server's serving certificate (RSAKeySize). |
+| app.server.serving.signatureAlgorithm | string | `` | The type of signature algorithm to use when generating private keys. Currently only RSA and ECDSA are supported. By default RSA is used. |
 | app.server.serving.port | int | `6443` | Container port to serve istio-csr gRPC service. |
 | app.tls.certificateDNSNames | list | `["cert-manager-istio-csr.cert-manager.svc"]` | The DNS names to request for the server's serving certificate which is presented to istio-agents. istio-agents must route to istio-csr using one of these DNS names. |
 | app.tls.certificateDuration | string | `"1h"` | Requested duration of gRPC serving certificate. Will be automatically renewed. Based on NIST 800-204A recommendations (SM-DR13). https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf |

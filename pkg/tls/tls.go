@@ -28,9 +28,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-logr/logr"
 	cmapi "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	"github.com/cert-manager/cert-manager/pkg/util/pki"
+	"github.com/go-logr/logr"
 	"github.com/prometheus/client_golang/prometheus"
 	"istio.io/istio/pkg/spiffe"
 	pkiutil "istio.io/istio/security/pkg/pki/util"
@@ -96,6 +96,10 @@ type Options struct {
 	// ServingCertificateKeySize is the number of bits to use for the serving
 	// certificate RSAKeySize. The default is 2048.
 	ServingCertificateKeySize int
+
+	// ServingSignatureAlgorithm is the type of key of serving signature algorithm
+	// used, RSA or ECDSA, The default is RSA.
+	ServingSignatureAlgorithm string
 }
 
 // Provider is used to provide a tls config containing an automatically renewed
@@ -292,6 +296,10 @@ func (p *Provider) fetchCertificate(ctx context.Context) (time.Time, error) {
 		IsServer:   true,
 		TTL:        p.opts.ServingCertificateDuration,
 		RSAKeySize: p.opts.ServingCertificateKeySize,
+	}
+
+	if p.opts.ServingSignatureAlgorithm == string(pkiutil.EcdsaSigAlg) {
+		opts.ECSigAlg = pkiutil.EcdsaSigAlg
 	}
 
 	// Generate new CSR and private key for serving

@@ -200,6 +200,10 @@ func (o *Options) addTLSFlags(fs *pflag.FlagSet) {
 		"serving-certificate-key-size", 2048,
 		"Number of bits to use for the server's serving certificate (RSAKeySize).")
 
+	fs.StringVar(&o.TLS.ServingSignatureAlgorithm,
+		"serving-signature-algorithm", "RSA",
+		"The type of signature algorithm to use when generating private keys. "+
+			"Currently only RSA and ECDSA are supported. By default RSA is used.")
 }
 
 func (o *Options) addCertManagerFlags(fs *pflag.FlagSet) {
