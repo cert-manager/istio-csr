@@ -14,7 +14,7 @@ spec:
   jobLabel: {{ include "cert-manager-istio-csr.name" . }}
   selector:
     matchLabels:
-      app: {{ include "cert-manager-istio-csr.name" . }}
+      app: {{ include "cert-manager-istio-csr.name" . }}-metrics
   namespaceSelector:
     matchNames:
       - {{ .Release.Namespace }}
