@@ -74,7 +74,9 @@ spec:
 
           # controller
           - "--leader-election-namespace={{.Values.app.controller.leaderElectionNamespace}}"
-
+          {{- if .Values.app.controller.configmapNamespaceSelector }}
+          - "--configmap-namespace-selector={{ .Values.app.controller.configmapNamespaceSelector }}"
+          {{- end }}
         {{- if .Values.volumeMounts }}
         volumeMounts:
 {{ toYaml .Values.volumeMounts | indent 10 }}

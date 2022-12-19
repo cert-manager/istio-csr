@@ -130,6 +130,7 @@ app:
 
   controller:
     leaderElectionNamespace: istio-system
+    # configmapNamespaceSelector: maistra.io/member-of=istio-system
 
 # -- Optional extra volumes. Useful for mounting custom root CAs
 volumes: []
