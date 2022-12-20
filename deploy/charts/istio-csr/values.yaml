@@ -12,6 +12,8 @@ image:
 # -- Optional secrets used for pulling the istio-csr container image.
 imagePullSecrets: []
 
+ignoreClusterResources: false
+
 service:
   # -- Service type to expose istio-csr gRPC service.
   type: ClusterIP
