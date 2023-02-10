@@ -24,10 +24,6 @@ app:
     rootCAFile: /var/run/secrets/istio-csr/ca.pem
     certificateDuration: 20s
 
-  controller:
-    rootCAConfigMapName: istio-ca-root-cert
-
-
 volumes:
 - name: istio-root-certs
   secret:
