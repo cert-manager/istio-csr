@@ -1,6 +1,6 @@
 module github.com/cert-manager/istio-csr/hack/tools
 
-go 1.18
+go 1.19
 
 require (
 	github.com/itchyny/gojq v0.12.8
