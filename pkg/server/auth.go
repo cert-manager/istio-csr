@@ -24,6 +24,7 @@ import (
 	"sort"
 	"strings"
 
+	"istio.io/istio/pkg/security"
 	pkiutil "istio.io/istio/security/pkg/pki/util"
 
 	"github.com/cert-manager/istio-csr/pkg/server/internal/extensions"
@@ -32,7 +33,7 @@ import (
 // authRequest will authenticate the request and authorize the CSR is valid for
 // the identity
 func (s *Server) authRequest(ctx context.Context, csrPEM []byte) (string, bool) {
-	caller, err := s.auther.Authenticate(ctx)
+	caller, err := s.auther.Authenticate(security.AuthContext{GrpcContext: ctx})
 	if err != nil {
 		// TODO: pass in logger with request context
 		s.log.Error(err, "failed to authenticate request")
