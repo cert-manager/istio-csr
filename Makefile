@@ -14,7 +14,7 @@
 
 BINDIR ?= $(CURDIR)/bin
 ARCH   ?= $(shell go env GOARCH)
-ISTIO_VERSION ?= 1.16.2
+ISTIO_VERSION ?= 1.17.0
 K8S_VERSION ?= 1.26.1
 IMAGE_PLATFORMS ?= linux/amd64,linux/arm64,linux/arm/v7,linux/ppc64le
 
