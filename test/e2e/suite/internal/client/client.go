@@ -105,14 +105,14 @@ func (c *certmanagerClient) getTLSDialOption() (grpc.DialOption, error) {
 		if err != nil {
 			return nil, err
 		}
-		certmanagerClientLog.Infoa("cert-manager client using public DNS: ", c.caEndpoint)
+		certmanagerClientLog.Info("cert-manager client using public DNS: ", c.caEndpoint)
 	} else {
 		certPool = x509.NewCertPool()
 		ok := certPool.AppendCertsFromPEM(c.caTLSRootCert)
 		if !ok {
 			return nil, fmt.Errorf("failed to append certificates")
 		}
-		certmanagerClientLog.Infoa("cert-manager client using custom root: ", c.caEndpoint, " ", string(c.caTLSRootCert))
+		certmanagerClientLog.Info("cert-manager client using custom root: ", c.caEndpoint, " ", string(c.caTLSRootCert))
 	}
 	var certificate tls.Certificate
 	config := tls.Config{
