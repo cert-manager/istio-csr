@@ -125,6 +125,8 @@ app:
     # anyway. The resulting certificate will include a DNS name that won't be
     # used, but will pass this constraint.
     revisions: ["default"]
+    # -- The namespace where the istio control-plane is running.
+    namespace: istio-system
 
   controller:
     leaderElectionNamespace: istio-system

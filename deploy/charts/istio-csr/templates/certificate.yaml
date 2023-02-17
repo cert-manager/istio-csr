@@ -3,12 +3,13 @@ apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: istiod
-  namespace: istio-system
+  namespace: {{ .Values.app.istio.namespace }}
 spec:
-  commonName: istiod.istio-system.svc
+  commonName: istiod.{{ .Values.app.istio.namespace }}.svc
   dnsNames:
   {{- $revisions := dict -}}
   {{- if .Values.app.istio.revisions }}
+  {{- $namespace := .Values.app.istio.namespace }}
   {{- range $revision := .Values.app.istio.revisions -}}
   {{- if eq $revision "default" }}{{ $revision = "" }}{{ end }}
   {{- if hasKey $revisions $revision }}
@@ -17,13 +18,13 @@ spec:
   {{- $_ := set $revisions $revision $revision -}}
   {{- end -}}
   {{- if ne $revision "" }}{{ $revision = print "-" $revision }}{{ end }}
-  - istiod{{$revision}}.istio-system.svc
+  - istiod{{$revision}}.{{$namespace}}.svc
   {{- end }}
   {{- else }}
-  - istiod.istio-system.svc
+  - istiod.{{ .Values.app.istio.namespace }}.svc
   {{- end }}
   uris:
-  - spiffe://{{.Values.app.tls.trustDomain}}/ns/istio-system/sa/istiod-service-account
+  - spiffe://{{.Values.app.tls.trustDomain}}/ns/{{ .Values.app.istio.namespace }}/sa/istiod-service-account
   secretName: istiod-tls
   # Here we use a duration of 1 hour by default based on NIST 800-204A
   # recommendations (SM-DR13).
