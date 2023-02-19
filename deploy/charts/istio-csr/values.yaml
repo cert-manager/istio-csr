@@ -12,6 +12,7 @@ image:
 # -- Optional secrets used for pulling the istio-csr container image.
 imagePullSecrets: []
 
+# -- Set this to true to ignore creation of clusterscoped resources, ClusterRole and ClusterRolebinding. Useful in multitenant deployments with multiple istio-csr deployments
 ignoreClusterResources: false
 
 service:
