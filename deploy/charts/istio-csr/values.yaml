@@ -130,7 +130,8 @@ app:
 
   controller:
     leaderElectionNamespace: istio-system
-    # configmapNamespaceSelector: maistra.io/member-of=istio-system
+    # -- (string) If set, limit where istio-csr creates configmaps with root ca certificates. If unset, configmap created in ALL namespaces. Example: maistra.io/member-of=istio-system
+    configmapNamespaceSelector:
 
 # -- Optional extra volumes. Useful for mounting custom root CAs
 volumes: []
