@@ -17,16 +17,6 @@ rules:
   - "update"
   - "delete"
   - "watch"
-- apiGroups:
-  - "coordination.k8s.io"
-  resources:
-  - "leases"
-  verbs:
-  - "get"
-  - "create"
-  - "update"
-  - "watch"
-  - "list"
 - apiGroups: [""]
   resources: ["events"]
   verbs: ["create"]
