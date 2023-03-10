@@ -44,10 +44,6 @@ const (
 )
 
 type Options struct {
-	// LeaderElectionNamespace is the namespace that will be used to lease the
-	// leader election of each controller.
-	LeaderElectionNamespace string
-
 	// TLS is the tls provider that is used for updating the config map.
 	TLS tls.Interface
 
