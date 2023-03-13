@@ -17,6 +17,7 @@ ARCH   ?= $(shell go env GOARCH)
 ISTIO_VERSION ?= 1.16.2
 K8S_VERSION ?= 1.26.1
 IMAGE_PLATFORMS ?= linux/amd64,linux/arm64,linux/arm/v7,linux/ppc64le
+VERSION_TAG=v0.6.0-alpha.0
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Linux)
@@ -62,7 +63,11 @@ verify: test build ## tests and builds cert-manager-istio-csr
 # arguments to `--push`.
 .PHONY: image
 image: ## build docker image targeting all supported platforms
-	docker buildx build --platform=$(IMAGE_PLATFORMS) -t quay.io/jetstack/cert-manager-istio-csr:v0.5.0 --output type=oci,dest=./bin/cert-manager-istio-csr-oci .
+	docker buildx build --platform=$(IMAGE_PLATFORMS) -t quay.io/jetstack/cert-manager-istio-csr:$(VERSION_TAG) --output type=oci,dest=./bin/cert-manager-istio-csr-oci .
+
+.PHONY: package-chart
+package-chart: helm-docs
+	helm package deploy/charts/istio-csr
 
 .PHONY: clean
 clean: ## clean up created files
