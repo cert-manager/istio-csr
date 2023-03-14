@@ -13,6 +13,10 @@ spec:
     metadata:
       labels:
         app: {{ include "cert-manager-istio-csr.name" . }}
+      {{- with .Values.annotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{ end }}
     spec:
     {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
