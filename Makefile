@@ -17,7 +17,7 @@ ARCH   ?= $(shell go env GOARCH)
 ISTIO_VERSION ?= 1.16.2
 K8S_VERSION ?= 1.26.1
 IMAGE_PLATFORMS ?= linux/amd64,linux/arm64,linux/arm/v7,linux/ppc64le
-VERSION_TAG=v0.6.0-alpha.0
+VERSION_TAG=v0.6.0
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Linux)
