@@ -113,6 +113,8 @@ app:
       port: 6443
       # -- Number of bits to use for the server's serving certificate (RSAKeySize).
       certificateKeySize: 2048
+      # -- The type of signature algorithm to use when generating private keys. Currently only RSA and ECDSA are supported. By default RSA is used.
+      signatureAlgorithm: "RSA"
 
   istio:
     # -- The istio revisions that are currently installed in the cluster.

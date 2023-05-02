@@ -35,7 +35,7 @@ spec:
   renewBefore: {{ .Values.app.tls.istiodCertificateRenewBefore }}
   privateKey:
     rotationPolicy: Always
-    algorithm: RSA
+    algorithm: {{ .Values.app.server.serving.signatureAlgorithm }}
     size: {{ .Values.app.tls.istiodPrivateKeySize }}
   revisionHistoryLimit: 1
   issuerRef:
