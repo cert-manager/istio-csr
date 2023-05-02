@@ -298,8 +298,13 @@ func (p *Provider) fetchCertificate(ctx context.Context) (time.Time, error) {
 		RSAKeySize: p.opts.ServingCertificateKeySize,
 	}
 
-	if p.opts.ServingSignatureAlgorithm == string(pkiutil.EcdsaSigAlg) {
+	switch p.opts.ServingSignatureAlgorithm {
+	case "RSA":
+		opts.ECSigAlg = ""
+	case "ECDSA":
 		opts.ECSigAlg = pkiutil.EcdsaSigAlg
+	default:
+		return time.Time{}, fmt.Errorf("unknown signature algorithm (supported: \"RSA\", \"ECDSA\"): %s", p.opts.ServingSignatureAlgorithm)
 	}
 
 	// Generate new CSR and private key for serving
