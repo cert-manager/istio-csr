@@ -32,3 +32,12 @@ istio-csr supports Istio v1.10+ and cert-manager v1.3+
 Please follow the documentation at
 [cert-manager.io](https://cert-manager.io/docs/usage/istio/) for installing and
 using istio-csr.
+
+## Inner workings
+
+istio-csr has 3 main components: the TLS certificate obtainer, the gRPC server and the CA bundle distributor.
+1. The TLS certificate obtainer is responsible for obtaining the TLS certificate for the gRPC server.
+It uses the cert-manager API to create a CertificateRequest resource, which will be picked up by cert-manager and signed by the configured issuer.
+2. The gRPC server is responsible for receiving certificate signing requests from istiod and sending back the signed certificate.
+Herefore, it uses the cert-manager CertificateRequest API to obtain the signed certificate.
+3. The CA bundle distributor is responsible for creating and updating istio-ca-root-cert ConfigMaps in all namespaces (filtered using namespaceSelector).
