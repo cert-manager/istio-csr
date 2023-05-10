@@ -3,6 +3,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: {{ include "cert-manager-istio-csr.name" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
     app: {{ include "cert-manager-istio-csr.name" . }}
 {{ include "cert-manager-istio-csr.labels" . | indent 4 }}
