@@ -56,6 +56,10 @@ app:
     # leading to errors and slow down. This option is intended for debugging
     # purposes only, for limited periods of time.
     preserveCertificateRequests: false
+    # -- If the FireflyPolicyName featuregate is enabled then sets the policy
+    # name annotation on the certificate request
+    # firefly:
+    #   policyName: venafi
     issuer:
       # -- Issuer name set on created CertificateRequests for both istio-csr's
       # serving certificate and incoming gRPC CSRs.
@@ -180,3 +184,6 @@ affinity: {}
 tolerations: []
 
 nodeSelector: {}
+
+# Enables firefly policy name featuregate
+# fireflyPolicyName: true

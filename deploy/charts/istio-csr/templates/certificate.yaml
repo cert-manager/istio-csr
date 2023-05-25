@@ -4,6 +4,10 @@ kind: Certificate
 metadata:
   name: istiod
   namespace: {{ .Values.app.istio.namespace }}
+{{- if and .Values.certmanager.firefly.policyName .Values.certmanager.firefly.policyName }}
+  annotations:
+    firefly.venafi.com/policy-name: {{ .Values.certmanager.firefly.policyName }}
+{{- end }}
 spec:
   commonName: istiod.{{ .Values.app.istio.namespace }}.svc
   dnsNames:
