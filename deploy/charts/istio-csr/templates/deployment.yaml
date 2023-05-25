@@ -58,6 +58,16 @@ spec:
           - "--issuer-group={{.Values.app.certmanager.issuer.group}}"
           - "--preserve-certificate-requests={{.Values.app.certmanager.preserveCertificateRequests}}"
 
+            # AdditionalAnnotations
+          {{- if .Values.app.certmanager.additionalAnnotations }}
+            {{- $annotations := list }}
+            {{- range $annotation := .Values.app.certmanager.additionalAnnotations }}
+              {{- $x := list $annotation.name $annotation.value | join "=" }}
+              {{- $annotations = append $annotations $x }}
+            {{- end }}
+          - "--additional-annotations={{ join "," $annotations }}"
+          {{- end }}
+
             # tls
           - "--root-ca-file={{.Values.app.tls.rootCAFile}}"
         {{- range .Values.app.tls.certificateDNSNames }}
@@ -77,6 +87,10 @@ spec:
           - "--leader-election-namespace={{.Values.app.controller.leaderElectionNamespace}}"
           {{- if .Values.app.controller.configmapNamespaceSelector }}
           - "--configmap-namespace-selector={{ .Values.app.controller.configmapNamespaceSelector }}"
+          {{- end }}
+
+          {{- if .Values.additionalAnnotations }}
+          - "--feature-gates=AdditionalAnnotations=true"
           {{- end }}
         {{- if .Values.volumeMounts }}
         volumeMounts:

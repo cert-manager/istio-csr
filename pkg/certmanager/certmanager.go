@@ -22,16 +22,19 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/go-logr/logr"
 	apiutil "github.com/cert-manager/cert-manager/pkg/api/util"
 	cmapi "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	cmmeta "github.com/cert-manager/cert-manager/pkg/apis/meta/v1"
 	cmversioned "github.com/cert-manager/cert-manager/pkg/client/clientset/versioned"
 	cmclient "github.com/cert-manager/cert-manager/pkg/client/clientset/versioned/typed/certmanager/v1"
+	"github.com/go-logr/logr"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/rest"
+
+	"github.com/cert-manager/istio-csr/internal/controller/feature"
+	utilfeature "github.com/cert-manager/istio-csr/pkg/util/feature"
 )
 
 const (
@@ -48,6 +51,8 @@ type Options struct {
 
 	// IssuerRef is used as the issuerRef on created CertificateRequests.
 	IssuerRef cmmeta.ObjectReference
+
+	AdditionalAnnotations map[string]string
 }
 
 type Signer interface {
@@ -108,6 +113,11 @@ func (m *manager) Sign(ctx context.Context, identities string, csrPEM []byte, du
 		},
 	}
 
+	if utilfeature.DefaultMutableFeatureGate.Enabled(feature.AdditionalAnnotations) {
+		for k, v := range m.opts.AdditionalAnnotations {
+			cr.ObjectMeta.Annotations[k] = v
+		}
+	}
 	// Create CertificateRequest and wait for it to be successfully signed.
 	cr, err := m.client.Create(ctx, cr, metav1.CreateOptions{})
 	if err != nil {
