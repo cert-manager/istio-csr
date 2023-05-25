@@ -23,7 +23,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 
 	"github.com/cert-manager/istio-csr/cmd/app"
-	_ "github.com/cert-manager/istio-csr/internal/controller/feature"
 )
 
 func main() {
