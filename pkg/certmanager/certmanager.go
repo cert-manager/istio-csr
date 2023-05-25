@@ -52,6 +52,8 @@ type Options struct {
 
 	// IssuerRef is used as the issuerRef on created CertificateRequests.
 	IssuerRef cmmeta.ObjectReference
+
+	FireflyOptions FireflyOptions
 }
 
 type Signer interface {
@@ -113,7 +115,9 @@ func (m *manager) Sign(ctx context.Context, identities string, csrPEM []byte, du
 	}
 
 	if utilfeature.DefaultMutableFeatureGate.Enabled(feature.FireflyPolicyNameAnnotation) {
-		cr.ObjectMeta.Annotations[fireflyPolicyAnnotation] = "wibble"
+		if m.opts.FireflyOptions.PolicyName != "" {
+			cr.ObjectMeta.Annotations[fireflyPolicyAnnotation] = m.opts.FireflyOptions.PolicyName
+		}
 	}
 	// Create CertificateRequest and wait for it to be successfully signed.
 	cr, err := m.client.Create(ctx, cr, metav1.CreateOptions{})
