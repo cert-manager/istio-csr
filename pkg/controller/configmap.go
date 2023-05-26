@@ -81,11 +81,13 @@ type configmap struct {
 }
 
 func AddConfigMapController(ctx context.Context, log logr.Logger, opts Options) error {
-	noCacheClient, err := client.NewDelegatingClient(client.NewDelegatingClientInput{
-		CacheReader:       opts.Manager.GetCache(),
-		Client:            opts.Manager.GetClient(),
-		UncachedObjects:   []client.Object{new(corev1.ConfigMap)},
-		CacheUnstructured: false,
+	// noCacheClient is used to retrieve objects that we don't want to cache.
+	noCacheClient, err := client.New(opts.Manager.GetConfig(), client.Options{
+		Cache: &client.CacheOptions{
+			Reader:       opts.Manager.GetCache(),
+			DisableFor:   []client.Object{&corev1.ConfigMap{}},
+			Unstructured: false,
+		},
 	})
 	if err != nil {
 		return fmt.Errorf("failed to build non-cached client for ConfigMaps: %w", err)
