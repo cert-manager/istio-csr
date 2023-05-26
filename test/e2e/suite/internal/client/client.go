@@ -38,7 +38,7 @@ const (
 )
 
 var (
-	certmanagerClientLog = log.RegisterScope("certmanagerclient", "cert-manager client debugging", 0)
+	certmanagerClientLog = log.RegisterScope("certmanagerclient", "cert-manager client debugging")
 )
 
 type certmanagerClient struct {
