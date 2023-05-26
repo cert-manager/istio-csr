@@ -40,6 +40,7 @@ import (
 	"istio.io/istio/pkg/config/mesh"
 	"istio.io/istio/pkg/jwt"
 	"istio.io/istio/pkg/security"
+	"istio.io/istio/pkg/spiffe"
 	"istio.io/istio/security/pkg/server/ca/authenticate/kubeauth"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -86,7 +87,14 @@ func New(log logr.Logger, restConfig *rest.Config, cm certmanager.Signer, tls tl
 	}
 
 	meshcnf := mesh.DefaultMeshConfig()
+
+	// These seem to be two alternative ways how to set trust domain to be
+	// consumed by functionality in istio libraries. Probably makes sense to
+	// set both since we don't know what might (get changed to) consume it
+	// from where.
 	meshcnf.TrustDomain = tls.TrustDomain()
+	spiffe.SetTrustDomain(tls.TrustDomain())
+
 	auther := kubeauth.NewKubeJWTAuthenticator(mesh.NewFixedWatcher(meshcnf), kubeClient, cluster.ID(opts.ClusterID), nil, jwt.PolicyThirdParty)
 
 	return &Server{
