@@ -38,7 +38,7 @@ const (
 )
 
 var (
-	certmanagerClientLog = log.RegisterScope("certmanagerclient", "cert-manager client debugging", 0)
+	certmanagerClientLog = log.RegisterScope("certmanagerclient", "cert-manager client debugging")
 )
 
 type certmanagerClient struct {
@@ -105,14 +105,14 @@ func (c *certmanagerClient) getTLSDialOption() (grpc.DialOption, error) {
 		if err != nil {
 			return nil, err
 		}
-		certmanagerClientLog.Info("cert-manager client using public DNS: ", c.caEndpoint)
+		certmanagerClientLog.Infof("cert-manager client using public DNS: %s", c.caEndpoint)
 	} else {
 		certPool = x509.NewCertPool()
 		ok := certPool.AppendCertsFromPEM(c.caTLSRootCert)
 		if !ok {
 			return nil, fmt.Errorf("failed to append certificates")
 		}
-		certmanagerClientLog.Info("cert-manager client using custom root: ", c.caEndpoint, " ", string(c.caTLSRootCert))
+		certmanagerClientLog.Infof("cert-manager client using custom root: %s %s", c.caEndpoint, string(c.caTLSRootCert))
 	}
 	var certificate tls.Certificate
 	config := tls.Config{
