@@ -81,11 +81,13 @@ type configmap struct {
 }
 
 func AddConfigMapController(ctx context.Context, log logr.Logger, opts Options) error {
-	noCacheClient, err := client.NewDelegatingClient(client.NewDelegatingClientInput{
-		CacheReader:       opts.Manager.GetCache(),
-		Client:            opts.Manager.GetClient(),
-		UncachedObjects:   []client.Object{new(corev1.ConfigMap)},
-		CacheUnstructured: false,
+	// noCacheClient is used to retrieve objects that we don't want to cache.
+	noCacheClient, err := client.New(opts.Manager.GetConfig(), client.Options{
+		Cache: &client.CacheOptions{
+			Reader:       opts.Manager.GetCache(),
+			DisableFor:   []client.Object{&corev1.ConfigMap{}},
+			Unstructured: false,
+		},
 	})
 	if err != nil {
 		return fmt.Errorf("failed to build non-cached client for ConfigMaps: %w", err)
@@ -112,15 +114,15 @@ func AddConfigMapController(ctx context.Context, log logr.Logger, opts Options) 
 		}))).
 
 		// Watch all Namespaces. Cache whole Namespace to include Phase Status.
-		Watches(&source.Kind{Type: new(corev1.Namespace)}, handler.EnqueueRequestsFromMapFunc(
-			func(obj client.Object) []reconcile.Request {
+		Watches(&corev1.Namespace{}, handler.EnqueueRequestsFromMapFunc(
+			func(_ context.Context, obj client.Object) []reconcile.Request {
 				return []reconcile.Request{reconcile.Request{NamespacedName: types.NamespacedName{Namespace: obj.GetName(), Name: configMapNameIstioRoot}}}
 			},
 		)).
 
 		// If the CA roots change then reconcile all ConfigMaps
-		Watches(&source.Channel{Source: c.tls.SubscribeRootCAsEvent()}, handler.EnqueueRequestsFromMapFunc(
-			func(_ client.Object) []reconcile.Request {
+		WatchesRawSource(&source.Channel{Source: c.tls.SubscribeRootCAsEvent()}, handler.EnqueueRequestsFromMapFunc(
+			func(context.Context, client.Object) []reconcile.Request {
 				var namespaceList corev1.NamespaceList
 				if err := c.lister.List(ctx, &namespaceList); err != nil {
 					c.log.Error(err, "failed to list namespaces, exiting...")
