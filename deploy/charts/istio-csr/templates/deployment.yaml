@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "cert-manager-istio-csr.name" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
 {{ include "cert-manager-istio-csr.labels" . | indent 4 }}
 spec:
