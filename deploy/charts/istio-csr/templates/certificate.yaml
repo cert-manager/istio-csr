@@ -4,7 +4,7 @@ kind: Certificate
 metadata:
   name: istiod
   namespace: {{ .Values.app.istio.namespace }}
-{{- if and .Values.additionalAnnotations .Values.app.certmanager.additionalAnnotations }}
+{{- if .Values.app.certmanager.additionalAnnotations }}
   annotations:
     {{- range $annotation := .Values.app.certmanager.additionalAnnotations }}
     {{ $annotation.name }}: {{ $annotation.value }}

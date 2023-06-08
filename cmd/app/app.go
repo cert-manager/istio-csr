@@ -33,7 +33,6 @@ import (
 	"github.com/cert-manager/istio-csr/pkg/controller"
 	"github.com/cert-manager/istio-csr/pkg/server"
 	"github.com/cert-manager/istio-csr/pkg/tls"
-	utilfeature "github.com/cert-manager/istio-csr/pkg/util/feature"
 )
 
 const (
@@ -127,8 +126,6 @@ func NewCommand(ctx context.Context) *cobra.Command {
 		},
 	}
 
-	flags := cmd.Flags()
-	utilfeature.DefaultMutableFeatureGate.AddFlag(flags)
 	opts = opts.Prepare(cmd)
 
 	return cmd

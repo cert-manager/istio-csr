@@ -185,6 +185,3 @@ affinity: {}
 tolerations: []
 
 nodeSelector: {}
-
-# Enables additional annotations featuregate
-# additionalAnnotations: true

@@ -32,9 +32,6 @@ import (
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/rest"
-
-	"github.com/cert-manager/istio-csr/internal/controller/feature"
-	utilfeature "github.com/cert-manager/istio-csr/pkg/util/feature"
 )
 
 const (
@@ -113,10 +110,8 @@ func (m *manager) Sign(ctx context.Context, identities string, csrPEM []byte, du
 		},
 	}
 
-	if utilfeature.DefaultMutableFeatureGate.Enabled(feature.AdditionalAnnotations) {
-		for k, v := range m.opts.AdditionalAnnotations {
-			cr.ObjectMeta.Annotations[k] = v
-		}
+	for k, v := range m.opts.AdditionalAnnotations {
+		cr.ObjectMeta.Annotations[k] = v
 	}
 	// Create CertificateRequest and wait for it to be successfully signed.
 	cr, err := m.client.Create(ctx, cr, metav1.CreateOptions{})
