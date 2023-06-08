@@ -49,6 +49,7 @@ type Options struct {
 	// IssuerRef is used as the issuerRef on created CertificateRequests.
 	IssuerRef cmmeta.ObjectReference
 
+	// AdditionalAnnotations are any additional annotations to include on created CertificateRequests.
 	AdditionalAnnotations map[string]string
 }
 
