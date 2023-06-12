@@ -19,8 +19,10 @@ package app
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/spf13/cobra"
+	"k8s.io/apimachinery/pkg/api/validation"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -52,6 +54,13 @@ func NewCommand(ctx context.Context) *cobra.Command {
 				return err
 			}
 
+			if errs := validation.ValidateAnnotations(opts.CertManager.AdditionalAnnotations, nil); len(errs) != 0 {
+				errStrings := []string{}
+				for _, err := range errs {
+					errStrings = append(errStrings, fmt.Errorf("Invalid annotation: %w", err).Error())
+				}
+				return fmt.Errorf(strings.Join(errStrings, "\n"))
+			}
 			cm, err := certmanager.New(opts.Logr, opts.RestConfig, opts.CertManager)
 			if err != nil {
 				return fmt.Errorf("failed to initialise cert-manager manager: %w", err)
