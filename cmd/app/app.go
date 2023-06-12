@@ -23,6 +23,7 @@ import (
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/api/validation"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/validation/field"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
 	clientv1 "k8s.io/client-go/kubernetes/typed/core/v1"
@@ -53,8 +54,8 @@ func NewCommand(ctx context.Context) *cobra.Command {
 				return err
 			}
 
-			if errs := validation.ValidateAnnotations(opts.CertManager.AdditionalAnnotations, nil); len(errs) > 0 {
-				return fmt.Errorf("invalid annotations: %w", errs.ToAggregate())
+			if errs := validation.ValidateAnnotations(opts.CertManager.AdditionalAnnotations, field.NewPath("certificate-request-additional-annotations")); len(errs) > 0 {
+				return errs.ToAggregate()
 			}
 			cm, err := certmanager.New(opts.Logr, opts.RestConfig, opts.CertManager)
 			if err != nil {
