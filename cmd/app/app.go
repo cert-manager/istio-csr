@@ -19,7 +19,6 @@ package app
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/api/validation"
@@ -54,12 +53,8 @@ func NewCommand(ctx context.Context) *cobra.Command {
 				return err
 			}
 
-			if errs := validation.ValidateAnnotations(opts.CertManager.AdditionalAnnotations, nil); len(errs) != 0 {
-				errStrings := []string{}
-				for _, err := range errs {
-					errStrings = append(errStrings, fmt.Errorf("Invalid annotation: %w", err).Error())
-				}
-				return fmt.Errorf(strings.Join(errStrings, "\n"))
+			if errs := validation.ValidateAnnotations(opts.CertManager.AdditionalAnnotations, nil); len(errs) > 0 {
+				return fmt.Errorf("invalid annotations: %w", errs.ToAggregate())
 			}
 			cm, err := certmanager.New(opts.Logr, opts.RestConfig, opts.CertManager)
 			if err != nil {
