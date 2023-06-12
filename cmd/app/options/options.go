@@ -231,7 +231,7 @@ func (o *Options) addCertManagerFlags(fs *pflag.FlagSet) {
 
 func (o *Options) addAdditionalAnnotationsFlags(fs *pflag.FlagSet) {
 	fs.StringToStringVar(&o.CertManager.AdditionalAnnotations,
-		"additional-annotations", map[string]string{},
+		"certificate-request-additional-annotations", map[string]string{},
 		"Any additional annotations to include on certificate requests")
 }
 
