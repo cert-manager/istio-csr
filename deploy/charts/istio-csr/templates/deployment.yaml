@@ -65,7 +65,7 @@ spec:
               {{- $x := list $annotation.name $annotation.value | join "=" }}
               {{- $annotations = append $annotations $x }}
             {{- end }}
-          - "--additional-annotations={{ join "," $annotations }}"
+          - "--certificate-request-additional-annotations={{ join "," $annotations }}"
           {{- end }}
 
             # tls
