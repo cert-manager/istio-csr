@@ -21,6 +21,9 @@ app:
     # leading to errors and slow down. This option is intended for debugging
     # purposes only, for limited periods of time.
     preserveCertificateRequests: true
+    additionalAnnotations:
+    - name: custom.cert-manager.io/policy-name
+      value: istio-csr
     issuer:
       group: cert-manager.io
       kind: Issuer
