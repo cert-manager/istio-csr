@@ -262,6 +262,9 @@ var _ = framework.CasesDescribe("Request Authentication", func() {
 			}
 		}
 
+		if val, ok := createdCR.Annotations["custom.cert-manager.io/policy-name"]; !ok || val != "istio-csr" {
+			Fail("Expected certificate-request-additional-annotation not present")
+		}
 		if createdCR == nil {
 			Fail(fmt.Sprintf("did not find created CertificateRequest for identity %q", id))
 		}

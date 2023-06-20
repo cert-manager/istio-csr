@@ -56,6 +56,11 @@ app:
     # leading to errors and slow down. This option is intended for debugging
     # purposes only, for limited periods of time.
     preserveCertificateRequests: false
+    # -- Additional annotations to include on certificate requests.
+    # Takes key/value pairs in the format:
+    #   - name: custom.cert-manager.io/policy-name
+    #     value: istio-csr
+    additionalAnnotations: []
     issuer:
       # -- Issuer name set on created CertificateRequests for both istio-csr's
       # serving certificate and incoming gRPC CSRs.

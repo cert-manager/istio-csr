@@ -21,6 +21,7 @@ istio-csr enables the use of cert-manager for issuing certificates in Istio serv
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | affinity | object | `{}` |  |
+| app.certmanager.additionalAnnotations | list | `[]` | Additional annotations to include on certificate requests. Takes key/value pairs in the format:   - name: custom.cert-manager.io/policy-name     value: istio-csr |
 | app.certmanager.issuer.group | string | `"cert-manager.io"` | Issuer group name set on created CertificateRequests for both istio-csr's serving certificate and incoming gRPC CSRs. |
 | app.certmanager.issuer.kind | string | `"Issuer"` | Issuer kind set on created CertificateRequests for both istio-csr's serving certificate and incoming gRPC CSRs. |
 | app.certmanager.issuer.name | string | `"istio-ca"` | Issuer name set on created CertificateRequests for both istio-csr's serving certificate and incoming gRPC CSRs. |

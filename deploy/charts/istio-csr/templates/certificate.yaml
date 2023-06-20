@@ -4,6 +4,12 @@ kind: Certificate
 metadata:
   name: istiod
   namespace: {{ .Values.app.istio.namespace }}
+{{- if .Values.app.certmanager.additionalAnnotations }}
+  annotations:
+    {{- range $annotation := .Values.app.certmanager.additionalAnnotations }}
+    {{ $annotation.name }}: {{ $annotation.value }}
+    {{- end }}
+{{- end }}
 spec:
   commonName: istiod.{{ .Values.app.istio.namespace }}.svc
   dnsNames:

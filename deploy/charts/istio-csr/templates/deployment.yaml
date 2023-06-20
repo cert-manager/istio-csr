@@ -59,6 +59,16 @@ spec:
           - "--issuer-group={{.Values.app.certmanager.issuer.group}}"
           - "--preserve-certificate-requests={{.Values.app.certmanager.preserveCertificateRequests}}"
 
+            # AdditionalAnnotations
+          {{- if .Values.app.certmanager.additionalAnnotations }}
+            {{- $annotations := list }}
+            {{- range $annotation := .Values.app.certmanager.additionalAnnotations }}
+              {{- $x := list $annotation.name $annotation.value | join "=" }}
+              {{- $annotations = append $annotations $x }}
+            {{- end }}
+          - "--certificate-request-additional-annotations={{ join "," $annotations }}"
+          {{- end }}
+
             # tls
           - "--root-ca-file={{.Values.app.tls.rootCAFile}}"
         {{- range .Values.app.tls.certificateDNSNames }}
