@@ -95,6 +95,9 @@ app:
     # https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf
     # Warning: cert-manager does not allow a duration on Certificates less than
     # 1 hour.
+    # -- The reported X.509 and extended key usages to be matched against the
+    # key usage set. Required when using a RAM shared AWS Private CA
+    certificateUsages: []
     istiodCertificateDuration: 1h
     istiodCertificateRenewBefore: 30m
     # Create the default certificate as part of install.

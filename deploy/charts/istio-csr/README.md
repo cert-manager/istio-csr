@@ -47,6 +47,7 @@ istio-csr enables the use of cert-manager for issuing certificates in Istio serv
 | app.server.serving.signatureAlgorithm | string | `"RSA"` | The type of signature algorithm to use when generating private keys. Currently only RSA and ECDSA are supported. By default RSA is used. |
 | app.tls.certificateDNSNames | list | `["cert-manager-istio-csr.cert-manager.svc"]` | The DNS names to request for the server's serving certificate which is presented to istio-agents. istio-agents must route to istio-csr using one of these DNS names. |
 | app.tls.certificateDuration | string | `"1h"` | Requested duration of gRPC serving certificate. Will be automatically renewed. Based on NIST 800-204A recommendations (SM-DR13). https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf |
+| app.tls.certificateUsages | list | `[]` | The reported X.509 and extended key usages to be matched against the key usage set. Required when using a RAM shared AWS Private CA |
 | app.tls.istiodCertificateDuration | string | `"1h"` | Requested duration of istio's Certificate. Will be automatically renewed. Based on NIST 800-204A recommendations (SM-DR13). https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf Warning: cert-manager does not allow a duration on Certificates less than 1 hour. |
 | app.tls.istiodCertificateEnable | bool | `true` |  |
 | app.tls.istiodCertificateRenewBefore | string | `"30m"` |  |
