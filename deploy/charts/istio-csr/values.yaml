@@ -5,7 +5,7 @@ image:
   # -- Target image repository.
   repository: quay.io/jetstack/cert-manager-istio-csr
   # -- Target image version tag.
-  tag: v0.7.0
+  tag: v0.7.1
   # -- Kubernetes imagePullPolicy on Deployment.
   pullPolicy: IfNotPresent
 
@@ -89,15 +89,15 @@ app:
     # Based on NIST 800-204A recommendations (SM-DR13).
     # https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf
     certificateDuration: 1h
+    # -- The reported X.509 and extended key usages to be matched against the
+    # key usage set. Required when using a RAM shared AWS Private CA
+    certificateUsages: []
     # -- Requested duration of istio's Certificate. Will be automatically
     # renewed.
     # Based on NIST 800-204A recommendations (SM-DR13).
     # https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf
     # Warning: cert-manager does not allow a duration on Certificates less than
     # 1 hour.
-    # -- The reported X.509 and extended key usages to be matched against the
-    # key usage set. Required when using a RAM shared AWS Private CA
-    certificateUsages: []
     istiodCertificateDuration: 1h
     istiodCertificateRenewBefore: 30m
     # Create the default certificate as part of install.
@@ -121,6 +121,9 @@ app:
       port: 6443
       # -- Number of bits to use for the server's serving certificate (RSAKeySize).
       certificateKeySize: 2048
+      # -- List of certificate usages for the server's serving certificate.
+      certificateUsages:
+      - server auth
       # -- The type of signature algorithm to use when generating private keys. Currently only RSA and ECDSA are supported. By default RSA is used.
       signatureAlgorithm: "RSA"
 

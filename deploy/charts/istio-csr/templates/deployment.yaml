@@ -82,6 +82,9 @@ spec:
           - "--max-client-certificate-duration={{.Values.app.server.maxCertificateDuration}}"
           - "--serving-address={{.Values.app.server.serving.address}}:{{.Values.app.server.serving.port}}"
           - "--serving-certificate-key-size={{.Values.app.server.serving.certificateKeySize}}"
+          {{- range .Values.app.server.serving.certificateUsages }}
+          - --serving-certificate-usages={{ . | quote }}
+          {{- end  }}
           - "--serving-signature-algorithm={{ .Values.app.server.serving.signatureAlgorithm }}"
 
           # controller
