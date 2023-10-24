@@ -1,6 +1,6 @@
 module github.com/cert-manager/istio-csr/hack/tools
 
-go 1.20
+go 1.21
 
 // oras v1.2 is incompatible with docker/docker v1.24 helm does not work with v2 of oras
 // remove the replace once https://github.com/helm/helm/issues/11821 is fixed
