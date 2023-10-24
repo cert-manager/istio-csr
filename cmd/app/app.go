@@ -29,6 +29,7 @@ import (
 	clientv1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
+	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
 	"github.com/cert-manager/istio-csr/cmd/app/options"
 	"github.com/cert-manager/istio-csr/pkg/certmanager"
@@ -86,8 +87,10 @@ func NewCommand(ctx context.Context) *cobra.Command {
 				LeaderElectionReleaseOnCancel: true,
 				ReadinessEndpointName:         opts.ReadyzPath,
 				HealthProbeBindAddress:        fmt.Sprintf("0.0.0.0:%d", opts.ReadyzPort),
-				MetricsBindAddress:            fmt.Sprintf("0.0.0.0:%d", opts.MetricsPort),
-				Logger:                        mlog,
+				Metrics: metricsserver.Options{
+					BindAddress: fmt.Sprintf("0.0.0.0:%d", opts.MetricsPort),
+				},
+				Logger: mlog,
 			})
 			if err != nil {
 				return fmt.Errorf("failed to create manager: %w", err)
