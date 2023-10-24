@@ -1,6 +1,6 @@
 # cert-manager-istio-csr
 
-![Version: v0.7.0](https://img.shields.io/badge/Version-v0.7.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.7.0](https://img.shields.io/badge/AppVersion-v0.7.0-informational?style=flat-square)
+![Version: v0.7.1](https://img.shields.io/badge/Version-v0.7.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.7.1](https://img.shields.io/badge/AppVersion-v0.7.1-informational?style=flat-square)
 
 istio-csr enables the use of cert-manager for issuing certificates in Istio service meshes
 
@@ -55,7 +55,7 @@ istio-csr enables the use of cert-manager for issuing certificates in Istio serv
 | app.tls.trustDomain | string | `"cluster.local"` | The Istio cluster's trust domain. |
 | image.pullPolicy | string | `"IfNotPresent"` | Kubernetes imagePullPolicy on Deployment. |
 | image.repository | string | `"quay.io/jetstack/cert-manager-istio-csr"` | Target image repository. |
-| image.tag | string | `"v0.7.0"` | Target image version tag. |
+| image.tag | string | `"v0.7.1"` | Target image version tag. |
 | imagePullSecrets | list | `[]` | Optional secrets used for pulling the istio-csr container image. |
 | nodeSelector | object | `{}` |  |
 | replicaCount | int | `1` | Number of replicas of istio-csr to run. |
