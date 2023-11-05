@@ -120,3 +120,29 @@ $(BINDIR)/jq:
 
 $(BINDIR)/helm-docs:
 	cd hack/tools && go build -o $(BINDIR)/helm-docs github.com/norwoodj/helm-docs/cmd/helm-docs
+
+.PHONY: buildcov
+buildcov: # build with cover option to enable code coverage
+	mkdir -p $(BINDIR)
+	CGO_ENABLED=0 go build -cover -v -o ./bin/cert-manager-istio-csr ./cmd/
+
+.PHONY: test/cover
+test/cover: buildcov # test with code coverage
+	go test -coverprofile=coverage.out $$(go list ./pkg/... ./cmd/...)
+
+.PHONY: check-coverage
+testcoverage := $(shell go tool cover -func=coverage.out | grep total | grep -Eo '[0-9]+\.[0-9]+')
+threshold = 50
+
+check-coverage: test/cover ## check code coverage by unit tests, use threshold=<%> for validation check
+	@echo "Test coverage: $(testcoverage)"
+	@echo "Test Threshold: $(threshold)"
+	@echo "-----------------------"
+
+	@if [ "$(shell echo "$(testcoverage) < $(threshold)" | bc -l)" -eq 1 ]; then \
+		echo "Please add more unit tests or adjust the threshold to a lower value."; \
+		echo "Failed"; \
+		exit 1; \
+	else \
+		echo "OK"; \
+	fi
