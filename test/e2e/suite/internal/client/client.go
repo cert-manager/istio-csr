@@ -29,8 +29,8 @@ import (
 	"google.golang.org/grpc/metadata"
 
 	securityapi "istio.io/api/security/v1alpha1"
+	"istio.io/istio/pkg/log"
 	"istio.io/istio/pkg/security"
-	"istio.io/pkg/log"
 )
 
 const (
