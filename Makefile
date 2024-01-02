@@ -103,7 +103,7 @@ $(BINDIR)/istioctl-$(ISTIO_VERSION):
 	mv $(BINDIR)/istioctl-$(ISTIO_VERSION)-tmp $(BINDIR)/istioctl-$(ISTIO_VERSION)
 
 $(BINDIR)/ginkgo:
-	cd hack/tools && go build -o $(BINDIR)/ginkgo github.com/onsi/ginkgo/ginkgo
+	cd hack/tools && go build -o $(BINDIR)/ginkgo github.com/onsi/ginkgo/v2/ginkgo
 
 $(BINDIR)/kind:
 	cd hack/tools && go build -o $(BINDIR)/kind sigs.k8s.io/kind

@@ -9,7 +9,7 @@ package tools
 import (
 	_ "github.com/itchyny/gojq/cmd/gojq"
 	_ "github.com/norwoodj/helm-docs/cmd/helm-docs"
-	_ "github.com/onsi/ginkgo/ginkgo"
+	_ "github.com/onsi/ginkgo/v2/ginkgo"
 	_ "helm.sh/helm/v3/cmd/helm"
 	_ "sigs.k8s.io/kind"
 )
