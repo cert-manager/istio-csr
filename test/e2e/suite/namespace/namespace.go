@@ -49,8 +49,8 @@ var _ = framework.CasesDescribe("CA Root Controller", func() {
 		// Get root CA from a dummy Certificate using configured issuer
 		cert := &cmapi.Certificate{
 			ObjectMeta: metav1.ObjectMeta{
-				GenerateName: "cert-manager-istio-csr-e2e-",
-				Namespace:    cmNamespace,
+				Name:      testName,
+				Namespace: cmNamespace,
 			},
 			Spec: cmapi.CertificateSpec{
 				CommonName: testName,
@@ -73,6 +73,12 @@ var _ = framework.CasesDescribe("CA Root Controller", func() {
 		if !ok || len(rootCA) == 0 {
 			Expect(certSecret, "failed to find root CA key in test certificate secret").NotTo(HaveOccurred())
 		}
+	})
+
+	JustAfterEach(func() {
+		By("remove existing test certificate")
+		err := f.CMClientSet.CertmanagerV1().Certificates(cmNamespace).Delete(ctx, testName, metav1.DeleteOptions{})
+		Expect(err).NotTo(HaveOccurred())
 	})
 
 	It("all namespaces should have valid configs in", func() {
