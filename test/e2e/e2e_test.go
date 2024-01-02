@@ -18,14 +18,10 @@ package e2e
 
 import (
 	"flag"
-	"os"
-	"path/filepath"
 	"testing"
 	"time"
 
-	"github.com/onsi/ginkgo/v2"
-	ginkgoconfig "github.com/onsi/ginkgo/v2/config"
-	"github.com/onsi/ginkgo/v2/reporters"
+	ginkgo "github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
 	"k8s.io/apimachinery/pkg/util/wait"
 
@@ -36,13 +32,6 @@ import (
 func init() {
 	config.GetConfig().AddFlags(flag.CommandLine)
 
-	// Turn on verbose by default to get spec names
-	ginkgoconfig.DefaultReporterConfig.Verbose = true
-	// Turn on EmitSpecProgress to get spec progress (especially on interrupt)
-	ginkgoconfig.GinkgoConfig.EmitSpecProgress = true
-	// Randomize specs as well as suites
-	ginkgoconfig.GinkgoConfig.RandomizeAllSpecs = true
-
 	wait.ForeverTestTimeout = time.Second * 60
 }
 
@@ -51,14 +40,14 @@ func TestE2E(t *testing.T) {
 
 	gomega.RegisterFailHandler(ginkgo.Fail)
 
-	junitPath := "../../_artifacts"
-	if path := os.Getenv("ARTIFACTS"); path != "" {
-		junitPath = path
-	}
+	suiteConfig, reporterConfig := ginkgo.GinkgoConfiguration()
 
-	junitReporter := reporters.NewJUnitReporter(filepath.Join(
-		junitPath,
-		"junit-go-e2e.xml",
-	))
-	ginkgo.RunSpecsWithDefaultAndCustomReporters(t, "cert-manager istio agent e2e suite", []ginkgo.Reporter{junitReporter})
+	// Turn on verbose by default to get spec names
+	reporterConfig.Verbose = true
+	// Turn on EmitSpecProgress to get spec progress (especially on interrupt)
+	suiteConfig.EmitSpecProgress = true
+	// Randomize specs as well as suites
+	suiteConfig.RandomizeAllSpecs = true
+
+	ginkgo.RunSpecs(t, "cert-manager istio agent e2e suite", suiteConfig, reporterConfig)
 }
