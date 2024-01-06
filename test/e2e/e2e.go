@@ -19,7 +19,7 @@ package e2e
 import (
 	"os"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	"k8s.io/klog/v2"
 
 	"github.com/cert-manager/istio-csr/test/e2e/framework/config"
