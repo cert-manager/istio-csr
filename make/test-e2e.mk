@@ -74,6 +74,8 @@ test-e2e-deps: e2e-setup-istio
 ## @category Testing
 test-e2e: test-e2e-deps | kind-cluster $(NEEDS_GINKGO) $(NEEDS_KUBECTL)
 	$(GINKGO) \
+		--output-dir=$(ARTIFACTS) \
+		--junit-report=junit-go-e2e.xml \
 		./test/e2e/ \
 		-ldflags $(go_manager_ldflags) \
 		-- \
