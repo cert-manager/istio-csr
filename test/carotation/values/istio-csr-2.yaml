@@ -1,6 +1,4 @@
 image:
-  repository: quay.io/jetstack/cert-manager-istio-csr
-  tag: canary
   pullPolicy: Never
 
 app:

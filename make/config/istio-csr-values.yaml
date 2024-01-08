@@ -1,8 +1,12 @@
-image:
-  pullPolicy: Never
+replicaCount: 3
+
+service:
+  port: 443
+  type: NodePort
+  nodePort: 30443
 
 app:
-  logLevel: 3
+  logLevel: 5
 
   certmanager:
     namespace: istio-system
@@ -12,20 +16,27 @@ app:
     # leading to errors and slow down. This option is intended for debugging
     # purposes only, for limited periods of time.
     preserveCertificateRequests: true
+    additionalAnnotations:
+    - name: custom.cert-manager.io/policy-name
+      value: istio-csr
     issuer:
       group: cert-manager.io
       kind: Issuer
-      name: istio-int-1
+      name: istio-ca
 
   tls:
     trustDomain: foo.bar
-    rootCAFile: /var/run/secrets/istio-csr/ca.pem
     certificateDuration: 20s
+    certificateDNSNames:
+    # Name used by the e2e client
+    - istio-csr.cert-manager.svc
+    # Name used within the demo cluster
+    - cert-manager-istio-csr.cert-manager.svc
 
-volumes:
-- name: istio-root-certs
-  secret:
-    secretName: istio-root-certs
-volumeMounts:
-- name: istio-root-certs
-  mountPath: /var/run/secrets/istio-csr
+  server:
+    maxCertificateDuration: 5m
+    serving:
+      address: 0.0.0.0
+      port: 6443
+
+resources: {}

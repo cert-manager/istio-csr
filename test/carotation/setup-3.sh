@@ -23,7 +23,12 @@ echo ">> installing istio-csr with roots of trust, using issuer from root-1"
 
 echo ">> installing cert-manager-istio-csr with first root"
 echo "$HELM_BIN upgrade -i cert-manager-istio-csr ./deploy/charts/istio-csr -n cert-manager --values $TEST_DIR/values/istio-csr-1.yaml --wait"
-$HELM_BIN upgrade -i cert-manager-istio-csr ./deploy/charts/istio-csr -n cert-manager --values $TEST_DIR/values/istio-csr-1.yaml --wait
+$HELM_BIN upgrade -i cert-manager-istio-csr ./deploy/charts/istio-csr \
+  -n cert-manager \
+  --values $TEST_DIR/values/istio-csr-1.yaml \
+  --set image.repository=$ISTIO_CSR_IMAGE \
+  --set image.tag=$ISTIO_CSR_IMAGE_TAG \
+  --wait
 
 echo ">> installing istio"
 $ISTIO_BIN install -y -f $TEST_DIR/values/istio.yaml
