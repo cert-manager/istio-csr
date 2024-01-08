@@ -15,11 +15,15 @@
 .PHONY: test-unit
 ## Unit tests
 ## @category Testing
-test-unit: | $(NEEDS_GOTESTSUM) $(NEEDS_ETCD) $(NEEDS_KUBE-APISERVER) $(NEEDS_KUBECTL)
+test-unit: | $(NEEDS_GOTESTSUM) $(NEEDS_GO) $(NEEDS_ETCD) $(NEEDS_KUBE-APISERVER) $(NEEDS_KUBECTL) $(ARTIFACTS)
 	KUBEBUILDER_ASSETS=$(CURDIR)/$(bin_dir)/tools \
 	$(GOTESTSUM) \
+		--junitfile=$(ARTIFACTS)/junit-go-e2e.xml \
+		-- \
+		-coverprofile=$(ARTIFACTS)/filtered.cov \
 		./cmd/... ./pkg/... \
 		-- \
 		-ldflags $(go_manager_ldflags) \
 		-test.timeout 2m \
-		-coverprofile cover.out
+
+	$(GO) tool cover -html=$(ARTIFACTS)/filtered.cov -o=$(ARTIFACTS)/filtered.html
