@@ -45,7 +45,6 @@ spec:
             path: {{ .Values.app.readinessProbe.path }}
           initialDelaySeconds: 3
           periodSeconds: 7
-        command: ["cert-manager-istio-csr"]
         args:
           - "--log-level={{.Values.app.logLevel}}"
           - "--metrics-port={{.Values.app.metrics.port}}"

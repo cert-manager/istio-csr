@@ -1,6 +1,4 @@
-#!/usr/bin/env bash
-
-# Copyright 2021 The cert-manager Authors.
+# Copyright 2023 The cert-manager Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,17 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -o nounset
-set -o errexit
-set -o pipefail
+images_amd64 ?=
+images_arm64 ?=
 
-echo "======================================"
-echo ">> cleaning up resources"
-
-rm -f $TEST_DIR/ca.pem
-
-echo ">> exporting kind loads"
-$KIND_BIN export logs $ARTIFACTS --name istio-ca-rotation
-
-echo ">> deleting cluster..."
-$KIND_BIN delete cluster --name istio-ca-rotation
+images_amd64 += docker.io/kindest/node:v1.27.3@sha256:9dd3392d79af1b084671b05bcf65b21de476256ad1dcc853d9f3b10b4ac52dde
+images_arm64 += docker.io/kindest/node:v1.27.3@sha256:de0b3dfe848ccf07e24f4278eaf93edb857b6231b39773f46b36a2b1a6543ae9

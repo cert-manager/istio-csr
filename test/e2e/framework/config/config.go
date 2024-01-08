@@ -27,7 +27,7 @@ import (
 
 type Config struct {
 	KubeConfigPath string
-	RepoRoot       string
+	KubectlPath    string
 
 	IssuerRef cmmeta.ObjectReference
 }
@@ -48,18 +48,19 @@ func (c *Config) AddFlags(fs *flag.FlagSet) {
 	fs.StringVar(&c.IssuerRef.Name, "issuer-name", "istio-ca", "issuer name to use for e2e test")
 	fs.StringVar(&c.IssuerRef.Kind, "issuer-kind ", "Issuer", "issuer kind to use for e2e test")
 	fs.StringVar(&c.IssuerRef.Group, "issuer-group ", "cert-manager.io", "issuer Group to use for e2e test")
-	fs.StringVar(&c.KubeConfigPath, "kubeconfig", "", "path to Kubeconfig")
+	fs.StringVar(&c.KubeConfigPath, "kubeconfig-path", "", "path to Kubeconfig")
+	fs.StringVar(&c.KubectlPath, "kubectl-path", "", "path to Kubectl binary")
 }
 
 func (c *Config) Validate() error {
 	var errs []error
 
 	if c.KubeConfigPath == "" {
-		errs = append(errs, errors.New("--kubeconfig not set"))
+		errs = append(errs, errors.New("--kubeconfig-path not set"))
 	}
 
-	if c.RepoRoot == "" {
-		errs = append(errs, errors.New("repo root not defined"))
+	if c.KubectlPath == "" {
+		errs = append(errs, errors.New("--kubectl-path not set"))
 	}
 
 	return utilerrors.NewAggregate(errs)

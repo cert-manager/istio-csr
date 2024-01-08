@@ -1,3 +1,4 @@
 /bin
+/_bin
 /kubeconfig.yaml
 /_artifacts

@@ -14,13 +14,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-export K8S_NAMESPACE="${K8S_NAMESPACE:-istio-system}"
-export CERT_MANAGER_VERSION="${CERT_MANAGER_VERSION:-1.11.0}"
-export ISTIO_AGENT_IMAGE="${CERT_MANAGER_ISTIO_AGENT_IMAGE:-quay.io/jetstack/cert-manager-istio-csr:canary}"
-export KUBECTL_BIN="${KUBECTL_BIN:-./bin/kubectl}"
-export HELM_BIN="${HELM_BIN:-./bin/helm}"
-export KIND_BIN="${KIND_BIN:-./bin/kind}"
-export TEST_DIR="${ROOT_DIR:-./test/carotation}"
-export ISTIO_VERSION="${ISTIO_VERSION:-1.17.2}"
-export ISTIO_BIN="${ISTIO_BIN:-./bin/istioctl-$ISTIO_VERSION}"
-export JQ_BIN="${JQ_BIN:-./bin/jq}"
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+export TEST_DIR="${SCRIPT_DIR}"
+
+export ARTIFACTS="${ARTIFACTS:-./_bin/artifacts}"
+export ISTIO_CSR_IMAGE_TAR="${ISTIO_CSR_IMAGE_TAR:-./_bin/scratch/image/oci-layout-manager.v0.7.1.docker.tar}"
+export ISTIO_CSR_IMAGE="${ISTIO_CSR_IMAGE:-cert-manager.local/cert-manager-istio-csr}"
+export ISTIO_CSR_IMAGE_TAG="${ISTIO_CSR_IMAGE_TAG:-canary}"
+
+export ISTIO_BIN="${ISTIO_BIN:-./_bin/scratch/istioctl-1.17.2}"
+export KUBECTL_BIN="${KUBECTL_BIN:-./_bin/tools/kubectl}"
+export HELM_BIN="${HELM_BIN:-./_bin/tools/helm}"
+export KIND_BIN="${KIND_BIN:-./_bin/tools/kind}"
+export JQ_BIN="${JQ_BIN:-./_bin/tools/jq}"

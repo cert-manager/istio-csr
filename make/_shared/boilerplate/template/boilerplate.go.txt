@@ -1,5 +1,5 @@
 /*
-Copyright 2021 The cert-manager Authors.
+Copyright The cert-manager Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -13,30 +13,3 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-
-package e2e
-
-import (
-	. "github.com/onsi/ginkgo/v2"
-	"k8s.io/klog/v2"
-
-	"github.com/cert-manager/istio-csr/test/e2e/framework/config"
-)
-
-var (
-	cfg = config.GetConfig()
-)
-
-var _ = SynchronizedBeforeSuite(func() []byte {
-	if err := cfg.Validate(); err != nil {
-		klog.Fatalf("Invalid test config: %s", err)
-	}
-
-	return nil
-}, func([]byte) {
-})
-
-var _ = SynchronizedAfterSuite(func() {},
-	func() {
-	},
-)
