@@ -1,6 +1,4 @@
-#!/usr/bin/env bash
-
-# Copyright 2021 The cert-manager Authors.
+# Copyright 2023 The cert-manager Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,17 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -o nounset
-set -o errexit
-set -o pipefail
-
-echo "======================================"
-echo ">> cleaning up resources"
-
-rm -f $TEST_DIR/ca.pem
-
-echo ">> exporting kind loads"
-$KIND_BIN export logs $ARTIFACTS --name istio-ca-rotation
-
-echo ">> deleting cluster..."
-$KIND_BIN delete cluster --name istio-ca-rotation
+.PHONY: test-unit
+## Unit tests
+## @category Testing
+test-unit: | $(NEEDS_GOTESTSUM) $(NEEDS_ETCD) $(NEEDS_KUBE-APISERVER) $(NEEDS_KUBECTL)
+	KUBEBUILDER_ASSETS=$(CURDIR)/$(bin_dir)/tools \
+	$(GOTESTSUM) \
+		./cmd/... ./pkg/... \
+		-- \
+		-ldflags $(go_manager_ldflags) \
+		-test.timeout 2m \
+		-coverprofile cover.out

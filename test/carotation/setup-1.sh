@@ -21,27 +21,14 @@ set -o pipefail
 echo "======================================"
 echo ">> setting up CA rotation test cluster"
 
-echo ">> building istio-csr binary..."
-GOARCH=$(go env GOARCH) GOOS=linux CGO_ENABLED=0 go build -o ./bin/istio-csr-linux ./cmd/.
-
-echo ">> building docker image..."
-docker build -t $ISTIO_AGENT_IMAGE .
-
 echo ">> deleting any existing kind cluster..."
 $KIND_BIN delete cluster --name istio-ca-rotation
-
-echo ">> pre-creating 'kind' docker network to avoid networking issues in CI"
-# When running in our CI environment the Docker network's subnet choice will cause issues with routing
-# This works this around till we have a way to properly patch this.
-docker network create --driver=bridge --subnet=192.168.0.0/16 --gateway 192.168.0.1 kind || true
-# Sleep for 2s to avoid any races between docker's network subcommand and 'kind create'
-sleep 2
 
 echo ">> creating kind cluster..."
 $KIND_BIN create cluster --name istio-ca-rotation
 
 echo ">> loading docker image..."
-$KIND_BIN load docker-image $ISTIO_AGENT_IMAGE --name istio-ca-rotation
+$KIND_BIN load image-archive $ISTIO_CSR_IMAGE_TAR --name istio-ca-rotation
 
 echo ">> installing cert-manager"
 $HELM_BIN repo add jetstack https://charts.jetstack.io --force-update

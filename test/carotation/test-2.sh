@@ -23,7 +23,12 @@ echo ">> rotating the CA being used"
 
 echo ">> reinstalling istio-csr with new issuer"
 $KUBECTL_BIN delete deploy -n cert-manager cert-manager-istio-csr --wait --timeout=180s
-$HELM_BIN upgrade -i cert-manager-istio-csr ./deploy/charts/istio-csr -n cert-manager --values $TEST_DIR/values/istio-csr-2.yaml --wait
+$HELM_BIN upgrade -i cert-manager-istio-csr ./deploy/charts/istio-csr \
+  -n cert-manager \
+  --values $TEST_DIR/values/istio-csr-2.yaml \
+  --set image.repository=$ISTIO_CSR_IMAGE \
+  --set image.tag=$ISTIO_CSR_IMAGE_TAG \
+  --wait
 sleep 5s
 
 echo ">> rotating httpbin pod so it picks up new CA"

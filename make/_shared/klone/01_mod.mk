@@ -1,6 +1,4 @@
-#!/usr/bin/env bash
-
-# Copyright 2021 The cert-manager Authors.
+# Copyright 2023 The cert-manager Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,17 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -o nounset
-set -o errexit
-set -o pipefail
+.PHONY: generate-klone
+## Generate klone shared Makefiles
+## @category [shared] Generate/ Verify
+generate-klone: | $(NEEDS_KLONE)
+	$(KLONE) sync
 
-echo "======================================"
-echo ">> cleaning up resources"
+shared_generate_targets += generate-klone
 
-rm -f $TEST_DIR/ca.pem
-
-echo ">> exporting kind loads"
-$KIND_BIN export logs $ARTIFACTS --name istio-ca-rotation
-
-echo ">> deleting cluster..."
-$KIND_BIN delete cluster --name istio-ca-rotation
+.PHONY: upgrade-klone
+## Upgrade klone Makefile modules to latest version
+## @category [shared] Self-upgrade
+upgrade-klone: | $(NEEDS_KLONE)
+	$(KLONE) upgrade
