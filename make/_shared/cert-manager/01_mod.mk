@@ -12,6 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cert_manager_crds := $(bin_dir)/scratch/cert-manager-crds.yaml
+cert_manager_crds := $(bin_dir)/scratch/cert-manager-$(cert_manager_version).yaml
 $(cert_manager_crds): | $(bin_dir)/scratch
 	curl -sSLo $@ https://github.com/cert-manager/cert-manager/releases/download/$(cert_manager_version)/cert-manager.crds.yaml
