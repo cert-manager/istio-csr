@@ -18,6 +18,12 @@ service:
   # -- Service port to expose istio-csr gRPC service.
   port: 443
 
+# -- Optional annotations for the deployment metadata
+deploymentAnnotations: []
+
+# -- Optional annotations for the pod metadata
+podAnnotations: []
+
 app:
   # -- Verbosity of istio-csr logging.
   logLevel: 1 # 1-5
