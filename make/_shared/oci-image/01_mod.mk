@@ -19,6 +19,10 @@ oci_platforms := all
 # To get latest SHA run crane digest gcr.io/distroless/static-debian12:nonroot
 base_image_static := gcr.io/distroless/static-debian12@sha256:39ae7f0201fee13b777a3e4a5a9326a8889269172c8b4f4289d9f19c831f45f4
 
+# Use custom apko-built image as minimal base image to package the manager binary
+# To get latest SHA run crane digest quay.io/jetstack/base-static-csi:latest
+base_image_csi-static := quay.io/jetstack/base-static-csi@sha256:f8463a8a6d2265a15a982cf3d6cb08b685ab7220828885fbbb528135baa0a951
+
 ifndef bin_dir
 $(error bin_dir is not set)
 endif
@@ -38,6 +42,8 @@ $(call fatal_if_undefined,oci_$1_image_name_development)
 
 ifeq ($(oci_$1_base_image_flavor),static)
     oci_$1_base_image := $(base_image_static)
+else ifeq ($(oci_$1_base_image_flavor),csi-static)
+    oci_$1_base_image := $(base_image_csi-static)
 else
     $$(error oci_$1_base_image_flavor has unknown value "$(oci_$1_base_image_flavor)")
 endif
