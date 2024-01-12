@@ -19,17 +19,26 @@ set -o errexit
 set -o pipefail
 
 echo "======================================"
-echo ">> setting up CA rotation test cluster"
+echo ">> creating 2 roots of trust"
 
-echo ">> deleting any existing kind cluster..."
-$KIND_BIN delete cluster --name istio-ca-rotation
+echo ">> creating cert-manager issuers"
+$KUBECTL_BIN create namespace istio-system
+$KUBECTL_BIN apply -f "$TEST_DIR/issuers/."
 
-echo ">> creating kind cluster..."
-$KIND_BIN create cluster --name istio-ca-rotation
+echo ">> waiting for issuers to become ready"
+$KUBECTL_BIN get issuers -n istio-system
+$KUBECTL_BIN wait --timeout=180s -n istio-system --for=condition=ready issuer istio-root-1
+$KUBECTL_BIN wait --timeout=180s -n istio-system --for=condition=ready issuer istio-root-2
+$KUBECTL_BIN wait --timeout=180s -n istio-system --for=condition=ready issuer istio-int-1
+$KUBECTL_BIN wait --timeout=180s -n istio-system --for=condition=ready issuer istio-int-2
+$KUBECTL_BIN get issuers -n istio-system
 
-echo ">> loading docker image..."
-$KIND_BIN load image-archive $ISTIO_CSR_IMAGE_TAR --name istio-ca-rotation
+echo ">> extracting roots of trust"
+$KUBECTL_BIN get secret -n istio-system istio-root-1 -o jsonpath="{.data['ca\.crt']}" | base64 -d
+$KUBECTL_BIN get secret -n istio-system istio-root-1 -o jsonpath="{.data['ca\.crt']}" | base64 -d > "$TEST_DIR/ca.pem"
+$KUBECTL_BIN get secret -n istio-system istio-root-2 -o jsonpath="{.data['ca\.crt']}" | base64 -d
+$KUBECTL_BIN get secret -n istio-system istio-root-2 -o jsonpath="{.data['ca\.crt']}" | base64 -d >> "$TEST_DIR/ca.pem"
 
-echo ">> installing cert-manager"
-$HELM_BIN repo add jetstack https://charts.jetstack.io --force-update
-$HELM_BIN upgrade -i -n cert-manager cert-manager jetstack/cert-manager --set installCRDs=true --wait --create-namespace --set global.logLevel=2
+echo ">> creating roots of trust secret"
+cat "$TEST_DIR/ca.pem"
+$KUBECTL_BIN create secret generic istio-root-certs --from-file=ca.pem="$TEST_DIR/ca.pem" -n cert-manager

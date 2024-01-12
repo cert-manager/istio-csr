@@ -21,10 +21,10 @@ set -o pipefail
 echo "======================================"
 echo ">> cleaning up resources"
 
-rm -f $TEST_DIR/ca.pem
+rm -f "$TEST_DIR/ca.pem"
 
 echo ">> exporting kind loads"
-$KIND_BIN export logs $ARTIFACTS --name istio-ca-rotation
+$KIND_BIN export logs "$ARTIFACTS" --name "$KIND_CLUSTER_NAME"
 
 echo ">> deleting cluster..."
-$KIND_BIN delete cluster --name istio-ca-rotation
+$KIND_BIN delete cluster --name "$KIND_CLUSTER_NAME"

@@ -25,25 +25,25 @@ echo ">> reinstalling istio-csr with new issuer"
 $KUBECTL_BIN delete deploy -n cert-manager cert-manager-istio-csr --wait --timeout=180s
 $HELM_BIN upgrade -i cert-manager-istio-csr ./deploy/charts/istio-csr \
   -n cert-manager \
-  --values $TEST_DIR/values/istio-csr-2.yaml \
-  --set image.repository=$ISTIO_CSR_IMAGE \
-  --set image.tag=$ISTIO_CSR_IMAGE_TAG \
+  --values "$TEST_DIR/values/istio-csr-2.yaml" \
+  --set image.repository="$ISTIO_CSR_IMAGE" \
+  --set image.tag="$ISTIO_CSR_IMAGE_TAG" \
   --wait
 sleep 5s
 
 echo ">> rotating httpbin pod so it picks up new CA"
 POD_NAME=$($KUBECTL_BIN get pod -n sandbox -l app=httpbin -o jsonpath='{.items[0].metadata.name}')
 echo ">> current mTLS certificate"
-$ISTIO_BIN pc s $POD_NAME -n sandbox -o json | $JQ_BIN -r '.dynamicActiveSecrets[0].secret.tlsCertificate.certificateChain.inlineBytes' | base64 -d | openssl x509 --noout --text | grep Issuer:
+$ISTIO_BIN pc s "$POD_NAME" -n sandbox -o json | $JQ_BIN -r '.dynamicActiveSecrets[0].secret.tlsCertificate.certificateChain.inlineBytes' | base64 -d | openssl x509 --noout --text | grep Issuer:
 
-$KUBECTL_BIN delete po -n sandbox $POD_NAME --wait --timeout=180s
+$KUBECTL_BIN delete po -n sandbox "$POD_NAME" --wait --timeout=180s
 $KUBECTL_BIN wait -n sandbox --for=condition=ready pod -l app=httpbin --timeout=180s
 
 echo ">> new mTLS certificate"
 POD_NAME=$($KUBECTL_BIN get pod -n sandbox -l app=httpbin -o jsonpath='{.items[0].metadata.name}')
-$ISTIO_BIN pc s $POD_NAME -n sandbox -o json | $JQ_BIN -r '.dynamicActiveSecrets[0].secret.tlsCertificate.certificateChain.inlineBytes' | base64 -d | openssl x509 --noout --text | grep Issuer:
+$ISTIO_BIN pc s "$POD_NAME" -n sandbox -o json | $JQ_BIN -r '.dynamicActiveSecrets[0].secret.tlsCertificate.certificateChain.inlineBytes' | base64 -d | openssl x509 --noout --text | grep Issuer:
 
 
 echo ">> testing mTLS connection between workloads"
 POD_NAME=$($KUBECTL_BIN get pod -n sandbox -l app=sleep -o jsonpath='{.items[0].metadata.name}')
-$KUBECTL_BIN exec $POD_NAME -c sleep -n sandbox -- curl -sS httpbin:8000/ip
+$KUBECTL_BIN exec "$POD_NAME" -c sleep -n sandbox -- curl -sS httpbin:8000/ip

@@ -14,13 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-export TEST_DIR="${SCRIPT_DIR}"
-
 export ARTIFACTS="${ARTIFACTS:-./_bin/artifacts}"
 export ISTIO_CSR_IMAGE_TAR="${ISTIO_CSR_IMAGE_TAR:-./_bin/scratch/image/oci-layout-manager.v0.7.1.docker.tar}"
 export ISTIO_CSR_IMAGE="${ISTIO_CSR_IMAGE:-cert-manager.local/cert-manager-istio-csr}"
 export ISTIO_CSR_IMAGE_TAG="${ISTIO_CSR_IMAGE_TAG:-canary}"
+export KIND_CLUSTER_NAME="${KIND_CLUSTER_NAME:-istio-ca-rotation}"
 
 export ISTIO_BIN="${ISTIO_BIN:-./_bin/scratch/istioctl-1.17.2}"
 export KUBECTL_BIN="${KUBECTL_BIN:-./_bin/tools/kubectl}"
