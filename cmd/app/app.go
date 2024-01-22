@@ -73,6 +73,11 @@ func NewCommand(ctx context.Context) *cobra.Command {
 				return fmt.Errorf("error creating kubernetes client: %s", err.Error())
 			}
 
+			// Set the controller-runtime global logger which is used by its internal
+			// logging (RuntimeLog, see link below).
+			// https://github.com/kubernetes-sigs/controller-runtime/blob/6747c42ce33966b0e77cac278c6b9087cc2f51c7/pkg/internal/log/log.go#L31
+			ctrl.SetLogger(opts.Logr)
+
 			mlog := opts.Logr.WithName("manager")
 			eventBroadcaster := record.NewBroadcaster()
 			eventBroadcaster.StartLogging(func(format string, args ...interface{}) { mlog.V(3).Info(fmt.Sprintf(format, args...)) })
