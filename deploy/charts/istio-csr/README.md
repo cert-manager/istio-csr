@@ -1,6 +1,6 @@
 # cert-manager-istio-csr
 
-![Version: v0.7.1](https://img.shields.io/badge/Version-v0.7.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.7.1](https://img.shields.io/badge/AppVersion-v0.7.1-informational?style=flat-square)
+![Version: v0.7.2](https://img.shields.io/badge/Version-v0.7.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v0.7.2](https://img.shields.io/badge/AppVersion-v0.7.2-informational?style=flat-square)
 
 istio-csr enables the use of cert-manager for issuing certificates in Istio service meshes
 
@@ -43,10 +43,12 @@ istio-csr enables the use of cert-manager for issuing certificates in Istio serv
 | app.server.maxCertificateDuration | string | `"1h"` | Maximum validity duration that can be requested for a certificate. istio-csr will request a duration of the smaller of this value, and that of the incoming gRPC CSR. Based on NIST 800-204A recommendations (SM-DR13). https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf |
 | app.server.serving.address | string | `"0.0.0.0"` | Container address to serve istio-csr gRPC service. |
 | app.server.serving.certificateKeySize | int | `2048` | Number of bits to use for the server's serving certificate (RSAKeySize). |
+| app.server.serving.certificateUsages | list | `["server auth"]` | List of certificate usages for the server's serving certificate. |
 | app.server.serving.port | int | `6443` | Container port to serve istio-csr gRPC service. |
 | app.server.serving.signatureAlgorithm | string | `"RSA"` | The type of signature algorithm to use when generating private keys. Currently only RSA and ECDSA are supported. By default RSA is used. |
 | app.tls.certificateDNSNames | list | `["cert-manager-istio-csr.cert-manager.svc"]` | The DNS names to request for the server's serving certificate which is presented to istio-agents. istio-agents must route to istio-csr using one of these DNS names. |
 | app.tls.certificateDuration | string | `"1h"` | Requested duration of gRPC serving certificate. Will be automatically renewed. Based on NIST 800-204A recommendations (SM-DR13). https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf |
+| app.tls.certificateUsages | list | `[]` | The reported X.509 and extended key usages to be matched against the key usage set. Required when using a RAM shared AWS Private CA |
 | app.tls.istiodCertificateDuration | string | `"1h"` | Requested duration of istio's Certificate. Will be automatically renewed. Based on NIST 800-204A recommendations (SM-DR13). https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf Warning: cert-manager does not allow a duration on Certificates less than 1 hour. |
 | app.tls.istiodCertificateEnable | bool | `true` |  |
 | app.tls.istiodCertificateRenewBefore | string | `"30m"` |  |
@@ -55,7 +57,7 @@ istio-csr enables the use of cert-manager for issuing certificates in Istio serv
 | app.tls.trustDomain | string | `"cluster.local"` | The Istio cluster's trust domain. |
 | image.pullPolicy | string | `"IfNotPresent"` | Kubernetes imagePullPolicy on Deployment. |
 | image.repository | string | `"quay.io/jetstack/cert-manager-istio-csr"` | Target image repository. |
-| image.tag | string | `"v0.7.1"` | Target image version tag. |
+| image.tag | string | `"v0.7.2"` | Target image version tag. |
 | imagePullSecrets | list | `[]` | Optional secrets used for pulling the istio-csr container image. |
 | nodeSelector | object | `{}` |  |
 | replicaCount | int | `1` | Number of replicas of istio-csr to run. |

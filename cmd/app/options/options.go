@@ -28,6 +28,7 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/rest"
 	cliflag "k8s.io/component-base/cli/flag"
+	cmapi "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	"k8s.io/klog/v2"
 	"k8s.io/klog/v2/klogr"
 
@@ -205,6 +206,10 @@ func (o *Options) addTLSFlags(fs *pflag.FlagSet) {
 		"serving-signature-algorithm", "RSA",
 		"The type of signature algorithm to use when generating private keys. "+
 			"Currently only RSA and ECDSA are supported. By default RSA is used.")
+
+	fs.StringSliceVar(&o.TLS.ServingCertificateUsages,
+		"serving-certificate-usages", []string{string(cmapi.UsageServerAuth)},
+		"A list of usages to set in the request for the server's serving certificate.")
 }
 
 func (o *Options) addCertManagerFlags(fs *pflag.FlagSet) {
