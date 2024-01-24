@@ -46,5 +46,5 @@ images_arm64 ?=
 images_amd64 += docker.io/kong/httpbin:0.1.0@sha256:9d65a5b1955d2466762f53ea50eebae76be9dc7e277217cd8fb9a24b004154f4
 images_arm64 += docker.io/kong/httpbin:0.1.0@sha256:c546c8b06c542b615f053b577707cb72ddc875a0731d56d0ffaf840f767322ad
 
-images_amd64 += quay.io/curl/curl:8.5.0@sha256:f60b4d978aad8920d603df74bdd430b3ebe4895d9e06bc16125f897b168a699b
-images_arm64 += quay.io/curl/curl:8.5.0@sha256:a96e5f0e17b6e9699a76ce9f67a1412aec37fde5d881ed382f0295b97395e2ee
+images_amd64 += quay.io/curl/curl:8.5.0@sha256:e40a76dcfa9405678336774130411ca35beba85db426d5755b3cdd7b99d09a7a
+images_arm64 += quay.io/curl/curl:8.5.0@sha256:038b0290c9e4a371aed4f9d6993e3548fcfa32b96e9a170bfc73f5da4ec2354d
