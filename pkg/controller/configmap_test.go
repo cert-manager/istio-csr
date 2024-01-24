@@ -58,7 +58,6 @@ func Test_Reconcile(t *testing.T) {
 		"if namespace is in a terminating state, ignore": {
 			existingObjects: []runtime.Object{
 				&corev1.Namespace{
-					TypeMeta:   metav1.TypeMeta{Kind: "Namespace", APIVersion: "v1"},
 					ObjectMeta: metav1.ObjectMeta{Name: "test-ns", ResourceVersion: "10", Labels: namespaceLabels},
 					Status:     corev1.NamespaceStatus{Phase: corev1.NamespaceTerminating},
 				},
@@ -67,7 +66,6 @@ func Test_Reconcile(t *testing.T) {
 			expError:  false,
 			expObjects: []runtime.Object{
 				&corev1.Namespace{
-					TypeMeta:   metav1.TypeMeta{Kind: "Namespace", APIVersion: "v1"},
 					ObjectMeta: metav1.ObjectMeta{Name: "test-ns", ResourceVersion: "10", Labels: namespaceLabels},
 					Status:     corev1.NamespaceStatus{Phase: corev1.NamespaceTerminating},
 				},
@@ -75,14 +73,13 @@ func Test_Reconcile(t *testing.T) {
 		},
 		"if namespace exists, but configmap doesn't, create config map": {
 			existingObjects: []runtime.Object{
-				&corev1.Namespace{TypeMeta: metav1.TypeMeta{Kind: "Namespace", APIVersion: "v1"}, ObjectMeta: metav1.ObjectMeta{Name: "test-ns", ResourceVersion: "10", Labels: namespaceLabels}},
+				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "test-ns", ResourceVersion: "10", Labels: namespaceLabels}},
 			},
 			expResult: ctrl.Result{},
 			expError:  false,
 			expObjects: []runtime.Object{
-				&corev1.Namespace{TypeMeta: metav1.TypeMeta{Kind: "Namespace", APIVersion: "v1"}, ObjectMeta: metav1.ObjectMeta{Name: "test-ns", ResourceVersion: "10", Labels: namespaceLabels}},
+				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "test-ns", ResourceVersion: "10", Labels: namespaceLabels}},
 				&corev1.ConfigMap{
-					TypeMeta:   metav1.TypeMeta{Kind: "ConfigMap", APIVersion: "v1"},
 					ObjectMeta: metav1.ObjectMeta{Name: "istio-ca-root-cert", Namespace: "test-ns", ResourceVersion: "1", Labels: map[string]string{"istio.io/config": "true"}},
 					Data:       map[string]string{"root-cert.pem": rootCAData},
 				},
@@ -90,9 +87,8 @@ func Test_Reconcile(t *testing.T) {
 		},
 		"if namespace and configmap exists, but doesn't have any data, update with data": {
 			existingObjects: []runtime.Object{
-				&corev1.Namespace{TypeMeta: metav1.TypeMeta{Kind: "Namespace", APIVersion: "v1"}, ObjectMeta: metav1.ObjectMeta{Name: "test-ns", ResourceVersion: "10", Labels: namespaceLabels}},
+				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "test-ns", ResourceVersion: "10", Labels: namespaceLabels}},
 				&corev1.ConfigMap{
-					TypeMeta:   metav1.TypeMeta{Kind: "ConfigMap", APIVersion: "v1"},
 					ObjectMeta: metav1.ObjectMeta{Name: "istio-ca-root-cert", Namespace: "test-ns", ResourceVersion: "10", Labels: map[string]string{"istio.io/config": "true"}},
 					Data:       nil,
 				},
@@ -100,9 +96,8 @@ func Test_Reconcile(t *testing.T) {
 			expResult: ctrl.Result{},
 			expError:  false,
 			expObjects: []runtime.Object{
-				&corev1.Namespace{TypeMeta: metav1.TypeMeta{Kind: "Namespace", APIVersion: "v1"}, ObjectMeta: metav1.ObjectMeta{Name: "test-ns", ResourceVersion: "10", Labels: namespaceLabels}},
+				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "test-ns", ResourceVersion: "10", Labels: namespaceLabels}},
 				&corev1.ConfigMap{
-					TypeMeta:   metav1.TypeMeta{Kind: "ConfigMap", APIVersion: "v1"},
 					ObjectMeta: metav1.ObjectMeta{Name: "istio-ca-root-cert", Namespace: "test-ns", ResourceVersion: "11", Labels: map[string]string{"istio.io/config": "true"}},
 					Data:       map[string]string{"root-cert.pem": rootCAData},
 				},
@@ -110,9 +105,8 @@ func Test_Reconcile(t *testing.T) {
 		},
 		"if namespace and configmap exists, but doesn't have the right data, update with data": {
 			existingObjects: []runtime.Object{
-				&corev1.Namespace{TypeMeta: metav1.TypeMeta{Kind: "Namespace", APIVersion: "v1"}, ObjectMeta: metav1.ObjectMeta{Name: "test-ns", ResourceVersion: "10", Labels: namespaceLabels}},
+				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "test-ns", ResourceVersion: "10", Labels: namespaceLabels}},
 				&corev1.ConfigMap{
-					TypeMeta:   metav1.TypeMeta{Kind: "ConfigMap", APIVersion: "v1"},
 					ObjectMeta: metav1.ObjectMeta{Name: "istio-ca-root-cert", Namespace: "test-ns", ResourceVersion: "10", Labels: map[string]string{"istio.io/config": "true"}},
 					Data:       map[string]string{"root-cert.pem": "not-root-ca"},
 				},
@@ -120,9 +114,8 @@ func Test_Reconcile(t *testing.T) {
 			expResult: ctrl.Result{},
 			expError:  false,
 			expObjects: []runtime.Object{
-				&corev1.Namespace{TypeMeta: metav1.TypeMeta{Kind: "Namespace", APIVersion: "v1"}, ObjectMeta: metav1.ObjectMeta{Name: "test-ns", ResourceVersion: "10", Labels: namespaceLabels}},
+				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "test-ns", ResourceVersion: "10", Labels: namespaceLabels}},
 				&corev1.ConfigMap{
-					TypeMeta:   metav1.TypeMeta{Kind: "ConfigMap", APIVersion: "v1"},
 					ObjectMeta: metav1.ObjectMeta{Name: "istio-ca-root-cert", Namespace: "test-ns", ResourceVersion: "11", Labels: map[string]string{"istio.io/config": "true"}},
 					Data:       map[string]string{"root-cert.pem": rootCAData},
 				},
@@ -130,9 +123,8 @@ func Test_Reconcile(t *testing.T) {
 		},
 		"if namespace and configmap exists with correct data but with extra keys, remove extra keys": {
 			existingObjects: []runtime.Object{
-				&corev1.Namespace{TypeMeta: metav1.TypeMeta{Kind: "Namespace", APIVersion: "v1"}, ObjectMeta: metav1.ObjectMeta{Name: "test-ns", ResourceVersion: "10", Labels: namespaceLabels}},
+				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "test-ns", ResourceVersion: "10", Labels: namespaceLabels}},
 				&corev1.ConfigMap{
-					TypeMeta:   metav1.TypeMeta{Kind: "ConfigMap", APIVersion: "v1"},
 					ObjectMeta: metav1.ObjectMeta{Name: "istio-ca-root-cert", Namespace: "test-ns", ResourceVersion: "10", Labels: map[string]string{"istio.io/config": "true"}},
 					Data:       map[string]string{"root-cert.pem": rootCAData, "foo": "bar"},
 				},
@@ -140,9 +132,8 @@ func Test_Reconcile(t *testing.T) {
 			expResult: ctrl.Result{},
 			expError:  false,
 			expObjects: []runtime.Object{
-				&corev1.Namespace{TypeMeta: metav1.TypeMeta{Kind: "Namespace", APIVersion: "v1"}, ObjectMeta: metav1.ObjectMeta{Name: "test-ns", ResourceVersion: "10", Labels: namespaceLabels}},
+				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "test-ns", ResourceVersion: "10", Labels: namespaceLabels}},
 				&corev1.ConfigMap{
-					TypeMeta:   metav1.TypeMeta{Kind: "ConfigMap", APIVersion: "v1"},
 					ObjectMeta: metav1.ObjectMeta{Name: "istio-ca-root-cert", Namespace: "test-ns", ResourceVersion: "11", Labels: map[string]string{"istio.io/config": "true"}},
 					Data:       map[string]string{"root-cert.pem": rootCAData},
 				},
@@ -150,9 +141,8 @@ func Test_Reconcile(t *testing.T) {
 		},
 		"if namespace and configmap exists with correct data but wrong label, update with correct label": {
 			existingObjects: []runtime.Object{
-				&corev1.Namespace{TypeMeta: metav1.TypeMeta{Kind: "Namespace", APIVersion: "v1"}, ObjectMeta: metav1.ObjectMeta{Name: "test-ns", ResourceVersion: "10", Labels: namespaceLabels}},
+				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "test-ns", ResourceVersion: "10", Labels: namespaceLabels}},
 				&corev1.ConfigMap{
-					TypeMeta:   metav1.TypeMeta{Kind: "ConfigMap", APIVersion: "v1"},
 					ObjectMeta: metav1.ObjectMeta{Name: "istio-ca-root-cert", Namespace: "test-ns", ResourceVersion: "10", Labels: map[string]string{"istio.io/config": "false"}},
 					Data:       map[string]string{"root-cert.pem": rootCAData, "foo": "bar"},
 				},
@@ -160,9 +150,8 @@ func Test_Reconcile(t *testing.T) {
 			expResult: ctrl.Result{},
 			expError:  false,
 			expObjects: []runtime.Object{
-				&corev1.Namespace{TypeMeta: metav1.TypeMeta{Kind: "Namespace", APIVersion: "v1"}, ObjectMeta: metav1.ObjectMeta{Name: "test-ns", ResourceVersion: "10", Labels: namespaceLabels}},
+				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "test-ns", ResourceVersion: "10", Labels: namespaceLabels}},
 				&corev1.ConfigMap{
-					TypeMeta:   metav1.TypeMeta{Kind: "ConfigMap", APIVersion: "v1"},
 					ObjectMeta: metav1.ObjectMeta{Name: "istio-ca-root-cert", Namespace: "test-ns", ResourceVersion: "11", Labels: map[string]string{"istio.io/config": "true"}},
 					Data:       map[string]string{"root-cert.pem": rootCAData},
 				},
@@ -170,9 +159,8 @@ func Test_Reconcile(t *testing.T) {
 		},
 		"if namespace and configmap exists with correct data, do nothing": {
 			existingObjects: []runtime.Object{
-				&corev1.Namespace{TypeMeta: metav1.TypeMeta{Kind: "Namespace", APIVersion: "v1"}, ObjectMeta: metav1.ObjectMeta{Name: "test-ns", ResourceVersion: "10", Labels: namespaceLabels}},
+				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "test-ns", ResourceVersion: "10", Labels: namespaceLabels}},
 				&corev1.ConfigMap{
-					TypeMeta:   metav1.TypeMeta{Kind: "ConfigMap", APIVersion: "v1"},
 					ObjectMeta: metav1.ObjectMeta{Name: "istio-ca-root-cert", Namespace: "test-ns", ResourceVersion: "10", Labels: map[string]string{"istio.io/config": "true"}},
 					Data:       map[string]string{"root-cert.pem": rootCAData},
 				},
@@ -180,9 +168,8 @@ func Test_Reconcile(t *testing.T) {
 			expResult: ctrl.Result{},
 			expError:  false,
 			expObjects: []runtime.Object{
-				&corev1.Namespace{TypeMeta: metav1.TypeMeta{Kind: "Namespace", APIVersion: "v1"}, ObjectMeta: metav1.ObjectMeta{Name: "test-ns", ResourceVersion: "10", Labels: namespaceLabels}},
+				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "test-ns", ResourceVersion: "10", Labels: namespaceLabels}},
 				&corev1.ConfigMap{
-					TypeMeta:   metav1.TypeMeta{Kind: "ConfigMap", APIVersion: "v1"},
 					ObjectMeta: metav1.ObjectMeta{Name: "istio-ca-root-cert", Namespace: "test-ns", ResourceVersion: "10", Labels: map[string]string{"istio.io/config": "true"}},
 					Data:       map[string]string{"root-cert.pem": rootCAData},
 				},
@@ -190,9 +177,8 @@ func Test_Reconcile(t *testing.T) {
 		},
 		"if namespace and configmap exists with correct data and extra labels, do nothing": {
 			existingObjects: []runtime.Object{
-				&corev1.Namespace{TypeMeta: metav1.TypeMeta{Kind: "Namespace", APIVersion: "v1"}, ObjectMeta: metav1.ObjectMeta{Name: "test-ns", ResourceVersion: "10", Labels: namespaceLabels}},
+				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "test-ns", ResourceVersion: "10", Labels: namespaceLabels}},
 				&corev1.ConfigMap{
-					TypeMeta:   metav1.TypeMeta{Kind: "ConfigMap", APIVersion: "v1"},
 					ObjectMeta: metav1.ObjectMeta{Name: "istio-ca-root-cert", Namespace: "test-ns", ResourceVersion: "10", Labels: map[string]string{"istio.io/config": "true", "foo": "bar"}},
 					Data:       map[string]string{"root-cert.pem": rootCAData},
 				},
@@ -200,9 +186,8 @@ func Test_Reconcile(t *testing.T) {
 			expResult: ctrl.Result{},
 			expError:  false,
 			expObjects: []runtime.Object{
-				&corev1.Namespace{TypeMeta: metav1.TypeMeta{Kind: "Namespace", APIVersion: "v1"}, ObjectMeta: metav1.ObjectMeta{Name: "test-ns", ResourceVersion: "10", Labels: namespaceLabels}},
+				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "test-ns", ResourceVersion: "10", Labels: namespaceLabels}},
 				&corev1.ConfigMap{
-					TypeMeta:   metav1.TypeMeta{Kind: "ConfigMap", APIVersion: "v1"},
 					ObjectMeta: metav1.ObjectMeta{Name: "istio-ca-root-cert", Namespace: "test-ns", ResourceVersion: "10", Labels: map[string]string{"istio.io/config": "true", "foo": "bar"}},
 					Data:       map[string]string{"root-cert.pem": rootCAData},
 				},
@@ -210,12 +195,12 @@ func Test_Reconcile(t *testing.T) {
 		},
 		"if the namespace does not match the selector, do nothing": {
 			existingObjects: []runtime.Object{
-				&corev1.Namespace{TypeMeta: metav1.TypeMeta{Kind: "Namespace", APIVersion: "v1"}, ObjectMeta: metav1.ObjectMeta{Name: "test-ns", ResourceVersion: "10", Labels: map[string]string{}}},
+				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "test-ns", ResourceVersion: "10", Labels: map[string]string{}}},
 			},
 			expResult: ctrl.Result{},
 			expError:  false,
 			expObjects: []runtime.Object{
-				&corev1.Namespace{TypeMeta: metav1.TypeMeta{Kind: "Namespace", APIVersion: "v1"}, ObjectMeta: metav1.ObjectMeta{Name: "test-ns", ResourceVersion: "10", Labels: map[string]string{}}},
+				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "test-ns", ResourceVersion: "10", Labels: map[string]string{}}},
 			},
 		},
 	}
