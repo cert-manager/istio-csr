@@ -40,7 +40,7 @@ $(YQ) \
 	$1 --inplace
 endef
 
-mages_amd64 ?=
+images_amd64 ?=
 images_arm64 ?=
 
 images_amd64 += docker.io/kong/httpbin:0.1.0@sha256:9d65a5b1955d2466762f53ea50eebae76be9dc7e277217cd8fb9a24b004154f4
