@@ -19,26 +19,27 @@ set -o errexit
 set -o pipefail
 
 echo "======================================"
-echo ">> creating 2 roots of trust"
+echo ">> installing istio-csr with roots of trust, using issuer from root-1"
 
-echo ">> creating cert-manager issuers"
-$KUBECTL_BIN create namespace istio-system
-$KUBECTL_BIN apply -f $TEST_DIR/issuers/.
+echo ">> installing cert-manager-istio-csr with first root"
+echo "$HELM_BIN upgrade -i cert-manager-istio-csr ./deploy/charts/istio-csr -n cert-manager --values $TEST_DIR/values/istio-csr-1.yaml --wait"
+$HELM_BIN upgrade -i cert-manager-istio-csr ./deploy/charts/istio-csr \
+  -n cert-manager \
+  --values "$TEST_DIR/values/istio-csr-1.yaml" \
+  --set image.repository="$ISTIO_CSR_IMAGE" \
+  --set image.tag="$ISTIO_CSR_IMAGE_TAG" \
+  --wait
 
-echo ">> waiting for issuers to become ready"
-$KUBECTL_BIN get issuers -n istio-system
-$KUBECTL_BIN wait --timeout=180s -n istio-system --for=condition=ready issuer istio-root-1
-$KUBECTL_BIN wait --timeout=180s -n istio-system --for=condition=ready issuer istio-root-2
-$KUBECTL_BIN wait --timeout=180s -n istio-system --for=condition=ready issuer istio-int-1
-$KUBECTL_BIN wait --timeout=180s -n istio-system --for=condition=ready issuer istio-int-2
-$KUBECTL_BIN get issuers -n istio-system
+echo ">> installing istio"
+$ISTIO_BIN install -y -f "$TEST_DIR/values/istio.yaml"
 
-echo ">> extracting roots of trust"
-$KUBECTL_BIN get secret -n istio-system istio-root-1 -o jsonpath="{.data['ca\.crt']}" | base64 -d
-$KUBECTL_BIN get secret -n istio-system istio-root-1 -o jsonpath="{.data['ca\.crt']}" | base64 -d > $TEST_DIR/ca.pem
-$KUBECTL_BIN get secret -n istio-system istio-root-2 -o jsonpath="{.data['ca\.crt']}" | base64 -d
-$KUBECTL_BIN get secret -n istio-system istio-root-2 -o jsonpath="{.data['ca\.crt']}" | base64 -d >> $TEST_DIR/ca.pem
-
-echo ">> creating roots of trust secret"
-cat $TEST_DIR/ca.pem
-$KUBECTL_BIN create secret generic istio-root-certs --from-file=ca.pem=$TEST_DIR/ca.pem -n cert-manager
+echo ">> enforcing mTLS everywhere"
+$KUBECTL_BIN apply -n istio-system -f - <<EOF
+apiVersion: "security.istio.io/v1beta1"
+kind: "PeerAuthentication"
+metadata:
+  name: "default"
+spec:
+  mtls:
+    mode: STRICT
+EOF

@@ -22,10 +22,10 @@ echo "======================================"
 echo ">> installing workloads and testing connectivity"
 
 echo ">> installing workloads"
-$KUBECTL_BIN apply -f $TEST_DIR/workloads --wait --timeout=180s
+$KUBECTL_BIN apply -f "$TEST_DIR/workloads" --wait --timeout=180s
 $KUBECTL_BIN wait -n sandbox --for=condition=ready pod -l app=sleep --timeout=180s
 $KUBECTL_BIN wait -n sandbox --for=condition=ready pod -l app=httpbin --timeout=180s
 
 echo ">> testing mTLS connection between workloads"
 POD_NAME=$($KUBECTL_BIN get pod -n sandbox -l app=sleep -o jsonpath='{.items[0].metadata.name}')
-$KUBECTL_BIN exec $POD_NAME -c sleep -n sandbox -- curl -sS httpbin:8000/ip
+$KUBECTL_BIN exec "$POD_NAME" -c sleep -n sandbox -- curl -sS httpbin:8000/ip

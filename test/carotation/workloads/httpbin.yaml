@@ -63,8 +63,8 @@ spec:
     spec:
       serviceAccountName: httpbin
       containers:
-      - image: quay.io/joshvanl_jetstack/httpbin:latest
-        imagePullPolicy: IfNotPresent
+      - image: docker.io/kong/httpbin:0.1.0
+        imagePullPolicy: Never
         name: httpbin
         ports:
         - containerPort: 80

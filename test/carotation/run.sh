@@ -18,25 +18,24 @@ set -o nounset
 set -o errexit
 set -o pipefail
 
+TEST_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+export TEST_DIR
 
-source ./test/carotation/env.sh
-
+source "$TEST_DIR/env.sh"
 
 # Ensure we always clean up after ourselves.
 cleanup() {
-  $TEST_DIR/cleanup-1.sh
+  "$TEST_DIR/cleanup-1.sh"
 }
 trap cleanup EXIT
 
 echo "======================================"
 echo ">> running CA rotation test"
 
-$TEST_DIR/setup-1.sh
+"$TEST_DIR/setup-1.sh"
 
-$TEST_DIR/setup-2.sh
+"$TEST_DIR/setup-2.sh"
 
-$TEST_DIR/setup-3.sh
+"$TEST_DIR/test-1.sh"
 
-$TEST_DIR/test-1.sh
-
-$TEST_DIR/test-2.sh
+"$TEST_DIR/test-2.sh"
