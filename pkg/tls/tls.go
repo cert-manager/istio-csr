@@ -100,6 +100,11 @@ type Options struct {
 	// ServingSignatureAlgorithm is the type of key of serving signature algorithm
 	// used, RSA or ECDSA, The default is RSA.
 	ServingSignatureAlgorithm string
+
+	// ServingCertificateUsages is the certificate usages that will be requested
+	// for the gRPC service serving certificate. This is needed when using
+	// resource-based policies filtering out requests not matching the usages
+	ServingCertificateUsages []string
 }
 
 // Provider is used to provide a tls config containing an automatically renewed
@@ -118,6 +123,23 @@ type Provider struct {
 	lock          sync.RWMutex
 	tlsConfig     *tls.Config
 	subscriptions []chan<- event.GenericEvent
+}
+
+// IsValidKeyUsage will validate if we request for valid certificate usages.
+func IsValidKeyUsage(usage cmapi.KeyUsage) error {
+	switch usage {
+	case cmapi.UsageSigning, cmapi.UsageDigitalSignature, cmapi.UsageContentCommitment,
+		cmapi.UsageKeyEncipherment, cmapi.UsageKeyAgreement, cmapi.UsageDataEncipherment,
+		cmapi.UsageCertSign, cmapi.UsageCRLSign, cmapi.UsageEncipherOnly,
+		cmapi.UsageDecipherOnly, cmapi.UsageAny, cmapi.UsageServerAuth,
+		cmapi.UsageClientAuth, cmapi.UsageCodeSigning, cmapi.UsageEmailProtection,
+		cmapi.UsageSMIME, cmapi.UsageIPsecEndSystem, cmapi.UsageIPsecTunnel,
+		cmapi.UsageIPsecUser, cmapi.UsageTimestamping, cmapi.UsageOCSPSigning,
+		cmapi.UsageMicrosoftSGC, cmapi.UsageNetscapeSGC:
+		return nil
+	default:
+		return errors.New("Invalid key usage")
+	}
 }
 
 // NewProvider will return a new provider where a TLS config is ready to be fetched.
@@ -312,8 +334,15 @@ func (p *Provider) fetchCertificate(ctx context.Context) (time.Time, error) {
 	if err != nil {
 		return time.Time{}, fmt.Errorf("failed to generate serving private key and CSR: %s", err)
 	}
-
-	bundle, err := p.cm.Sign(ctx, "istio-csr-serving", csr, p.opts.ServingCertificateDuration, []cmapi.KeyUsage{cmapi.UsageServerAuth})
+	keyUsages := make([]cmapi.KeyUsage, len(p.opts.ServingCertificateUsages))
+	for i, usage := range p.opts.ServingCertificateUsages {
+		err := IsValidKeyUsage(cmapi.KeyUsage(usage))
+		if err != nil {
+			return time.Time{}, fmt.Errorf("%s: %s", err, usage)
+		}
+		keyUsages[i] = cmapi.KeyUsage(usage)
+	}
+	bundle, err := p.cm.Sign(ctx, "istio-csr-serving", csr, p.opts.ServingCertificateDuration, keyUsages)
 	if err != nil {
 		return time.Time{}, fmt.Errorf("failed to sign serving certificate: %w", err)
 	}

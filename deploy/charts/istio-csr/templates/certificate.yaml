@@ -48,4 +48,7 @@ spec:
     name: {{ .Values.app.certmanager.issuer.name }}
     kind: {{ .Values.app.certmanager.issuer.kind }}
     group: {{ .Values.app.certmanager.issuer.group }}
+  {{- with .Values.app.tls.certificateUsages }}
+  usages: {{ . | toYaml | nindent 4 }}
+  {{- end }}
 {{- end }}
