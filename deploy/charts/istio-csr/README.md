@@ -220,7 +220,7 @@ Port for exposing Prometheus metrics on 0.0.0.0 on path '/metrics'.
 </tr>
 <tr>
 
-<td>app.metrics.service.servicemonitor</td>
+<td>app.metrics.service.enabled</td>
 <td>
 
 Create a Service resource to expose metrics endpoint.
@@ -237,7 +237,7 @@ true
 </tr>
 <tr>
 
-<td>app.metrics.service.servicemonitor</td>
+<td>app.metrics.service.type</td>
 <td>
 
 Service type to expose metrics.
@@ -431,7 +431,7 @@ additionalAnnotations:
 </tr>
 <tr>
 
-<td>app.certmanager.issuer.group</td>
+<td>app.certmanager.issuer.name</td>
 <td>
 
 Issuer name set on created CertificateRequests for both istio-csr's serving certificate and incoming gRPC CSRs.
@@ -448,7 +448,7 @@ istio-ca
 </tr>
 <tr>
 
-<td>app.certmanager.issuer.group</td>
+<td>app.certmanager.issuer.kind</td>
 <td>
 
 Issuer kind set on created CertificateRequests for both istio-csr's serving certificate and incoming gRPC CSRs.
@@ -654,7 +654,7 @@ https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf
 </tr>
 <tr>
 
-<td>app.server.serving.signatureAlgorithm</td>
+<td>app.server.serving.address</td>
 <td>
 
 Container address to serve istio-csr gRPC service.
@@ -671,7 +671,7 @@ Container address to serve istio-csr gRPC service.
 </tr>
 <tr>
 
-<td>app.server.serving.signatureAlgorithm</td>
+<td>app.server.serving.port</td>
 <td>
 
 Container port to serve istio-csr gRPC service.
@@ -688,7 +688,7 @@ Container port to serve istio-csr gRPC service.
 </tr>
 <tr>
 
-<td>app.server.serving.signatureAlgorithm</td>
+<td>app.server.serving.certificateKeySize</td>
 <td>
 
 Number of bits to use for the server's serving certificate (RSAKeySize).
