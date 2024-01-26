@@ -1,4 +1,4 @@
-# -- Number of replicas of istio-csr to run.
+# Number of replicas of istio-csr to run.
 replicaCount: 1
 
 image:
@@ -18,29 +18,29 @@ image:
   # Kubernetes imagePullPolicy on Deployment.
   pullPolicy: IfNotPresent
 
-# -- Optional secrets used for pulling the istio-csr container image.
+# Optional secrets used for pulling the istio-csr container image.
 imagePullSecrets: []
 
 service:
-  # -- Service type to expose istio-csr gRPC service.
+  # Service type to expose istio-csr gRPC service.
   type: ClusterIP
-  # -- Service port to expose istio-csr gRPC service.
+  # Service port to expose istio-csr gRPC service.
   port: 443
 
 app:
-  # -- Verbosity of istio-csr logging.
+  # Verbosity of istio-csr logging.
   logLevel: 1 # 1-5
 
   metrics:
-    # -- Port for exposing Prometheus metrics on 0.0.0.0 on path '/metrics'.
+    # Port for exposing Prometheus metrics on 0.0.0.0 on path '/metrics'.
     port: 9402
-    # -- Service to expose metrics endpoint.
+    # Service to expose metrics endpoint.
     service:
-      # -- Create a Service resource to expose metrics endpoint.
+      # Create a Service resource to expose metrics endpoint.
       enabled: true
-      # -- Service type to expose metrics.
+      # Service type to expose metrics.
       type: ClusterIP
-      # -- ServiceMonitor resource for this Service.
+      # ServiceMonitor resource for this Service.
       servicemonitor:
         enabled: false
         prometheusInstance: default
@@ -49,56 +49,56 @@ app:
         labels: {}
 
   readinessProbe:
-    # -- Container port to expose istio-csr HTTP readiness probe on default network interface.
+    # Container port to expose istio-csr HTTP readiness probe on default network interface.
     port: 6060
-    # -- Path to expose istio-csr HTTP readiness probe on default network interface.
+    # Path to expose istio-csr HTTP readiness probe on default network interface.
     path: "/readyz"
 
   certmanager:
-    # -- Namespace to create CertificateRequests for both istio-csr's serving
+    # Namespace to create CertificateRequests for both istio-csr's serving
     # certificate and incoming gRPC CSRs.
     namespace: istio-system
-    # -- Don't delete created CertificateRequests once they have been signed.
+    # Don't delete created CertificateRequests once they have been signed.
     # WARNING: do not enable this option in production, or environments with
     # any non-trivial number of workloads for an extended period of time. Doing
     # so will balloon the resource consumption of both ETCD and the API server,
     # leading to errors and slow down. This option is intended for debugging
     # purposes only, for limited periods of time.
     preserveCertificateRequests: false
-    # -- Additional annotations to include on certificate requests.
+    # Additional annotations to include on certificate requests.
     # Takes key/value pairs in the format:
     #   - name: custom.cert-manager.io/policy-name
     #     value: istio-csr
     additionalAnnotations: []
     issuer:
-      # -- Issuer name set on created CertificateRequests for both istio-csr's
+      # Issuer name set on created CertificateRequests for both istio-csr's
       # serving certificate and incoming gRPC CSRs.
       name: istio-ca
-      # -- Issuer kind set on created CertificateRequests for both istio-csr's
+      # Issuer kind set on created CertificateRequests for both istio-csr's
       # serving certificate and incoming gRPC CSRs.
       kind: Issuer
-      # -- Issuer group name set on created CertificateRequests for both
+      # Issuer group name set on created CertificateRequests for both
       # istio-csr's serving certificate and incoming gRPC CSRs.
       group: cert-manager.io
 
   tls:
-    # -- The Istio cluster's trust domain.
+    # The Istio cluster's trust domain.
     trustDomain: "cluster.local"
-    # -- An optional file location to a PEM encoded root CA that the root CA
+    # An optional file location to a PEM encoded root CA that the root CA
     # ConfigMap in all namespaces will be populated with. If empty, the CA
     # returned from cert-manager for the serving certificate will be used.
     rootCAFile: # /var/certs/ca.pem
-    # -- The DNS names to request for the server's serving certificate which is
+    # The DNS names to request for the server's serving certificate which is
     # presented to istio-agents. istio-agents must route to istio-csr using one
     # of these DNS names.
     certificateDNSNames:
     - cert-manager-istio-csr.cert-manager.svc
-    # -- Requested duration of gRPC serving certificate. Will be automatically
+    # Requested duration of gRPC serving certificate. Will be automatically
     # renewed.
     # Based on NIST 800-204A recommendations (SM-DR13).
     # https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf
     certificateDuration: 1h
-    # -- Requested duration of istio's Certificate. Will be automatically
+    # Requested duration of istio's Certificate. Will be automatically
     # renewed.
     # Based on NIST 800-204A recommendations (SM-DR13).
     # https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf
@@ -112,26 +112,26 @@ app:
     istiodPrivateKeySize: 2048
 
   server:
-    # -- The istio cluster ID to verify incoming CSRs.
+    # The istio cluster ID to verify incoming CSRs.
     clusterID: "Kubernetes"
-    # -- Maximum validity duration that can be requested for a certificate.
+    # Maximum validity duration that can be requested for a certificate.
     # istio-csr will request a duration of the smaller of this value, and that of
     # the incoming gRPC CSR.
     # Based on NIST 800-204A recommendations (SM-DR13).
     # https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf
     maxCertificateDuration: 1h
     serving:
-      # -- Container address to serve istio-csr gRPC service.
+      # Container address to serve istio-csr gRPC service.
       address: 0.0.0.0
-      # -- Container port to serve istio-csr gRPC service.
+      # Container port to serve istio-csr gRPC service.
       port: 6443
-      # -- Number of bits to use for the server's serving certificate (RSAKeySize).
+      # Number of bits to use for the server's serving certificate (RSAKeySize).
       certificateKeySize: 2048
-      # -- The type of signature algorithm to use when generating private keys. Currently only RSA and ECDSA are supported. By default RSA is used.
+      # The type of signature algorithm to use when generating private keys. Currently only RSA and ECDSA are supported. By default RSA is used.
       signatureAlgorithm: "RSA"
 
   istio:
-    # -- The istio revisions that are currently installed in the cluster.
+    # The istio revisions that are currently installed in the cluster.
     # Changing this field will modify the DNS names that will be requested for
     # the istiod certificate. The common name for the istiod certificate is
     # hard coded to the `default` revision DNS name.
@@ -141,35 +141,43 @@ app:
     # anyway. The resulting certificate will include a DNS name that won't be
     # used, but will pass this constraint.
     revisions: ["default"]
-    # -- The namespace where the istio control-plane is running.
+    # The namespace where the istio control-plane is running.
     namespace: istio-system
 
   controller:
     leaderElectionNamespace: istio-system
-    # -- (string) If set, limit where istio-csr creates configmaps with root ca certificates. If unset, configmap created in ALL namespaces. Example: maistra.io/member-of=istio-system
+    # (string) If set, limit where istio-csr creates configmaps with root ca certificates. If unset, configmap created in ALL namespaces. Example: maistra.io/member-of=istio-system
     configmapNamespaceSelector:
 
-# -- Optional extra volumes. Useful for mounting custom root CAs
+# Optional extra volumes. Useful for mounting custom root CAs
+#
+# For example:
+#  volumes:
+#  - name: root-ca
+#    secret:
+#      secretName: root-cert
 volumes: []
-#- name: root-ca
-#  secret:
-#    secretName: root-cert
 
-# -- Optional extra volume mounts. Useful for mounting custom root CAs
+# Optional extra volume mounts. Useful for mounting custom root CAs
+#
+# For example:
+#  volumeMounts:
+#  - name: root-ca
+#    mountPath: /etc/tls
 volumeMounts: []
-#- name: root-ca
-#  mountPath: /etc/tls
 
-
+# Kubernetes pod resources
+# ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+#
+# For example:
+#  resources:
+#    limits:
+#      cpu: 100m
+#      memory: 128Mi
+#    requests:
+#      cpu: 100m
+#      memory: 128Mi
 resources: {}
-  # -- Kubernetes pod resource limits for istio-csr.
-  # limits:
-  #   cpu: 100m
-  #   memory: 128Mi
-  # -- Kubernetes pod memory resource requests for istio-csr.
-  # requests:
-  #   cpu: 100m
-  #   memory: 128Mi
 
 # expects input structure as per specification https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#affinity-v1-core
 # for example:
