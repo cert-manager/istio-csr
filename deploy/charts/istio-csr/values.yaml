@@ -40,12 +40,19 @@ app:
       enabled: true
       # Service type to expose metrics.
       type: ClusterIP
-      # ServiceMonitor resource for this Service.
+      # The ServiceMonitor resource for this Service.
       servicemonitor:
+        # Create Prometheus ServiceMonitor resource for approver-policy.
         enabled: false
+        # The value for the "prometheus" label on the ServiceMonitor. This allows
+        # for multiple Prometheus instances selecting difference ServiceMonitors 
+        # using label selectors.
         prometheusInstance: default
+        # The interval that the Prometheus will scrape for metrics.
         interval: 10s
+        # The timeout on each metric probe request.
         scrapeTimeout: 5s
+        # Additional labels to give the ServiceMonitor resource.
         labels: {}
 
   readinessProbe:
@@ -67,8 +74,9 @@ app:
     preserveCertificateRequests: false
     # Additional annotations to include on certificate requests.
     # Takes key/value pairs in the format:
-    #   - name: custom.cert-manager.io/policy-name
-    #     value: istio-csr
+    #  additionalAnnotations:
+    #    - name: custom.cert-manager.io/policy-name
+    #      value: istio-csr
     additionalAnnotations: []
     issuer:
       # Issuer name set on created CertificateRequests for both istio-csr's
@@ -146,7 +154,9 @@ app:
 
   controller:
     leaderElectionNamespace: istio-system
-    # (string) If set, limit where istio-csr creates configmaps with root ca certificates. If unset, configmap created in ALL namespaces. Example: maistra.io/member-of=istio-system
+    # If set, limit where istio-csr creates configmaps with root ca certificates. If unset, configmap created in ALL namespaces.
+    # Example: maistra.io/member-of=istio-system
+    # +docs:type=string
     configmapNamespaceSelector:
 
 # Optional extra volumes. Useful for mounting custom root CAs
@@ -179,8 +189,9 @@ volumeMounts: []
 #      memory: 128Mi
 resources: {}
 
-# expects input structure as per specification https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#affinity-v1-core
-# for example:
+# Expects input structure as per specification https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#affinity-v1-core
+#
+# For example:
 #   affinity:
 #     nodeAffinity:
 #      requiredDuringSchedulingIgnoredDuringExecution:
@@ -192,8 +203,9 @@ resources: {}
 #            - master
 affinity: {}
 
-# expects input structure as per specification https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#toleration-v1-core
-# for example:
+# Expects input structure as per specification https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#toleration-v1-core
+#
+# For example:
 #   tolerations:
 #   - key: foo.bar.com/role
 #     operator: Equal

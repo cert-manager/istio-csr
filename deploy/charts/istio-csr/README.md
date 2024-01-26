@@ -257,6 +257,8 @@ ClusterIP
 <td>app.metrics.service.servicemonitor.enabled</td>
 <td>
 
+Create Prometheus ServiceMonitor resource for approver-policy.
+
 </td>
 <td>bool</td>
 <td>
@@ -271,6 +273,8 @@ false
 
 <td>app.metrics.service.servicemonitor.prometheusInstance</td>
 <td>
+
+The value for the "prometheus" label on the ServiceMonitor. This allows for multiple Prometheus instances selecting difference ServiceMonitors using label selectors.
 
 </td>
 <td>string</td>
@@ -287,6 +291,8 @@ default
 <td>app.metrics.service.servicemonitor.interval</td>
 <td>
 
+The interval that the Prometheus will scrape for metrics.
+
 </td>
 <td>string</td>
 <td>
@@ -302,6 +308,8 @@ default
 <td>app.metrics.service.servicemonitor.scrapeTimeout</td>
 <td>
 
+The timeout on each metric probe request.
+
 </td>
 <td>string</td>
 <td>
@@ -316,6 +324,8 @@ default
 
 <td>app.metrics.service.servicemonitor.labels</td>
 <td>
+
+Additional labels to give the ServiceMonitor resource.
 
 </td>
 <td>object</td>
@@ -401,11 +411,12 @@ false
 <td>
 
 Additional annotations to include on certificate requests.  
-Takes key/value pairs in the format:  
-  - name: custom.cert-manager.io/policy-name
+Takes key/value pairs in the format:
 
 ```yaml
-value: istio-csr
+additionalAnnotations:
+  - name: custom.cert-manager.io/policy-name
+    value: istio-csr
 ```
 
 </td>
@@ -761,10 +772,12 @@ istio-system
 <td>app.controller.configmapNamespaceSelector</td>
 <td>
 
-(string) If set, limit where istio-csr creates configmaps with root ca certificates. If unset, configmap created in ALL namespaces. Example: maistra.io/member-of=istio-system
+If set, limit where istio-csr creates configmaps with root ca certificates. If unset, configmap created in ALL namespaces.  
+Example: maistra.io/member-of=istio-system
+
 
 </td>
-<td>unknown</td>
+<td>string</td>
 <td>
 
 ```yaml
@@ -859,7 +872,9 @@ resources:
 <td>affinity</td>
 <td>
 
-expects input structure as per specification https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#affinity-v1-core for example:
+Expects input structure as per specification https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#affinity-v1-core  
+  
+For example:
 
 ```yaml
 affinity:
@@ -888,7 +903,9 @@ affinity:
 <td>tolerations</td>
 <td>
 
-expects input structure as per specification https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#toleration-v1-core for example:
+Expects input structure as per specification https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#toleration-v1-core  
+  
+For example:
 
 ```yaml
 tolerations:
