@@ -4,10 +4,10 @@ name: cert-manager-istio-csr
 type: application
 description: istio-csr enables the use of cert-manager for issuing certificates in Istio service meshes
 
-home: https://github.com/cert-manager/istio-csr
+home: https://cert-manager.io/docs/usage/istio-csr/
 maintainers:
 - name: cert-manager-maintainers
-  email: cert-manager-maintainers@googlegroups.com
+  email: cert-manager-dev@googlegroups.com
   url: https://cert-manager.io
 sources:
 - https://github.com/cert-manager/istio-csr
