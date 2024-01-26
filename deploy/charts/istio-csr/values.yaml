@@ -2,11 +2,20 @@
 replicaCount: 1
 
 image:
-  # -- Target image repository.
+  # Target image repository.
   repository: quay.io/jetstack/cert-manager-istio-csr
-  # -- Target image version tag.
-  tag: v0.7.1
-  # -- Kubernetes imagePullPolicy on Deployment.
+  # Target image registry. Will be prepended to the target image repository if set.
+  registry:
+
+  # Target image version tag. Defaults to the chart's appVersion.
+  tag:
+
+  # Target image digest. Will override any tag if set.
+  # For example:
+  # digest: sha256:0e072dddd1f7f8fc8909a2ca6f65e76c5f0d2fcfb8be47935ae3457e8bbceb20
+  digest:
+
+  # Kubernetes imagePullPolicy on Deployment.
   pullPolicy: IfNotPresent
 
 # -- Optional secrets used for pulling the istio-csr container image.

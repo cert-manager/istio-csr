@@ -34,7 +34,7 @@ spec:
       {{- end }}
       containers:
       - name: {{ include "cert-manager-istio-csr.name" . }}
-        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        image: "{{ template "image" (tuple .Values.image $.Chart.AppVersion) }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         ports:
         - containerPort: {{ .Values.app.server.serving.port }}
