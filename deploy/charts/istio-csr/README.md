@@ -550,6 +550,23 @@ https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf
 </tr>
 <tr>
 
+<td>app.tls.istiodAdditionalDNSNames</td>
+<td>
+
+Provide additional DNS names to request on the istiod certificate. Useful if istiod should be accessible via multiple DNS names and/or outside of the cluster.
+
+</td>
+<td>array</td>
+<td>
+
+```yaml
+[]
+```
+
+</td>
+</tr>
+<tr>
+
 <td>app.tls.istiodCertificateDuration</td>
 <td>
 

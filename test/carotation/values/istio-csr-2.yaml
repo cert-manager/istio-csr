@@ -21,6 +21,8 @@ app:
     trustDomain: foo.bar
     rootCAFile: /var/run/secrets/istio-csr/ca.pem
     certificateDuration: 20s
+    istiodAdditionalDNSNames:
+    - istiod.istio-system.svc.cluster.local
 
 volumes:
 - name: istio-root-certs

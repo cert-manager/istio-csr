@@ -106,6 +106,9 @@ app:
     # Based on NIST 800-204A recommendations (SM-DR13).
     # https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf
     certificateDuration: 1h
+    # Provide additional DNS names to request on the istiod certificate. Useful if istiod 
+    # should be accessible via multiple DNS names and/or outside of the cluster.
+    istiodAdditionalDNSNames: []
     # Requested duration of istio's Certificate. Will be automatically
     # renewed.
     # Based on NIST 800-204A recommendations (SM-DR13).

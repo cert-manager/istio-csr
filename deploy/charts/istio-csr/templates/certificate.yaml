@@ -29,6 +29,11 @@ spec:
   {{- else }}
   - istiod.{{ .Values.app.istio.namespace }}.svc
   {{- end }}
+  {{- if .Values.app.tls.istiodAdditionalDNSNames }}
+  {{- range .Values.app.tls.istiodAdditionalDNSNames }}
+  - {{ . }}
+  {{- end }}
+  {{- end }}
   uris:
   - spiffe://{{.Values.app.tls.trustDomain}}/ns/{{ .Values.app.istio.namespace }}/sa/istiod-service-account
   secretName: istiod-tls
