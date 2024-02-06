@@ -18,86 +18,39 @@ istio-csr enables the use of cert-manager for issuing certificates in Istio serv
 
 <!-- AUTO-GENERATED -->
 
-
-<table>
-<tr>
-<th>Property</th>
-<th>Description</th>
-<th>Type</th>
-<th>Default</th>
-</tr>
-<tr>
-
-<td>replicaCount</td>
-<td>
+#### **replicaCount** ~ `number`
+> Default value:
+> ```yaml
+> 1
+> ```
 
 Number of replicas of istio-csr to run.
-
-</td>
-<td>number</td>
-<td>
-
-```yaml
-1
-```
-
-</td>
-</tr>
-<tr>
-
-<td>image.repository</td>
-<td>
+#### **image.repository** ~ `string`
+> Default value:
+> ```yaml
+> quay.io/jetstack/cert-manager-istio-csr
+> ```
 
 Target image repository.
-
-</td>
-<td>string</td>
-<td>
-
-```yaml
-quay.io/jetstack/cert-manager-istio-csr
-```
-
-</td>
-</tr>
-<tr>
-
-<td>image.registry</td>
-<td>
+#### **image.registry** ~ `unknown`
+> Default value:
+> ```yaml
+> null
+> ```
 
 Target image registry. Will be prepended to the target image repository if set.
-
-</td>
-<td>unknown</td>
-<td>
-
-```yaml
-null
-```
-
-</td>
-</tr>
-<tr>
-
-<td>image.tag</td>
-<td>
+#### **image.tag** ~ `unknown`
+> Default value:
+> ```yaml
+> null
+> ```
 
 Target image version tag. Defaults to the chart's appVersion.
-
-</td>
-<td>unknown</td>
-<td>
-
-```yaml
-null
-```
-
-</td>
-</tr>
-<tr>
-
-<td>image.digest</td>
-<td>
+#### **image.digest** ~ `unknown`
+> Default value:
+> ```yaml
+> null
+> ```
 
 Target image digest. Will override any tag if set.  
 For example:
@@ -105,310 +58,130 @@ For example:
 ```yaml
 digest: sha256:0e072dddd1f7f8fc8909a2ca6f65e76c5f0d2fcfb8be47935ae3457e8bbceb20
 ```
-
-</td>
-<td>unknown</td>
-<td>
-
-```yaml
-null
-```
-
-</td>
-</tr>
-<tr>
-
-<td>image.pullPolicy</td>
-<td>
+#### **image.pullPolicy** ~ `string`
+> Default value:
+> ```yaml
+> IfNotPresent
+> ```
 
 Kubernetes imagePullPolicy on Deployment.
-
-</td>
-<td>string</td>
-<td>
-
-```yaml
-IfNotPresent
-```
-
-</td>
-</tr>
-<tr>
-
-<td>imagePullSecrets</td>
-<td>
+#### **imagePullSecrets** ~ `array`
+> Default value:
+> ```yaml
+> []
+> ```
 
 Optional secrets used for pulling the istio-csr container image.
-
-</td>
-<td>array</td>
-<td>
-
-```yaml
-[]
-```
-
-</td>
-</tr>
-<tr>
-
-<td>service.type</td>
-<td>
+#### **service.type** ~ `string`
+> Default value:
+> ```yaml
+> ClusterIP
+> ```
 
 Service type to expose istio-csr gRPC service.
-
-</td>
-<td>string</td>
-<td>
-
-```yaml
-ClusterIP
-```
-
-</td>
-</tr>
-<tr>
-
-<td>service.port</td>
-<td>
+#### **service.port** ~ `number`
+> Default value:
+> ```yaml
+> 443
+> ```
 
 Service port to expose istio-csr gRPC service.
-
-</td>
-<td>number</td>
-<td>
-
-```yaml
-443
-```
-
-</td>
-</tr>
-<tr>
-
-<td>app.logLevel</td>
-<td>
+#### **app.logLevel** ~ `number`
+> Default value:
+> ```yaml
+> 1
+> ```
 
 Verbosity of istio-csr logging.
-
-</td>
-<td>number</td>
-<td>
-
-```yaml
-1
-```
-
-</td>
-</tr>
-<tr>
-
-<td>app.metrics.port</td>
-<td>
+#### **app.metrics.port** ~ `number`
+> Default value:
+> ```yaml
+> 9402
+> ```
 
 Port for exposing Prometheus metrics on 0.0.0.0 on path '/metrics'.
-
-</td>
-<td>number</td>
-<td>
-
-```yaml
-9402
-```
-
-</td>
-</tr>
-<tr>
-
-<td>app.metrics.service.enabled</td>
-<td>
+#### **app.metrics.service.enabled** ~ `bool`
+> Default value:
+> ```yaml
+> true
+> ```
 
 Create a Service resource to expose metrics endpoint.
-
-</td>
-<td>bool</td>
-<td>
-
-```yaml
-true
-```
-
-</td>
-</tr>
-<tr>
-
-<td>app.metrics.service.type</td>
-<td>
+#### **app.metrics.service.type** ~ `string`
+> Default value:
+> ```yaml
+> ClusterIP
+> ```
 
 Service type to expose metrics.
-
-</td>
-<td>string</td>
-<td>
-
-```yaml
-ClusterIP
-```
-
-</td>
-</tr>
-<tr>
-
-<td>app.metrics.service.servicemonitor.enabled</td>
-<td>
+#### **app.metrics.service.servicemonitor.enabled** ~ `bool`
+> Default value:
+> ```yaml
+> false
+> ```
 
 Create Prometheus ServiceMonitor resource for approver-policy.
-
-</td>
-<td>bool</td>
-<td>
-
-```yaml
-false
-```
-
-</td>
-</tr>
-<tr>
-
-<td>app.metrics.service.servicemonitor.prometheusInstance</td>
-<td>
+#### **app.metrics.service.servicemonitor.prometheusInstance** ~ `string`
+> Default value:
+> ```yaml
+> default
+> ```
 
 The value for the "prometheus" label on the ServiceMonitor. This allows for multiple Prometheus instances selecting difference ServiceMonitors using label selectors.
-
-</td>
-<td>string</td>
-<td>
-
-```yaml
-default
-```
-
-</td>
-</tr>
-<tr>
-
-<td>app.metrics.service.servicemonitor.interval</td>
-<td>
+#### **app.metrics.service.servicemonitor.interval** ~ `string`
+> Default value:
+> ```yaml
+> 10s
+> ```
 
 The interval that the Prometheus will scrape for metrics.
-
-</td>
-<td>string</td>
-<td>
-
-```yaml
-10s
-```
-
-</td>
-</tr>
-<tr>
-
-<td>app.metrics.service.servicemonitor.scrapeTimeout</td>
-<td>
+#### **app.metrics.service.servicemonitor.scrapeTimeout** ~ `string`
+> Default value:
+> ```yaml
+> 5s
+> ```
 
 The timeout on each metric probe request.
-
-</td>
-<td>string</td>
-<td>
-
-```yaml
-5s
-```
-
-</td>
-</tr>
-<tr>
-
-<td>app.metrics.service.servicemonitor.labels</td>
-<td>
+#### **app.metrics.service.servicemonitor.labels** ~ `object`
+> Default value:
+> ```yaml
+> {}
+> ```
 
 Additional labels to give the ServiceMonitor resource.
-
-</td>
-<td>object</td>
-<td>
-
-```yaml
-{}
-```
-
-</td>
-</tr>
-<tr>
-
-<td>app.readinessProbe.port</td>
-<td>
+#### **app.readinessProbe.port** ~ `number`
+> Default value:
+> ```yaml
+> 6060
+> ```
 
 Container port to expose istio-csr HTTP readiness probe on default network interface.
-
-</td>
-<td>number</td>
-<td>
-
-```yaml
-6060
-```
-
-</td>
-</tr>
-<tr>
-
-<td>app.readinessProbe.path</td>
-<td>
+#### **app.readinessProbe.path** ~ `string`
+> Default value:
+> ```yaml
+> /readyz
+> ```
 
 Path to expose istio-csr HTTP readiness probe on default network interface.
-
-</td>
-<td>string</td>
-<td>
-
-```yaml
-/readyz
-```
-
-</td>
-</tr>
-<tr>
-
-<td>app.certmanager.namespace</td>
-<td>
+#### **app.certmanager.namespace** ~ `string`
+> Default value:
+> ```yaml
+> istio-system
+> ```
 
 Namespace to create CertificateRequests for both istio-csr's serving certificate and incoming gRPC CSRs.
-
-</td>
-<td>string</td>
-<td>
-
-```yaml
-istio-system
-```
-
-</td>
-</tr>
-<tr>
-
-<td>app.certmanager.preserveCertificateRequests</td>
-<td>
+#### **app.certmanager.preserveCertificateRequests** ~ `bool`
+> Default value:
+> ```yaml
+> false
+> ```
 
 Don't delete created CertificateRequests once they have been signed. WARNING: do not enable this option in production, or environments with any non-trivial number of workloads for an extended period of time. Doing so will balloon the resource consumption of both ETCD and the API server, leading to errors and slow down. This option is intended for debugging purposes only, for limited periods of time.
-
-</td>
-<td>bool</td>
-<td>
-
-```yaml
-false
-```
-
-</td>
-</tr>
-<tr>
-
-<td>app.certmanager.additionalAnnotations</td>
-<td>
+#### **app.certmanager.additionalAnnotations** ~ `array`
+> Default value:
+> ```yaml
+> []
+> ```
 
 Additional annotations to include on certificate requests.  
 Takes key/value pairs in the format:
@@ -418,395 +191,165 @@ additionalAnnotations:
   - name: custom.cert-manager.io/policy-name
     value: istio-csr
 ```
-
-</td>
-<td>array</td>
-<td>
-
-```yaml
-[]
-```
-
-</td>
-</tr>
-<tr>
-
-<td>app.certmanager.issuer.name</td>
-<td>
+#### **app.certmanager.issuer.name** ~ `string`
+> Default value:
+> ```yaml
+> istio-ca
+> ```
 
 Issuer name set on created CertificateRequests for both istio-csr's serving certificate and incoming gRPC CSRs.
-
-</td>
-<td>string</td>
-<td>
-
-```yaml
-istio-ca
-```
-
-</td>
-</tr>
-<tr>
-
-<td>app.certmanager.issuer.kind</td>
-<td>
+#### **app.certmanager.issuer.kind** ~ `string`
+> Default value:
+> ```yaml
+> Issuer
+> ```
 
 Issuer kind set on created CertificateRequests for both istio-csr's serving certificate and incoming gRPC CSRs.
-
-</td>
-<td>string</td>
-<td>
-
-```yaml
-Issuer
-```
-
-</td>
-</tr>
-<tr>
-
-<td>app.certmanager.issuer.group</td>
-<td>
+#### **app.certmanager.issuer.group** ~ `string`
+> Default value:
+> ```yaml
+> cert-manager.io
+> ```
 
 Issuer group name set on created CertificateRequests for both istio-csr's serving certificate and incoming gRPC CSRs.
-
-</td>
-<td>string</td>
-<td>
-
-```yaml
-cert-manager.io
-```
-
-</td>
-</tr>
-<tr>
-
-<td>app.tls.trustDomain</td>
-<td>
+#### **app.tls.trustDomain** ~ `string`
+> Default value:
+> ```yaml
+> cluster.local
+> ```
 
 The Istio cluster's trust domain.
-
-</td>
-<td>string</td>
-<td>
-
-```yaml
-cluster.local
-```
-
-</td>
-</tr>
-<tr>
-
-<td>app.tls.rootCAFile</td>
-<td>
+#### **app.tls.rootCAFile** ~ `unknown`
+> Default value:
+> ```yaml
+> null
+> ```
 
 An optional file location to a PEM encoded root CA that the root CA. ConfigMap in all namespaces will be populated with. If empty, the CA returned from cert-manager for the serving certificate will be used.
-
-</td>
-<td>unknown</td>
-<td>
-
-```yaml
-null
-```
-
-</td>
-</tr>
-<tr>
-
-<td>app.tls.certificateDNSNames[0]</td>
-<td>
-
-</td>
-<td>string</td>
-<td>
-
-```yaml
-cert-manager-istio-csr.cert-manager.svc
-```
-
-</td>
-</tr>
-<tr>
-
-<td>app.tls.certificateDuration</td>
-<td>
+#### **app.tls.certificateDNSNames[0]** ~ `string`
+> Default value:
+> ```yaml
+> cert-manager-istio-csr.cert-manager.svc
+> ```
+#### **app.tls.certificateDuration** ~ `string`
+> Default value:
+> ```yaml
+> 1h
+> ```
 
 Requested duration of gRPC serving certificate. Will be automatically renewed.  
 Based on NIST 800-204A recommendations (SM-DR13).  
 https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf
-
-</td>
-<td>string</td>
-<td>
-
-```yaml
-1h
-```
-
-</td>
-</tr>
-<tr>
-
-<td>app.tls.istiodAdditionalDNSNames</td>
-<td>
+#### **app.tls.istiodAdditionalDNSNames** ~ `array`
+> Default value:
+> ```yaml
+> []
+> ```
 
 Provide additional DNS names to request on the istiod certificate. Useful if istiod should be accessible via multiple DNS names and/or outside of the cluster.
-
-</td>
-<td>array</td>
-<td>
-
-```yaml
-[]
-```
-
-</td>
-</tr>
-<tr>
-
-<td>app.tls.istiodCertificateDuration</td>
-<td>
+#### **app.tls.istiodCertificateDuration** ~ `string`
+> Default value:
+> ```yaml
+> 1h
+> ```
 
 Requested duration of istio's Certificate. Will be automatically renewed.  
 Based on NIST 800-204A recommendations (SM-DR13).  
 https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf. Warning: cert-manager does not allow a duration on Certificates less than 1 hour.
-
-</td>
-<td>string</td>
-<td>
-
-```yaml
-1h
-```
-
-</td>
-</tr>
-<tr>
-
-<td>app.tls.istiodCertificateRenewBefore</td>
-<td>
-
-</td>
-<td>string</td>
-<td>
-
-```yaml
-30m
-```
-
-</td>
-</tr>
-<tr>
-
-<td>app.tls.istiodCertificateEnable</td>
-<td>
+#### **app.tls.istiodCertificateRenewBefore** ~ `string`
+> Default value:
+> ```yaml
+> 30m
+> ```
+#### **app.tls.istiodCertificateEnable** ~ `bool`
+> Default value:
+> ```yaml
+> true
+> ```
 
 Create the default certificate as part of install.
-
-</td>
-<td>bool</td>
-<td>
-
-```yaml
-true
-```
-
-</td>
-</tr>
-<tr>
-
-<td>app.tls.istiodPrivateKeySize</td>
-<td>
+#### **app.tls.istiodPrivateKeySize** ~ `number`
+> Default value:
+> ```yaml
+> 2048
+> ```
 
 Number of bits to use for istiod-tls RSAKey
-
-</td>
-<td>number</td>
-<td>
-
-```yaml
-2048
-```
-
-</td>
-</tr>
-<tr>
-
-<td>app.server.clusterID</td>
-<td>
+#### **app.server.clusterID** ~ `string`
+> Default value:
+> ```yaml
+> Kubernetes
+> ```
 
 The istio cluster ID to verify incoming CSRs.
-
-</td>
-<td>string</td>
-<td>
-
-```yaml
-Kubernetes
-```
-
-</td>
-</tr>
-<tr>
-
-<td>app.server.maxCertificateDuration</td>
-<td>
+#### **app.server.maxCertificateDuration** ~ `string`
+> Default value:
+> ```yaml
+> 1h
+> ```
 
 Maximum validity duration that can be requested for a certificate. istio-csr will request a duration of the smaller of this value, and that of the incoming gRPC CSR.  
 Based on NIST 800-204A recommendations (SM-DR13).  
 https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf
-
-</td>
-<td>string</td>
-<td>
-
-```yaml
-1h
-```
-
-</td>
-</tr>
-<tr>
-
-<td>app.server.serving.address</td>
-<td>
+#### **app.server.serving.address** ~ `string`
+> Default value:
+> ```yaml
+> 0.0.0.0
+> ```
 
 Container address to serve istio-csr gRPC service.
-
-</td>
-<td>string</td>
-<td>
-
-```yaml
-0.0.0.0
-```
-
-</td>
-</tr>
-<tr>
-
-<td>app.server.serving.port</td>
-<td>
+#### **app.server.serving.port** ~ `number`
+> Default value:
+> ```yaml
+> 6443
+> ```
 
 Container port to serve istio-csr gRPC service.
-
-</td>
-<td>number</td>
-<td>
-
-```yaml
-6443
-```
-
-</td>
-</tr>
-<tr>
-
-<td>app.server.serving.certificateKeySize</td>
-<td>
+#### **app.server.serving.certificateKeySize** ~ `number`
+> Default value:
+> ```yaml
+> 2048
+> ```
 
 Number of bits to use for the server's serving certificate (RSAKeySize).
-
-</td>
-<td>number</td>
-<td>
-
-```yaml
-2048
-```
-
-</td>
-</tr>
-<tr>
-
-<td>app.server.serving.signatureAlgorithm</td>
-<td>
+#### **app.server.serving.signatureAlgorithm** ~ `string`
+> Default value:
+> ```yaml
+> RSA
+> ```
 
 The type of signature algorithm to use when generating private keys. Currently only RSA and ECDSA are supported. By default RSA is used.
-
-</td>
-<td>string</td>
-<td>
-
-```yaml
-RSA
-```
-
-</td>
-</tr>
-<tr>
-
-<td>app.istio.revisions[0]</td>
-<td>
-
-</td>
-<td>string</td>
-<td>
-
-```yaml
-default
-```
-
-</td>
-</tr>
-<tr>
-
-<td>app.istio.namespace</td>
-<td>
+#### **app.istio.revisions[0]** ~ `string`
+> Default value:
+> ```yaml
+> default
+> ```
+#### **app.istio.namespace** ~ `string`
+> Default value:
+> ```yaml
+> istio-system
+> ```
 
 The namespace where the istio control-plane is running.
-
-</td>
-<td>string</td>
-<td>
-
-```yaml
-istio-system
-```
-
-</td>
-</tr>
-<tr>
-
-<td>app.controller.leaderElectionNamespace</td>
-<td>
-
-</td>
-<td>string</td>
-<td>
-
-```yaml
-istio-system
-```
-
-</td>
-</tr>
-<tr>
-
-<td>app.controller.configmapNamespaceSelector</td>
-<td>
+#### **app.controller.leaderElectionNamespace** ~ `string`
+> Default value:
+> ```yaml
+> istio-system
+> ```
+#### **app.controller.configmapNamespaceSelector** ~ `string`
+> Default value:
+> ```yaml
+> null
+> ```
 
 If set, limit where istio-csr creates configmaps with root ca certificates. If unset, configmap created in ALL namespaces.  
 Example: maistra.io/member-of=istio-system
 
-
-</td>
-<td>string</td>
-<td>
-
-```yaml
-null
-```
-
-</td>
-</tr>
-<tr>
-
-<td>volumes</td>
-<td>
+#### **volumes** ~ `array`
+> Default value:
+> ```yaml
+> []
+> ```
 
 Optional extra volumes. Useful for mounting custom root CAs  
   
@@ -818,21 +361,11 @@ volumes:
   secret:
     secretName: root-cert
 ```
-
-</td>
-<td>array</td>
-<td>
-
-```yaml
-[]
-```
-
-</td>
-</tr>
-<tr>
-
-<td>volumeMounts</td>
-<td>
+#### **volumeMounts** ~ `array`
+> Default value:
+> ```yaml
+> []
+> ```
 
 Optional extra volume mounts. Useful for mounting custom root CAs  
   
@@ -843,21 +376,11 @@ volumeMounts:
 - name: root-ca
   mountPath: /etc/tls
 ```
-
-</td>
-<td>array</td>
-<td>
-
-```yaml
-[]
-```
-
-</td>
-</tr>
-<tr>
-
-<td>resources</td>
-<td>
+#### **resources** ~ `object`
+> Default value:
+> ```yaml
+> {}
+> ```
 
 Kubernetes pod resources  
 ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/  
@@ -873,21 +396,11 @@ resources:
     cpu: 100m
     memory: 128Mi
 ```
-
-</td>
-<td>object</td>
-<td>
-
-```yaml
-{}
-```
-
-</td>
-</tr>
-<tr>
-
-<td>affinity</td>
-<td>
+#### **affinity** ~ `object`
+> Default value:
+> ```yaml
+> {}
+> ```
 
 Expects input structure as per specification https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#affinity-v1-core  
   
@@ -904,21 +417,11 @@ affinity:
          values:
          - master
 ```
-
-</td>
-<td>object</td>
-<td>
-
-```yaml
-{}
-```
-
-</td>
-</tr>
-<tr>
-
-<td>tolerations</td>
-<td>
+#### **tolerations** ~ `array`
+> Default value:
+> ```yaml
+> []
+> ```
 
 Expects input structure as per specification https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#toleration-v1-core  
   
@@ -931,32 +434,10 @@ tolerations:
   value: master
   effect: NoSchedule
 ```
-
-</td>
-<td>array</td>
-<td>
-
-```yaml
-[]
-```
-
-</td>
-</tr>
-<tr>
-
-<td>nodeSelector</td>
-<td>
-
-</td>
-<td>object</td>
-<td>
-
-```yaml
-{}
-```
-
-</td>
-</tr>
-</table>
+#### **nodeSelector** ~ `object`
+> Default value:
+> ```yaml
+> {}
+> ```
 
 <!-- /AUTO-GENERATED -->
