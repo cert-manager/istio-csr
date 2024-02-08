@@ -26,6 +26,10 @@ service:
   type: ClusterIP
   # Service port to expose istio-csr gRPC service.
   port: 443
+  # Service nodePort to expose istio-csr gRPC service.
+  # +docs:type=number
+  # +docs:property
+  # nodePort:
 
 app:
   # Verbosity of istio-csr logging.
@@ -160,7 +164,8 @@ app:
     # If set, limit where istio-csr creates configmaps with root ca certificates. If unset, configmap created in ALL namespaces.
     # Example: maistra.io/member-of=istio-system
     # +docs:type=string
-    configmapNamespaceSelector:
+    # +docs:property
+    # configmapNamespaceSelector:
 
 # Optional extra volumes. Useful for mounting custom root CAs
 #

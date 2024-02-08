@@ -74,6 +74,11 @@ Service type to expose istio-csr gRPC service.
 > ```
 
 Service port to expose istio-csr gRPC service.
+#### **service.nodePort** ~ `number`
+
+Service nodePort to expose istio-csr gRPC service.
+
+
 #### **app.logLevel** ~ `number`
 > Default value:
 > ```yaml
@@ -325,13 +330,10 @@ The namespace where the istio control-plane is running.
 > istio-system
 > ```
 #### **app.controller.configmapNamespaceSelector** ~ `string`
-> Default value:
-> ```yaml
-> null
-> ```
 
 If set, limit where istio-csr creates configmaps with root ca certificates. If unset, configmap created in ALL namespaces.  
 Example: maistra.io/member-of=istio-system
+
 
 #### **volumes** ~ `array`
 > Default value:
