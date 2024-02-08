@@ -74,9 +74,10 @@ Service type to expose istio-csr gRPC service.
 > ```
 
 Service port to expose istio-csr gRPC service.
-#### **service.nodePort** ~ `unknown`
+#### **service.nodePort** ~ `number`
 
 Service nodePort to expose istio-csr gRPC service.
+
 
 #### **app.logLevel** ~ `number`
 > Default value:

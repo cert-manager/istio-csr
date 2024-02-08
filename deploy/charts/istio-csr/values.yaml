@@ -27,6 +27,7 @@ service:
   # Service port to expose istio-csr gRPC service.
   port: 443
   # Service nodePort to expose istio-csr gRPC service.
+  # +docs:type=number
   # +docs:property
   # nodePort:
 
