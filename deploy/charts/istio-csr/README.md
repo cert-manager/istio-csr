@@ -1,20 +1,8 @@
-# cert-manager-istio-csr
+# istio-csr
 
-istio-csr enables the use of cert-manager for issuing certificates in Istio service meshes
+<!-- see https://artifacthub.io/packages/helm/cert-manager/cert-manager-istio-csr for the rendered version -->
 
-**Homepage:** <https://cert-manager.io/docs/usage/istio-csr/>
-
-## Maintainers
-
-| Name | Email | Url |
-| ---- | ------ | --- |
-| cert-manager-maintainers | <cert-manager-dev@googlegroups.com> | <https://cert-manager.io> |
-
-## Source Code
-
-* <https://github.com/cert-manager/istio-csr>
-
-## Values
+## Helm Values
 
 <!-- AUTO-GENERATED -->
 
