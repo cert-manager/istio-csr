@@ -335,6 +335,20 @@ If set, limit where istio-csr creates configmaps with root ca certificates. If u
 Example: maistra.io/member-of=istio-system
 
 
+#### **podLabels** ~ `object`
+> Default value:
+> ```yaml
+> {}
+> ```
+
+pass in extra labels to pods
+#### **podAnnotations** ~ `object`
+> Default value:
+> ```yaml
+> {}
+> ```
+
+pass in extra annotations to pods
 #### **volumes** ~ `array`
 > Default value:
 > ```yaml
