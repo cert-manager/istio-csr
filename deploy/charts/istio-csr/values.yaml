@@ -167,6 +167,11 @@ app:
     # +docs:property
     # configmapNamespaceSelector:
 
+# pass in extra labels to pods
+podLabels: {}
+
+# pass in extra annotations to pods
+podAnnotations: {}
 # Optional extra volumes. Useful for mounting custom root CAs
 #
 # For example:
