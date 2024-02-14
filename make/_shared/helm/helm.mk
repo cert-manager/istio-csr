@@ -98,6 +98,16 @@ generate-helm-schema: | $(NEEDS_HELM-TOOL) $(NEEDS_GOJQ)
 shared_generate_targets += generate-helm-schema
 endif
 
+ifdef helm_verify_values
+.PHONY: verify-helm-values
+## Verify Helm chart values using helm-tool.
+## @category [shared] Generate/ Verify
+verify-helm-values: | $(NEEDS_HELM-TOOL) $(NEEDS_GOJQ)
+	$(HELM-TOOL) lint -i $(helm_chart_source_dir)/values.yaml -d $(helm_chart_source_dir)/templates -e $(helm_chart_source_dir)/values.linter.exceptions
+
+shared_verify_targets += verify-helm-values
+endif
+
 .PHONY: verify-pod-security-standards
 ## Verify that the Helm chart complies with the pod security standards.
 ## @category [shared] Generate/ Verify
