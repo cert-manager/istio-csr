@@ -33,6 +33,7 @@ deploy_namespace := cert-manager
 helm_chart_source_dir := deploy/charts/istio-csr
 helm_chart_name := cert-manager-istio-csr
 helm_chart_version := $(VERSION)
+helm_labels_template_name := cert-manager-istio-csr.labels
 helm_docs_use_helm_tool := 1
 
 define helm_values_mutation_function
