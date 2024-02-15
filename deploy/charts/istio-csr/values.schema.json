@@ -1,0 +1,560 @@
+{
+  "$defs": {
+    "helm-values": {
+      "additionalProperties": false,
+      "properties": {
+        "affinity": {
+          "$ref": "#/$defs/helm-values.affinity"
+        },
+        "app": {
+          "$ref": "#/$defs/helm-values.app"
+        },
+        "image": {
+          "$ref": "#/$defs/helm-values.image"
+        },
+        "imagePullSecrets": {
+          "$ref": "#/$defs/helm-values.imagePullSecrets"
+        },
+        "nodeSelector": {
+          "$ref": "#/$defs/helm-values.nodeSelector"
+        },
+        "replicaCount": {
+          "$ref": "#/$defs/helm-values.replicaCount"
+        },
+        "resources": {
+          "$ref": "#/$defs/helm-values.resources"
+        },
+        "service": {
+          "$ref": "#/$defs/helm-values.service"
+        },
+        "tolerations": {
+          "$ref": "#/$defs/helm-values.tolerations"
+        },
+        "volumeMounts": {
+          "$ref": "#/$defs/helm-values.volumeMounts"
+        },
+        "volumes": {
+          "$ref": "#/$defs/helm-values.volumes"
+        }
+      },
+      "type": "object"
+    },
+    "helm-values.affinity": {
+      "default": {},
+      "description": "Expects input structure as per specification https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#affinity-v1-core\n\nFor example:\naffinity:\n  nodeAffinity:\n   requiredDuringSchedulingIgnoredDuringExecution:\n     nodeSelectorTerms:\n     - matchExpressions:\n       - key: foo.bar.com/role\n         operator: In\n         values:\n         - master",
+      "type": "object"
+    },
+    "helm-values.app": {
+      "additionalProperties": false,
+      "properties": {
+        "certmanager": {
+          "$ref": "#/$defs/helm-values.app.certmanager"
+        },
+        "controller": {
+          "$ref": "#/$defs/helm-values.app.controller"
+        },
+        "istio": {
+          "$ref": "#/$defs/helm-values.app.istio"
+        },
+        "logLevel": {
+          "$ref": "#/$defs/helm-values.app.logLevel"
+        },
+        "metrics": {
+          "$ref": "#/$defs/helm-values.app.metrics"
+        },
+        "readinessProbe": {
+          "$ref": "#/$defs/helm-values.app.readinessProbe"
+        },
+        "server": {
+          "$ref": "#/$defs/helm-values.app.server"
+        },
+        "tls": {
+          "$ref": "#/$defs/helm-values.app.tls"
+        }
+      },
+      "type": "object"
+    },
+    "helm-values.app.certmanager": {
+      "additionalProperties": false,
+      "properties": {
+        "additionalAnnotations": {
+          "$ref": "#/$defs/helm-values.app.certmanager.additionalAnnotations"
+        },
+        "issuer": {
+          "$ref": "#/$defs/helm-values.app.certmanager.issuer"
+        },
+        "namespace": {
+          "$ref": "#/$defs/helm-values.app.certmanager.namespace"
+        },
+        "preserveCertificateRequests": {
+          "$ref": "#/$defs/helm-values.app.certmanager.preserveCertificateRequests"
+        }
+      },
+      "type": "object"
+    },
+    "helm-values.app.certmanager.additionalAnnotations": {
+      "default": [],
+      "description": "Additional annotations to include on certificate requests.\nTakes key/value pairs in the format:\nadditionalAnnotations:\n  - name: custom.cert-manager.io/policy-name\n    value: istio-csr",
+      "items": {},
+      "type": "array"
+    },
+    "helm-values.app.certmanager.issuer": {
+      "additionalProperties": false,
+      "properties": {
+        "group": {
+          "$ref": "#/$defs/helm-values.app.certmanager.issuer.group"
+        },
+        "kind": {
+          "$ref": "#/$defs/helm-values.app.certmanager.issuer.kind"
+        },
+        "name": {
+          "$ref": "#/$defs/helm-values.app.certmanager.issuer.name"
+        }
+      },
+      "type": "object"
+    },
+    "helm-values.app.certmanager.issuer.group": {
+      "default": "cert-manager.io",
+      "description": "Issuer group name set on created CertificateRequests for both istio-csr's serving certificate and incoming gRPC CSRs.",
+      "type": "string"
+    },
+    "helm-values.app.certmanager.issuer.kind": {
+      "default": "Issuer",
+      "description": "Issuer kind set on created CertificateRequests for both istio-csr's serving certificate and incoming gRPC CSRs.",
+      "type": "string"
+    },
+    "helm-values.app.certmanager.issuer.name": {
+      "default": "istio-ca",
+      "description": "Issuer name set on created CertificateRequests for both istio-csr's serving certificate and incoming gRPC CSRs.",
+      "type": "string"
+    },
+    "helm-values.app.certmanager.namespace": {
+      "default": "istio-system",
+      "description": "Namespace to create CertificateRequests for both istio-csr's serving certificate and incoming gRPC CSRs.",
+      "type": "string"
+    },
+    "helm-values.app.certmanager.preserveCertificateRequests": {
+      "default": false,
+      "description": "Don't delete created CertificateRequests once they have been signed. WARNING: do not enable this option in production, or environments with any non-trivial number of workloads for an extended period of time. Doing so will balloon the resource consumption of both ETCD and the API server, leading to errors and slow down. This option is intended for debugging purposes only, for limited periods of time.",
+      "type": "boolean"
+    },
+    "helm-values.app.controller": {
+      "additionalProperties": false,
+      "properties": {
+        "configmapNamespaceSelector": {
+          "$ref": "#/$defs/helm-values.app.controller.configmapNamespaceSelector"
+        },
+        "leaderElectionNamespace": {
+          "$ref": "#/$defs/helm-values.app.controller.leaderElectionNamespace"
+        }
+      },
+      "type": "object"
+    },
+    "helm-values.app.controller.configmapNamespaceSelector": {
+      "description": "If set, limit where istio-csr creates configmaps with root ca certificates. If unset, configmap created in ALL namespaces.\nExample: maistra.io/member-of=istio-system",
+      "type": "string"
+    },
+    "helm-values.app.controller.leaderElectionNamespace": {
+      "default": "istio-system",
+      "type": "string"
+    },
+    "helm-values.app.istio": {
+      "additionalProperties": false,
+      "properties": {
+        "namespace": {
+          "$ref": "#/$defs/helm-values.app.istio.namespace"
+        },
+        "revisions": {
+          "$ref": "#/$defs/helm-values.app.istio.revisions"
+        }
+      },
+      "type": "object"
+    },
+    "helm-values.app.istio.namespace": {
+      "default": "istio-system",
+      "description": "The namespace where the istio control-plane is running.",
+      "type": "string"
+    },
+    "helm-values.app.istio.revisions": {
+      "items": {
+        "$ref": "#/$defs/helm-values.app.istio.revisions[0]"
+      },
+      "type": "array"
+    },
+    "helm-values.app.istio.revisions[0]": {
+      "default": "default",
+      "type": "string"
+    },
+    "helm-values.app.logLevel": {
+      "default": 1,
+      "description": "Verbosity of istio-csr logging.",
+      "type": "number"
+    },
+    "helm-values.app.metrics": {
+      "additionalProperties": false,
+      "properties": {
+        "port": {
+          "$ref": "#/$defs/helm-values.app.metrics.port"
+        },
+        "service": {
+          "$ref": "#/$defs/helm-values.app.metrics.service"
+        }
+      },
+      "type": "object"
+    },
+    "helm-values.app.metrics.port": {
+      "default": 9402,
+      "description": "Port for exposing Prometheus metrics on 0.0.0.0 on path '/metrics'.",
+      "type": "number"
+    },
+    "helm-values.app.metrics.service": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "$ref": "#/$defs/helm-values.app.metrics.service.enabled"
+        },
+        "servicemonitor": {
+          "$ref": "#/$defs/helm-values.app.metrics.service.servicemonitor"
+        },
+        "type": {
+          "$ref": "#/$defs/helm-values.app.metrics.service.type"
+        }
+      },
+      "type": "object"
+    },
+    "helm-values.app.metrics.service.enabled": {
+      "default": true,
+      "description": "Create a Service resource to expose metrics endpoint.",
+      "type": "boolean"
+    },
+    "helm-values.app.metrics.service.servicemonitor": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "$ref": "#/$defs/helm-values.app.metrics.service.servicemonitor.enabled"
+        },
+        "interval": {
+          "$ref": "#/$defs/helm-values.app.metrics.service.servicemonitor.interval"
+        },
+        "labels": {
+          "$ref": "#/$defs/helm-values.app.metrics.service.servicemonitor.labels"
+        },
+        "prometheusInstance": {
+          "$ref": "#/$defs/helm-values.app.metrics.service.servicemonitor.prometheusInstance"
+        },
+        "scrapeTimeout": {
+          "$ref": "#/$defs/helm-values.app.metrics.service.servicemonitor.scrapeTimeout"
+        }
+      },
+      "type": "object"
+    },
+    "helm-values.app.metrics.service.servicemonitor.enabled": {
+      "default": false,
+      "description": "Create Prometheus ServiceMonitor resource for approver-policy.",
+      "type": "boolean"
+    },
+    "helm-values.app.metrics.service.servicemonitor.interval": {
+      "default": "10s",
+      "description": "The interval that the Prometheus will scrape for metrics.",
+      "type": "string"
+    },
+    "helm-values.app.metrics.service.servicemonitor.labels": {
+      "default": {},
+      "description": "Additional labels to give the ServiceMonitor resource.",
+      "type": "object"
+    },
+    "helm-values.app.metrics.service.servicemonitor.prometheusInstance": {
+      "default": "default",
+      "description": "The value for the \"prometheus\" label on the ServiceMonitor. This allows for multiple Prometheus instances selecting difference ServiceMonitors using label selectors.",
+      "type": "string"
+    },
+    "helm-values.app.metrics.service.servicemonitor.scrapeTimeout": {
+      "default": "5s",
+      "description": "The timeout on each metric probe request.",
+      "type": "string"
+    },
+    "helm-values.app.metrics.service.type": {
+      "default": "ClusterIP",
+      "description": "Service type to expose metrics.",
+      "type": "string"
+    },
+    "helm-values.app.readinessProbe": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "$ref": "#/$defs/helm-values.app.readinessProbe.path"
+        },
+        "port": {
+          "$ref": "#/$defs/helm-values.app.readinessProbe.port"
+        }
+      },
+      "type": "object"
+    },
+    "helm-values.app.readinessProbe.path": {
+      "default": "/readyz",
+      "description": "Path to expose istio-csr HTTP readiness probe on default network interface.",
+      "type": "string"
+    },
+    "helm-values.app.readinessProbe.port": {
+      "default": 6060,
+      "description": "Container port to expose istio-csr HTTP readiness probe on default network interface.",
+      "type": "number"
+    },
+    "helm-values.app.server": {
+      "additionalProperties": false,
+      "properties": {
+        "clusterID": {
+          "$ref": "#/$defs/helm-values.app.server.clusterID"
+        },
+        "maxCertificateDuration": {
+          "$ref": "#/$defs/helm-values.app.server.maxCertificateDuration"
+        },
+        "serving": {
+          "$ref": "#/$defs/helm-values.app.server.serving"
+        }
+      },
+      "type": "object"
+    },
+    "helm-values.app.server.clusterID": {
+      "default": "Kubernetes",
+      "description": "The istio cluster ID to verify incoming CSRs.",
+      "type": "string"
+    },
+    "helm-values.app.server.maxCertificateDuration": {
+      "default": "1h",
+      "description": "Maximum validity duration that can be requested for a certificate. istio-csr will request a duration of the smaller of this value, and that of the incoming gRPC CSR.\nBased on NIST 800-204A recommendations (SM-DR13).\nhttps://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf",
+      "type": "string"
+    },
+    "helm-values.app.server.serving": {
+      "additionalProperties": false,
+      "properties": {
+        "address": {
+          "$ref": "#/$defs/helm-values.app.server.serving.address"
+        },
+        "certificateKeySize": {
+          "$ref": "#/$defs/helm-values.app.server.serving.certificateKeySize"
+        },
+        "port": {
+          "$ref": "#/$defs/helm-values.app.server.serving.port"
+        },
+        "signatureAlgorithm": {
+          "$ref": "#/$defs/helm-values.app.server.serving.signatureAlgorithm"
+        }
+      },
+      "type": "object"
+    },
+    "helm-values.app.server.serving.address": {
+      "default": "0.0.0.0",
+      "description": "Container address to serve istio-csr gRPC service.",
+      "type": "string"
+    },
+    "helm-values.app.server.serving.certificateKeySize": {
+      "default": 2048,
+      "description": "Number of bits to use for the server's serving certificate (RSAKeySize).",
+      "type": "number"
+    },
+    "helm-values.app.server.serving.port": {
+      "default": 6443,
+      "description": "Container port to serve istio-csr gRPC service.",
+      "type": "number"
+    },
+    "helm-values.app.server.serving.signatureAlgorithm": {
+      "default": "RSA",
+      "description": "The type of signature algorithm to use when generating private keys. Currently only RSA and ECDSA are supported. By default RSA is used.",
+      "type": "string"
+    },
+    "helm-values.app.tls": {
+      "additionalProperties": false,
+      "properties": {
+        "certificateDNSNames": {
+          "$ref": "#/$defs/helm-values.app.tls.certificateDNSNames"
+        },
+        "certificateDuration": {
+          "$ref": "#/$defs/helm-values.app.tls.certificateDuration"
+        },
+        "istiodAdditionalDNSNames": {
+          "$ref": "#/$defs/helm-values.app.tls.istiodAdditionalDNSNames"
+        },
+        "istiodCertificateDuration": {
+          "$ref": "#/$defs/helm-values.app.tls.istiodCertificateDuration"
+        },
+        "istiodCertificateEnable": {
+          "$ref": "#/$defs/helm-values.app.tls.istiodCertificateEnable"
+        },
+        "istiodCertificateRenewBefore": {
+          "$ref": "#/$defs/helm-values.app.tls.istiodCertificateRenewBefore"
+        },
+        "istiodPrivateKeySize": {
+          "$ref": "#/$defs/helm-values.app.tls.istiodPrivateKeySize"
+        },
+        "rootCAFile": {
+          "$ref": "#/$defs/helm-values.app.tls.rootCAFile"
+        },
+        "trustDomain": {
+          "$ref": "#/$defs/helm-values.app.tls.trustDomain"
+        }
+      },
+      "type": "object"
+    },
+    "helm-values.app.tls.certificateDNSNames": {
+      "items": {
+        "$ref": "#/$defs/helm-values.app.tls.certificateDNSNames[0]"
+      },
+      "type": "array"
+    },
+    "helm-values.app.tls.certificateDNSNames[0]": {
+      "default": "cert-manager-istio-csr.cert-manager.svc",
+      "type": "string"
+    },
+    "helm-values.app.tls.certificateDuration": {
+      "default": "1h",
+      "description": "Requested duration of gRPC serving certificate. Will be automatically renewed.\nBased on NIST 800-204A recommendations (SM-DR13).\nhttps://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf",
+      "type": "string"
+    },
+    "helm-values.app.tls.istiodAdditionalDNSNames": {
+      "default": [],
+      "description": "Provide additional DNS names to request on the istiod certificate. Useful if istiod should be accessible via multiple DNS names and/or outside of the cluster.",
+      "items": {},
+      "type": "array"
+    },
+    "helm-values.app.tls.istiodCertificateDuration": {
+      "default": "1h",
+      "description": "Requested duration of istio's Certificate. Will be automatically renewed.\nBased on NIST 800-204A recommendations (SM-DR13).\nhttps://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf. Warning: cert-manager does not allow a duration on Certificates less than 1 hour.",
+      "type": "string"
+    },
+    "helm-values.app.tls.istiodCertificateEnable": {
+      "default": true,
+      "description": "Create the default certificate as part of install.",
+      "type": "boolean"
+    },
+    "helm-values.app.tls.istiodCertificateRenewBefore": {
+      "default": "30m",
+      "type": "string"
+    },
+    "helm-values.app.tls.istiodPrivateKeySize": {
+      "default": 2048,
+      "description": "Number of bits to use for istiod-tls RSAKey",
+      "type": "number"
+    },
+    "helm-values.app.tls.rootCAFile": {
+      "description": "An optional file location to a PEM encoded root CA that the root CA. ConfigMap in all namespaces will be populated with. If empty, the CA returned from cert-manager for the serving certificate will be used."
+    },
+    "helm-values.app.tls.trustDomain": {
+      "default": "cluster.local",
+      "description": "The Istio cluster's trust domain.",
+      "type": "string"
+    },
+    "helm-values.image": {
+      "additionalProperties": false,
+      "properties": {
+        "digest": {
+          "$ref": "#/$defs/helm-values.image.digest"
+        },
+        "pullPolicy": {
+          "$ref": "#/$defs/helm-values.image.pullPolicy"
+        },
+        "registry": {
+          "$ref": "#/$defs/helm-values.image.registry"
+        },
+        "repository": {
+          "$ref": "#/$defs/helm-values.image.repository"
+        },
+        "tag": {
+          "$ref": "#/$defs/helm-values.image.tag"
+        }
+      },
+      "type": "object"
+    },
+    "helm-values.image.digest": {
+      "description": "Target image digest. Override any tag, if set.\nFor example:\ndigest: sha256:0e072dddd1f7f8fc8909a2ca6f65e76c5f0d2fcfb8be47935ae3457e8bbceb20",
+      "type": "string"
+    },
+    "helm-values.image.pullPolicy": {
+      "default": "IfNotPresent",
+      "description": "Kubernetes imagePullPolicy on Deployment.",
+      "type": "string"
+    },
+    "helm-values.image.registry": {
+      "description": "Target image registry. This value is prepended to the target image repository, if set.\nFor example:\nregistry: quay.io\nrepository: jetstack/cert-manager-istio-csr",
+      "type": "string"
+    },
+    "helm-values.image.repository": {
+      "default": "quay.io/jetstack/cert-manager-istio-csr",
+      "description": "Target image repository.",
+      "type": "string"
+    },
+    "helm-values.image.tag": {
+      "description": "Override the image tag to deploy by setting this variable. If no value is set, the chart's appVersion is used.",
+      "type": "string"
+    },
+    "helm-values.imagePullSecrets": {
+      "default": [],
+      "description": "Optional secrets used for pulling the istio-csr container image.",
+      "items": {},
+      "type": "array"
+    },
+    "helm-values.nodeSelector": {
+      "default": {},
+      "type": "object"
+    },
+    "helm-values.replicaCount": {
+      "default": 1,
+      "description": "Number of replicas of istio-csr to run.",
+      "type": "number"
+    },
+    "helm-values.resources": {
+      "default": {},
+      "description": "Kubernetes pod resources\nref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/\n\nFor example:\nresources:\n  limits:\n    cpu: 100m\n    memory: 128Mi\n  requests:\n    cpu: 100m\n    memory: 128Mi",
+      "type": "object"
+    },
+    "helm-values.service": {
+      "additionalProperties": false,
+      "properties": {
+        "nodePort": {
+          "$ref": "#/$defs/helm-values.service.nodePort"
+        },
+        "port": {
+          "$ref": "#/$defs/helm-values.service.port"
+        },
+        "type": {
+          "$ref": "#/$defs/helm-values.service.type"
+        }
+      },
+      "type": "object"
+    },
+    "helm-values.service.nodePort": {
+      "description": "Service nodePort to expose istio-csr gRPC service.",
+      "type": "number"
+    },
+    "helm-values.service.port": {
+      "default": 443,
+      "description": "Service port to expose istio-csr gRPC service.",
+      "type": "number"
+    },
+    "helm-values.service.type": {
+      "default": "ClusterIP",
+      "description": "Service type to expose istio-csr gRPC service.",
+      "type": "string"
+    },
+    "helm-values.tolerations": {
+      "default": [],
+      "description": "Expects input structure as per specification https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#toleration-v1-core\n\nFor example:\ntolerations:\n- key: foo.bar.com/role\n  operator: Equal\n  value: master\n  effect: NoSchedule",
+      "items": {},
+      "type": "array"
+    },
+    "helm-values.volumeMounts": {
+      "default": [],
+      "description": "Optional extra volume mounts. Useful for mounting custom root CAs\n\nFor example:\nvolumeMounts:\n- name: root-ca\n  mountPath: /etc/tls",
+      "items": {},
+      "type": "array"
+    },
+    "helm-values.volumes": {
+      "default": [],
+      "description": "Optional extra volumes. Useful for mounting custom root CAs\n\nFor example:\nvolumes:\n- name: root-ca\n  secret:\n    secretName: root-cert",
+      "items": {},
+      "type": "array"
+    }
+  },
+  "$ref": "#/$defs/helm-values",
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

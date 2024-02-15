@@ -13,6 +13,16 @@
 > ```
 
 Number of replicas of istio-csr to run.
+#### **image.registry** ~ `string`
+
+Target image registry. This value is prepended to the target image repository, if set.  
+For example:
+
+```yaml
+registry: quay.io
+repository: jetstack/cert-manager-istio-csr
+```
+
 #### **image.repository** ~ `string`
 > Default value:
 > ```yaml
@@ -20,32 +30,19 @@ Number of replicas of istio-csr to run.
 > ```
 
 Target image repository.
-#### **image.registry** ~ `unknown`
-> Default value:
-> ```yaml
-> null
-> ```
+#### **image.tag** ~ `string`
 
-Target image registry. Will be prepended to the target image repository if set.
-#### **image.tag** ~ `unknown`
-> Default value:
-> ```yaml
-> null
-> ```
+Override the image tag to deploy by setting this variable. If no value is set, the chart's appVersion is used.
 
-Target image version tag. Defaults to the chart's appVersion.
-#### **image.digest** ~ `unknown`
-> Default value:
-> ```yaml
-> null
-> ```
+#### **image.digest** ~ `string`
 
-Target image digest. Will override any tag if set.  
+Target image digest. Override any tag, if set.  
 For example:
 
 ```yaml
 digest: sha256:0e072dddd1f7f8fc8909a2ca6f65e76c5f0d2fcfb8be47935ae3457e8bbceb20
 ```
+
 #### **image.pullPolicy** ~ `string`
 > Default value:
 > ```yaml
