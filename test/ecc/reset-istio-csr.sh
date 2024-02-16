@@ -29,6 +29,6 @@ echo ">> resetting Istio for another test"
 echo ">> $ISTIO_BIN uninstall -y -f \"$TEST_DIR/values/istio-ecdsa_p${KEY_SIZE}.yaml\""
 
 $ISTIO_BIN uninstall -y --purge -f "$TEST_DIR/values/istio-ecdsa_p${KEY_SIZE}.yaml"
-
+$KUBECTL_BIN delete cr --all -n istio-system
 $KUBECTL_BIN delete mutatingwebhookconfigurations istio-revision-tag-default
 rm -f "${ISTIO_CSR_SERVING_CERTFILE}"

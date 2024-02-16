@@ -22,7 +22,7 @@ echo "======================================"
 echo ">> cleaning up resources"
 
 rm -f "$TEST_DIR/ca.pem"
-rm -f "${ISTIO_CSR_SERVING_CERTFILE}"
+#rm -f "${ISTIO_CSR_SERVING_CERTFILE}"
 echo ">> exporting kind loads"
 $KIND_BIN export logs "$ARTIFACTS" --name "$KIND_CLUSTER_NAME"
 

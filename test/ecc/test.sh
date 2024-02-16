@@ -64,7 +64,7 @@ CERTS_WITH_CORRECT_ALG="$(openssl storeutl -noout -text -certs "${ISTIO_CSR_SERV
 echo "$CERTS_WITH_CORRECT_ALG"
 echo "$TOTAL_CERTS"
 if ! [[ "${CERTS_WITH_CORRECT_ALG}" == "${TOTAL_CERTS}" ]] ; then 
-  echo -e "${RED} ✗ Wrong istiod key size got expected ${KEY_SIZE} ${ENDCOLOR}"
+  echo -e "${RED} ✗ Wrong istio serving cert expected ${KEY_SIZE} ${ENDCOLOR}"
   exit 1
 fi
 echo -e "${GREEN} ✓ Success ${ENDCOLOR}"

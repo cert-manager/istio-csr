@@ -292,17 +292,25 @@ func (p *Provider) fetchCertificate(ctx context.Context) (time.Time, error) {
 	defer func() { metricCertRequest.With(prometheus.Labels{"success": success}).Inc() }()
 
 	opts := pkiutil.CertOptions{
-		Host:       strings.Join(p.opts.ServingCertificateDNSNames, ","),
-		IsServer:   true,
-		TTL:        p.opts.ServingCertificateDuration,
-		RSAKeySize: p.opts.ServingCertificateKeySize,
+		Host:     strings.Join(p.opts.ServingCertificateDNSNames, ","),
+		IsServer: true,
+		TTL:      p.opts.ServingCertificateDuration,
 	}
 
 	switch p.opts.ServingSignatureAlgorithm {
 	case "RSA":
 		opts.ECSigAlg = ""
+		opts.RSAKeySize = p.opts.ServingCertificateKeySize
 	case "ECDSA":
 		opts.ECSigAlg = pkiutil.EcdsaSigAlg
+		switch p.opts.ServingCertificateKeySize {
+		case 256:
+			opts.ECCCurve = pkiutil.P256Curve
+		case 384:
+			opts.ECCCurve = pkiutil.P384Curve
+		default:
+			return time.Time{}, fmt.Errorf("unsupported serving certificate key size (supported: 256, 384): %d", p.opts.ServingCertificateKeySize)
+		}
 	default:
 		return time.Time{}, fmt.Errorf("unknown signature algorithm (supported: \"RSA\", \"ECDSA\"): %s", p.opts.ServingSignatureAlgorithm)
 	}
