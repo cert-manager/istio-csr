@@ -1,0 +1,39 @@
+image:
+  pullPolicy: Never
+
+app:
+  logLevel: 3
+
+  certmanager:
+    namespace: istio-system
+    # WARNING: do not enable this option in production, or environments with
+    # any non-trivial number of workloads for an extended period of time. Doing
+    # so will balloon the resource consumption of both ETCD and the API server,
+    # leading to errors and slow down. This option is intended for debugging
+    # purposes only, for limited periods of time.
+    preserveCertificateRequests: true
+    issuer:
+      group: cert-manager.io
+      kind: Issuer
+      name: istio-root-1
+
+  tls:
+    trustDomain: foo.bar
+    rootCAFile: /var/run/secrets/istio-csr/ca.pem
+    certificateDuration: 20s
+    istiodCertificateEnable: true
+    # Number of bits to use for istiod-tls Key
+    istiodPrivateKeySize: 384
+  
+  server:
+    serving:
+      certificateKeySize: 384
+      signatureAlgorithm: "ECDSA"
+
+volumes:
+- name: istio-root-certs
+  secret:
+    secretName: istio-root-certs
+volumeMounts:
+- name: istio-root-certs
+  mountPath: /var/run/secrets/istio-csr

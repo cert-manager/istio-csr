@@ -131,7 +131,7 @@ app:
     istiodCertificateRenewBefore: 30m
     # Create the default certificate as part of install.
     istiodCertificateEnable: true
-    # Number of bits to use for istiod-tls RSAKey
+    # Number of bits to use for istiod-tls Key
     istiodPrivateKeySize: 2048
 
   server:
