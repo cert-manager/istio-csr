@@ -264,7 +264,7 @@ Create the default certificate as part of install.
 > 2048
 > ```
 
-Number of bits to use for istiod-tls RSAKey
+Number of bits to use for istiod-tls Key
 #### **app.server.clusterID** ~ `string`
 > Default value:
 > ```yaml
@@ -301,7 +301,7 @@ Container port to serve istio-csr gRPC service.
 > 2048
 > ```
 
-Number of bits to use for the server's serving certificate (RSAKeySize).
+Number of bits to use for the server's serving certificate, can only be 256 or 384 when signature algorithm is ECDSA.
 #### **app.server.serving.signatureAlgorithm** ~ `string`
 > Default value:
 > ```yaml

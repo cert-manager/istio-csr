@@ -148,7 +148,7 @@ app:
       address: 0.0.0.0
       # Container port to serve istio-csr gRPC service.
       port: 6443
-      # Number of bits to use for the server's serving certificate (RSAKeySize).
+      # Number of bits to use for the server's serving certificate, can only be 256 or 384 when signature algorithm is ECDSA.
       certificateKeySize: 2048
       # The type of signature algorithm to use when generating private keys. Currently only RSA and ECDSA are supported. By default RSA is used.
       signatureAlgorithm: "RSA"
