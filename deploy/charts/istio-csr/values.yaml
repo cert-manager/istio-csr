@@ -230,3 +230,5 @@ affinity: {}
 tolerations: []
 
 nodeSelector: {}
+
+annotations: {}  # pod annotations
