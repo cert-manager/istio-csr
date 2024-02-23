@@ -5,6 +5,10 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
 {{ include "cert-manager-istio-csr.labels" . | indent 4 }}
+{{- with .Values.deploymentAnnotations }}
+  annotations:
+{{- toYaml . | nindent 4 }}
+{{- end }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
@@ -14,6 +18,10 @@ spec:
     metadata:
       labels:
         app: {{ include "cert-manager-istio-csr.name" . }}
+    {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
     spec:
     {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
