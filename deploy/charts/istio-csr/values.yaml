@@ -230,3 +230,6 @@ affinity: {}
 tolerations: []
 
 nodeSelector: {}
+
+# Labels to apply to all resources
+commonLabels: {}
