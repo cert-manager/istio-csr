@@ -4,7 +4,7 @@ metadata:
   name: {{ include "cert-manager-istio-csr.name" . }}-leases
   namespace: {{ .Values.app.controller.leaderElectionNamespace }}
   labels:
-{{ include "cert-manager-istio-csr.labels" . | indent 4 }}
+    {{- include "cert-manager-istio-csr.labels" . | nindent 4 }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role

@@ -9,6 +9,9 @@
         "app": {
           "$ref": "#/$defs/helm-values.app"
         },
+        "commonLabels": {
+          "$ref": "#/$defs/helm-values.commonLabels"
+        },
         "image": {
           "$ref": "#/$defs/helm-values.image"
         },
@@ -443,6 +446,11 @@
       "default": "cluster.local",
       "description": "The Istio cluster's trust domain.",
       "type": "string"
+    },
+    "helm-values.commonLabels": {
+      "default": {},
+      "description": "Labels to apply to all resources",
+      "type": "object"
     },
     "helm-values.image": {
       "additionalProperties": false,

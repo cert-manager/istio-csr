@@ -426,5 +426,12 @@ tolerations:
 > ```yaml
 > {}
 > ```
+#### **commonLabels** ~ `object`
+> Default value:
+> ```yaml
+> {}
+> ```
+
+Labels to apply to all resources
 
 <!-- /AUTO-GENERATED -->
