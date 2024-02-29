@@ -19,6 +19,7 @@ $(kind_cluster_config): make/config/kind/cluster.yaml | $(bin_dir)/scratch
 
 include make/test-e2e.mk
 include make/test-carotation.mk
+include make/test-ecc.mk
 include make/test-unit.mk
 
 .PHONY: release

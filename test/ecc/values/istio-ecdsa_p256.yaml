@@ -1,0 +1,24 @@
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+metadata:
+  namespace: istio-system
+spec:
+  profile: "minimal"
+  meshConfig:
+    # Change the following line to configure the trust domain of the Istio cluster.
+    trustDomain: foo.bar
+    defaultConfig:
+      proxyMetadata:
+        ECC_SIGNATURE_ALGORITHM: "ECDSA"
+        ECC_CURVE: "P256"
+  values:
+    global:
+      # Change certificate provider to cert-manager istio agent for istio agent
+      caAddress: cert-manager-istio-csr.cert-manager.svc:443
+  components:
+    pilot:
+      k8s:
+        env:
+          # Disable istiod CA Sever functionality
+        - name: ENABLE_CA_SERVER
+          value: "false"

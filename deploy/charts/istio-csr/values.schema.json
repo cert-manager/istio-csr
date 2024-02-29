@@ -353,7 +353,7 @@
     },
     "helm-values.app.server.serving.certificateKeySize": {
       "default": 2048,
-      "description": "Number of bits to use for the server's serving certificate (RSAKeySize).",
+      "description": "Number of bits to use for the server's serving certificate, can only be 256 or 384 when signature algorithm is ECDSA.",
       "type": "number"
     },
     "helm-values.app.server.serving.port": {
@@ -436,7 +436,7 @@
     },
     "helm-values.app.tls.istiodPrivateKeySize": {
       "default": 2048,
-      "description": "Number of bits to use for istiod-tls RSAKey",
+      "description": "Number of bits to use for istiod-tls Key",
       "type": "number"
     },
     "helm-values.app.tls.rootCAFile": {
