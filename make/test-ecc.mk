@@ -21,7 +21,6 @@ test-ecc: e2e-setup-cert-manager oci-load-manager | $(bin_dir)/scratch/istioctl-
 
 	ARTIFACTS=$(ARTIFACTS) \
 	ISTIO_CSR_IMAGE=$(oci_manager_image_name_development) \
-	ISTIO_CSR_IMAGE_TAR=$(oci_image_tar) \
 	ISTIO_CSR_IMAGE_TAG=$(oci_manager_image_tag) \
 	KIND_CLUSTER_NAME=$(kind_cluster_name) \
 	ISTIO_BIN=$(bin_dir)/scratch/istioctl-$(ISTIO_VERSION) \
