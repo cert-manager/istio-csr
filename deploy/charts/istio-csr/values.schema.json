@@ -12,6 +12,9 @@
         "commonLabels": {
           "$ref": "#/$defs/helm-values.commonLabels"
         },
+        "global": {
+          "$ref": "#/$defs/helm-values.global"
+        },
         "image": {
           "$ref": "#/$defs/helm-values.image"
         },
@@ -451,6 +454,9 @@
       "default": {},
       "description": "Labels to apply to all resources",
       "type": "object"
+    },
+    "helm-values.global": {
+      "description": "Global values shared across all (sub)charts"
     },
     "helm-values.image": {
       "additionalProperties": false,
