@@ -29,7 +29,7 @@ import (
 	authv1 "k8s.io/api/authentication/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 
 	"github.com/cert-manager/istio-csr/test/e2e/framework"
 	cmclient "github.com/cert-manager/istio-csr/test/e2e/suite/internal/client"
@@ -82,7 +82,7 @@ var _ = framework.CasesDescribe("Request Authentication", func() {
 		token, err := f.KubeClientSet.CoreV1().ServiceAccounts(namespace).CreateToken(context.TODO(), saName, &authv1.TokenRequest{
 			Spec: authv1.TokenRequestSpec{
 				Audiences:         []string{"istio-ca"},
-				ExpirationSeconds: pointer.Int64(1200),
+				ExpirationSeconds: ptr.To(int64(1200)),
 			},
 		}, metav1.CreateOptions{})
 		Expect(err).NotTo(HaveOccurred())
@@ -221,6 +221,7 @@ var _ = framework.CasesDescribe("Request Authentication", func() {
 			block, _ := pem.Decode([]byte(certPEM))
 			if block == nil {
 				Expect("failed to parse certificate PEM").NotTo(HaveOccurred())
+				return
 			}
 
 			cert, err := x509.ParseCertificate(block.Bytes)

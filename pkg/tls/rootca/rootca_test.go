@@ -28,7 +28,7 @@ import (
 
 	"github.com/cert-manager/cert-manager/pkg/util/pki"
 	"github.com/stretchr/testify/assert"
-	"k8s.io/klog/v2/klogr"
+	"k8s.io/klog/v2/ktesting"
 )
 
 func Test_Watch(t *testing.T) {
@@ -45,7 +45,7 @@ func Test_Watch(t *testing.T) {
 	defer cancel()
 
 	t.Log("starting watcher")
-	rootCAsChan, err := Watch(ctx, klogr.New(), filepath)
+	rootCAsChan, err := Watch(ctx, ktesting.NewLogger(t, ktesting.DefaultConfig), filepath)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -53,7 +53,7 @@ func Test_Watch(t *testing.T) {
 	t.Log("ensuring the same root CA PEM is returned from watcher")
 	env1 := <-rootCAsChan
 	assert.Equal(t, rootCAs1.PEM, env1.PEM)
-	assert.Equal(t, rootCAs1.CertPool.Subjects(), env1.CertPool.Subjects())
+	assert.True(t, rootCAs1.CertPool.Equal(env1.CertPool))
 
 	t.Log("writing a different root CAs PEM to file")
 	if err := os.WriteFile(filepath, rootCAs2.PEM, 0644); err != nil {
@@ -63,7 +63,7 @@ func Test_Watch(t *testing.T) {
 	t.Log("ensuring the second root CA PEM is returned from watcher")
 	env2 := <-rootCAsChan
 	assert.Equal(t, rootCAs2.PEM, env2.PEM)
-	assert.Equal(t, rootCAs2.CertPool.Subjects(), env2.CertPool.Subjects())
+	assert.True(t, rootCAs2.CertPool.Equal(env2.CertPool))
 }
 
 func Test_loadRootCAsFile(t *testing.T) {
@@ -122,7 +122,7 @@ func Test_loadRootCAsFile(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			w := &watcher{
-				log:        klogr.New(),
+				log:        ktesting.NewLogger(t, ktesting.DefaultConfig),
 				rootCAsPEM: test.existingRootCAsPEM,
 				filepath:   test.filepath(t, t.TempDir()),
 			}
@@ -134,7 +134,7 @@ func Test_loadRootCAsFile(t *testing.T) {
 			} else {
 				assert.True(t, updated)
 				assert.Equal(t, test.expRootCAs.PEM, rootCA.PEM)
-				assert.Equal(t, test.expRootCAs.CertPool.Subjects(), rootCA.CertPool.Subjects())
+				assert.True(t, test.expRootCAs.CertPool.Equal(rootCA.CertPool))
 			}
 		})
 	}

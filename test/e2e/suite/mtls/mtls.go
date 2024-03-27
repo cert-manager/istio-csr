@@ -89,7 +89,7 @@ var _ = framework.CasesDescribe("mTLS correctness", func() {
 
 		for _, ns := range namespaces {
 			By(fmt.Sprintf("waiting for pods in %q namespace to become ready", ns.name))
-			err := f.Helper().WaitForPodsReady(ns.name, time.Minute*10)
+			err := f.Helper().WaitForPodsReady(ctx, ns.name, time.Minute*10)
 			if err != nil {
 				cmd := exec.Command(f.Config().KubectlPath, "describe", "-n"+ns.name, "pods")
 				cmd.Stdout = GinkgoWriter

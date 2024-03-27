@@ -24,7 +24,7 @@ import (
 	"testing"
 
 	"istio.io/istio/pkg/security"
-	"k8s.io/klog/v2/klogr"
+	"k8s.io/klog/v2/ktesting"
 
 	"github.com/cert-manager/istio-csr/test/gen"
 )
@@ -232,7 +232,7 @@ func TestAuthRequest(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			s := &Server{
-				log:           klogr.New(),
+				log:           ktesting.NewLogger(t, ktesting.DefaultConfig),
 				authenticator: test.authn,
 			}
 

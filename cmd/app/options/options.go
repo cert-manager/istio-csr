@@ -28,7 +28,6 @@ import (
 	"k8s.io/client-go/rest"
 	cliflag "k8s.io/component-base/cli/flag"
 	"k8s.io/klog/v2"
-	"k8s.io/klog/v2/klogr"
 
 	"github.com/cert-manager/istio-csr/pkg/certmanager"
 	"github.com/cert-manager/istio-csr/pkg/server"
@@ -86,7 +85,7 @@ func (o *Options) Prepare(cmd *cobra.Command) *Options {
 
 func (o *Options) Complete() error {
 	klog.InitFlags(nil)
-	log := klogr.New()
+	log := klog.TODO()
 	if err := flag.Set("v", o.logLevel); err != nil {
 		return fmt.Errorf("failed to set log level: %s", err)
 	}
