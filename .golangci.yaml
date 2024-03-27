@@ -18,7 +18,6 @@ issues:
         - gosimple
         - unconvert
         - exportloopref
-        - gofmt
       text: ".*"
 linters:
   # Explicitly define all enabled linters

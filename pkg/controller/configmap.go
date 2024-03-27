@@ -117,7 +117,7 @@ func AddConfigMapController(ctx context.Context, log logr.Logger, opts Options) 
 		// Watch all Namespaces. Cache whole Namespace to include Phase Status.
 		Watches(&corev1.Namespace{}, handler.EnqueueRequestsFromMapFunc(
 			func(_ context.Context, obj client.Object) []reconcile.Request {
-				return []reconcile.Request{reconcile.Request{NamespacedName: types.NamespacedName{Namespace: obj.GetName(), Name: configMapNameIstioRoot}}}
+				return []reconcile.Request{{NamespacedName: types.NamespacedName{Namespace: obj.GetName(), Name: configMapNameIstioRoot}}}
 			},
 		)).
 
