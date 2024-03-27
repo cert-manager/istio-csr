@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/cert-manager/istio-csr/pkg/tls"
 	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -36,6 +35,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
+
+	"github.com/cert-manager/istio-csr/pkg/tls"
 )
 
 const (
@@ -61,7 +62,7 @@ type configmap struct {
 	// client is a Kubernetes client that makes calls to the API for every
 	// request.
 	// Should be used for creating and updating resources.
-	// This is a seperate delegating client which doesn't cache ConfigMaps, see
+	// This is a separate delegating client which doesn't cache ConfigMaps, see
 	// https://github.com/kubernetes-sigs/controller-runtime/issues/1454
 	client client.Client
 

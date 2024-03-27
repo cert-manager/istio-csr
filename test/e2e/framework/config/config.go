@@ -20,9 +20,8 @@ import (
 	"errors"
 	"flag"
 
-	utilerrors "k8s.io/apimachinery/pkg/util/errors"
-
 	cmmeta "github.com/cert-manager/cert-manager/pkg/apis/meta/v1"
+	utilerrors "k8s.io/apimachinery/pkg/util/errors"
 )
 
 type Config struct {

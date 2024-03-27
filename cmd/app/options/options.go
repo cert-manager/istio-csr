@@ -25,7 +25,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
-	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/rest"
 	cliflag "k8s.io/component-base/cli/flag"
 	"k8s.io/klog/v2"
@@ -34,6 +33,8 @@ import (
 	"github.com/cert-manager/istio-csr/pkg/certmanager"
 	"github.com/cert-manager/istio-csr/pkg/server"
 	"github.com/cert-manager/istio-csr/pkg/tls"
+
+	_ "k8s.io/client-go/plugin/pkg/client/auth"
 )
 
 // Options is a struct to hold options for cert-manager-istio-csr

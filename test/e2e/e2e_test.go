@@ -26,6 +26,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 
 	"github.com/cert-manager/istio-csr/test/e2e/framework/config"
+
 	_ "github.com/cert-manager/istio-csr/test/e2e/suite"
 )
 

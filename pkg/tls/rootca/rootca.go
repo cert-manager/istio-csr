@@ -23,9 +23,9 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/cert-manager/cert-manager/pkg/util/pki"
 	"github.com/fsnotify/fsnotify"
 	"github.com/go-logr/logr"
-	"github.com/cert-manager/cert-manager/pkg/util/pki"
 )
 
 // RootCAs is a Root CAs bundle that contains raw PEM encoded CAs, as well as

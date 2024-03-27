@@ -17,10 +17,11 @@ limitations under the License.
 package e2e
 
 import (
-	. "github.com/onsi/ginkgo/v2"
 	"k8s.io/klog/v2"
 
 	"github.com/cert-manager/istio-csr/test/e2e/framework/config"
+
+	. "github.com/onsi/ginkgo/v2"
 )
 
 var (

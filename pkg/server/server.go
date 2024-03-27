@@ -95,12 +95,12 @@ func New(log logr.Logger, restConfig *rest.Config, cm certmanager.Signer, tls tl
 	meshcnf.TrustDomain = tls.TrustDomain()
 	spiffe.SetTrustDomain(tls.TrustDomain())
 
-	auther := kubeauth.NewKubeJWTAuthenticator(mesh.NewFixedWatcher(meshcnf), kubeClient, cluster.ID(opts.ClusterID), nil, jwt.PolicyThirdParty)
+	author := kubeauth.NewKubeJWTAuthenticator(mesh.NewFixedWatcher(meshcnf), kubeClient, cluster.ID(opts.ClusterID), nil, jwt.PolicyThirdParty)
 
 	return &Server{
 		opts:   opts,
 		log:    log.WithName("grpc-server").WithValues("serving-addr", opts.ServingAddress),
-		auther: auther,
+		auther: author,
 		cm:     cm,
 		tls:    tls,
 	}, nil
@@ -163,7 +163,7 @@ func (s *Server) Start(ctx context.Context) error {
 // and sign CSRs requests from istio clients.
 func (s *Server) CreateCertificate(ctx context.Context, icr *securityapi.IstioCertificateRequest) (*securityapi.IstioCertificateResponse, error) {
 	// authn incoming requests, and build concatenated identities for labelling
-	identities, ok := s.authRequest(ctx, []byte(icr.Csr))
+	identities, ok := s.authRequest(ctx, []byte(icr.GetCsr()))
 	if !ok {
 		return nil, status.Error(codes.Unauthenticated, "request authenticate failure")
 	}
@@ -172,12 +172,12 @@ func (s *Server) CreateCertificate(ctx context.Context, icr *securityapi.IstioCe
 
 	// If requested duration is larger than the maximum value, override with the
 	// maxiumum value.
-	duration := time.Duration(icr.ValidityDuration) * time.Second
+	duration := time.Duration(icr.GetValidityDuration()) * time.Second
 	if duration > s.opts.MaximumClientCertificateDuration {
 		duration = s.opts.MaximumClientCertificateDuration
 	}
 
-	bundle, err := s.cm.Sign(ctx, identities, []byte(icr.Csr), duration, []cmapi.KeyUsage{cmapi.UsageClientAuth, cmapi.UsageServerAuth})
+	bundle, err := s.cm.Sign(ctx, identities, []byte(icr.GetCsr()), duration, []cmapi.KeyUsage{cmapi.UsageClientAuth, cmapi.UsageServerAuth})
 	if err != nil {
 		log.Error(err, "failed to sign incoming client certificate signing request")
 		return nil, status.Error(codes.Internal, "failed to sign certificate request")
