@@ -4,7 +4,6 @@ issues:
         - errcheck
         - errorlint
         - staticcheck
-        - gocritic
         - prealloc
         - gosec
         - gomoddirectives
