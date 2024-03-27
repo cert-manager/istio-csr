@@ -9,7 +9,6 @@ issues:
         - errorlint
         - gosec
         - staticcheck
-        - unused
         - dupword
         - gomoddirectives
         - misspell
