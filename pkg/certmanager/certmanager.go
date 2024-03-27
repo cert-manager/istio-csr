@@ -71,7 +71,7 @@ type manager struct {
 	client cmclient.CertificateRequestInterface
 }
 
-// Bundle represents the `status.Certificate` and `status.CA` that is is
+// Bundle represents the `status.Certificate` and `status.CA` that is
 // populate on a CertificateRequest once it has been signed.
 type Bundle struct {
 	Certificate []byte
