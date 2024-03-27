@@ -278,8 +278,9 @@ var _ = framework.CasesDescribe("Request Authentication", func() {
 		if reflect.DeepEqual(createdCR.Spec.Duration, metav1.Duration{Duration: time.Second * 100}) {
 			Fail(fmt.Sprintf(
 				"duration did not match that expected in request, exp=%s got=%s",
-				time.Duration(time.Second*100), createdCR.Spec.Duration),
-			)
+				time.Second*100,
+				createdCR.Spec.Duration,
+			))
 		}
 	})
 })

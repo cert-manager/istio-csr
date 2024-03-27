@@ -16,7 +16,6 @@ issues:
         - nilnil
         - promlinter
         - gosimple
-        - unconvert
         - exportloopref
       text: ".*"
 linters:
