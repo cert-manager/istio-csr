@@ -6,9 +6,7 @@ issues:
         - staticcheck
         - gocritic
         - prealloc
-        - errorlint
         - gosec
-        - staticcheck
         - gomoddirectives
         - misspell
         - nilnil
