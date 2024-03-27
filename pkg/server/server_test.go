@@ -191,10 +191,10 @@ func Test_CreateCertificate(t *testing.T) {
 				opts: Options{
 					MaximumClientCertificateDuration: test.maxDuration,
 				},
-				auther: newMockAuthn([]string{spiffeDomain}, ""),
-				log:    klogr.New(),
-				cm:     test.cm(t),
-				tls:    test.tls,
+				authenticator: newMockAuthn([]string{spiffeDomain}, ""),
+				log:           klogr.New(),
+				cm:            test.cm(t),
+				tls:           test.tls,
 			}
 
 			resp, err := s.CreateCertificate(context.TODO(), test.icr(t))

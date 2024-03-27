@@ -70,7 +70,7 @@ type Server struct {
 	opts Options
 	log  logr.Logger
 
-	auther security.Authenticator
+	authenticator security.Authenticator
 
 	cm  certmanager.Signer
 	tls tls.Interface
@@ -95,14 +95,14 @@ func New(log logr.Logger, restConfig *rest.Config, cm certmanager.Signer, tls tl
 	meshcnf.TrustDomain = tls.TrustDomain()
 	spiffe.SetTrustDomain(tls.TrustDomain())
 
-	author := kubeauth.NewKubeJWTAuthenticator(mesh.NewFixedWatcher(meshcnf), kubeClient, cluster.ID(opts.ClusterID), nil, jwt.PolicyThirdParty)
+	authenticator := kubeauth.NewKubeJWTAuthenticator(mesh.NewFixedWatcher(meshcnf), kubeClient, cluster.ID(opts.ClusterID), nil, jwt.PolicyThirdParty)
 
 	return &Server{
-		opts:   opts,
-		log:    log.WithName("grpc-server").WithValues("serving-addr", opts.ServingAddress),
-		auther: author,
-		cm:     cm,
-		tls:    tls,
+		opts:          opts,
+		log:           log.WithName("grpc-server").WithValues("serving-addr", opts.ServingAddress),
+		authenticator: authenticator,
+		cm:            cm,
+		tls:           tls,
 	}, nil
 }
 
