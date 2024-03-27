@@ -258,6 +258,7 @@ var _ = framework.CasesDescribe("Request Authentication", func() {
 		var createdCR *cmapi.CertificateRequest
 		for _, cr := range crs.Items {
 			if val, ok := cr.Annotations["istio.cert-manager.io/identities"]; ok && val == id {
+				cr := cr
 				createdCR = &cr
 				break
 			}

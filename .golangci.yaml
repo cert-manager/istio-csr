@@ -13,7 +13,6 @@ issues:
         - misspell
         - nilnil
         - promlinter
-        - exportloopref
       text: ".*"
 linters:
   # Explicitly define all enabled linters
