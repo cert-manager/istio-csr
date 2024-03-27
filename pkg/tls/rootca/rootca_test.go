@@ -127,11 +127,12 @@ func Test_loadRootCAsFile(t *testing.T) {
 				filepath:   test.filepath(t, t.TempDir()),
 			}
 
-			rootCA, err := w.loadRootCAsFile()
+			updated, rootCA, err := w.loadRootCAsFile()
 			assert.Equalf(t, test.expErr, err != nil, "%v", err)
 			if test.expRootCAs == nil {
-				assert.Nil(t, rootCA)
+				assert.False(t, updated)
 			} else {
+				assert.True(t, updated)
 				assert.Equal(t, test.expRootCAs.PEM, rootCA.PEM)
 				assert.Equal(t, test.expRootCAs.CertPool.Subjects(), rootCA.CertPool.Subjects())
 			}

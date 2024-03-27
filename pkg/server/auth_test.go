@@ -116,7 +116,7 @@ func (authn *mockAuthenticator) Authenticate(ctx security.AuthContext) (*securit
 }
 
 func (authn *mockAuthenticator) AuthenticateRequest(_ *http.Request) (*security.Caller, error) {
-	return nil, nil
+	return nil, fmt.Errorf("not implemented")
 }
 
 func newMockAuthn(ids []string, errMsg string) *mockAuthenticator {

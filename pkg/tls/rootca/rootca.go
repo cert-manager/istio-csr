@@ -59,9 +59,12 @@ func Watch(ctx context.Context, log logr.Logger, filepath string) (<-chan RootCA
 	}
 
 	w.log.Info("loading root CAs bundle")
-	rootCAs, err := w.loadRootCAsFile()
+	updated, rootCAs, err := w.loadRootCAsFile()
 	if err != nil {
 		return nil, fmt.Errorf("failed to load root CA bundle: %w", err)
+	}
+	if !updated {
+		return nil, fmt.Errorf("root CA bundle is empty")
 	}
 
 	watcher, err := fsnotify.NewWatcher()
@@ -77,7 +80,7 @@ func Watch(ctx context.Context, log logr.Logger, filepath string) (<-chan RootCA
 		defer watcher.Close()
 
 		// Send initial root CAs state
-		w.broadcastChan <- *rootCAs
+		w.broadcastChan <- rootCAs
 		w.rootCAsPEM = rootCAs.PEM
 
 		for {
@@ -116,40 +119,40 @@ func Watch(ctx context.Context, log logr.Logger, filepath string) (<-chan RootCA
 // reloadConfig will load root CAs file, and if changed from the current state,
 // will broadcast the update.
 func (w *watcher) reloadConfig() {
-	rootCAs, err := w.loadRootCAsFile()
+	updated, rootCAs, err := w.loadRootCAsFile()
 	if err != nil {
 		w.log.Error(err, "failed to load root CAs file")
 		return
 	}
 
-	if rootCAs == nil {
+	if !updated {
 		w.log.V(3).Info("no root CA changes on file")
 	} else {
 		w.log.Info("root CAs changed on file, broadcasting update")
 		w.rootCAsPEM = rootCAs.PEM
-		w.broadcastChan <- *rootCAs
+		w.broadcastChan <- rootCAs
 	}
 }
 
 // loadRootCAsFile will read the root CAs from the configured file, and if
 // changed from the previous state, will return the updated root CAs. Will
 // return nil if there has been no state change.
-func (w *watcher) loadRootCAsFile() (*RootCAs, error) {
+func (w *watcher) loadRootCAsFile() (bool, RootCAs, error) {
 	rootCAsPEM, err := os.ReadFile(w.filepath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read root CAs certificate file %q: %w", w.filepath, err)
+		return false, RootCAs{}, fmt.Errorf("failed to read root CAs certificate file %q: %w", w.filepath, err)
 	}
 
 	// If the root CAs PEM hasn't changed, return nil
 	if bytes.Equal(rootCAsPEM, w.rootCAsPEM) {
-		return nil, nil
+		return false, RootCAs{}, nil
 	}
 
 	w.log.Info("updating root CAs from file")
 
 	rootCAsCerts, err := pki.DecodeX509CertificateChainBytes(rootCAsPEM)
 	if err != nil {
-		return nil, fmt.Errorf("failed to decode root CAs in certificate file %q: %w", w.filepath, err)
+		return false, RootCAs{}, fmt.Errorf("failed to decode root CAs in certificate file %q: %w", w.filepath, err)
 	}
 
 	rootCAsPool := x509.NewCertPool()
@@ -157,5 +160,5 @@ func (w *watcher) loadRootCAsFile() (*RootCAs, error) {
 		rootCAsPool.AddCert(rootCert)
 	}
 
-	return &RootCAs{rootCAsPEM, rootCAsPool}, nil
+	return true, RootCAs{rootCAsPEM, rootCAsPool}, nil
 }

@@ -7,7 +7,6 @@ issues:
         - prealloc
         - gosec
         - gomoddirectives
-        - nilnil
         - promlinter
       text: ".*"
 linters:
