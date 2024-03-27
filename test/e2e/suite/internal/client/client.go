@@ -27,7 +27,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/metadata"
-
 	securityapi "istio.io/api/security/v1alpha1"
 	"istio.io/istio/pkg/security"
 	"istio.io/pkg/log"
@@ -87,11 +86,11 @@ func (c *certmanagerClient) CSRSign(csrPEM []byte, certValidTTLInSec int64) ([]s
 		return nil, fmt.Errorf("create certificate: %v", err)
 	}
 
-	if len(resp.CertChain) <= 1 {
+	if len(resp.GetCertChain()) <= 1 {
 		return nil, errors.New("invalid empty CertChain")
 	}
 
-	return resp.CertChain, nil
+	return resp.GetCertChain(), nil
 }
 
 func (c *certmanagerClient) getTLSDialOption() (grpc.DialOption, error) {
