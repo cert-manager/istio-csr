@@ -63,7 +63,7 @@ var _ = framework.CasesDescribe("CA Root Controller", func() {
 		cert, err := f.CMClientSet.CertmanagerV1().Certificates(cmNamespace).Create(ctx, cert, metav1.CreateOptions{})
 		Expect(err).NotTo(HaveOccurred())
 
-		_, err = f.Helper().WaitForCertificateReady(cmNamespace, cert.Name, time.Second*10)
+		_, err = f.Helper().WaitForCertificateReady(ctx, cmNamespace, cert.Name, time.Second*10)
 		Expect(err).NotTo(HaveOccurred())
 
 		certSecret, err := f.KubeClientSet.CoreV1().Secrets(cmNamespace).Get(ctx, testName, metav1.GetOptions{})
@@ -85,24 +85,22 @@ var _ = framework.CasesDescribe("CA Root Controller", func() {
 	It("all namespaces should have valid configs in", func() {
 		By("ensure all existing namespaces have the correct root CA")
 
-		err := wait.PollImmediate(time.Second, time.Second*30,
-			func() (bool, error) {
-				nss, err := f.KubeClientSet.CoreV1().Namespaces().List(ctx, metav1.ListOptions{})
+		err := wait.PollUntilContextTimeout(ctx, time.Second, time.Second*30, true, func(ctx context.Context) (bool, error) {
+			nss, err := f.KubeClientSet.CoreV1().Namespaces().List(ctx, metav1.ListOptions{})
+			if err != nil {
+				return false, err
+			}
+
+			for _, ns := range nss.Items {
+				err = expectRootCAExists(ctx, f, ns.Name, rootCA)
 				if err != nil {
-					return false, err
+					By(fmt.Sprintf("rootCA not yet propagated: %s", err))
+					return false, nil
 				}
+			}
 
-				for _, ns := range nss.Items {
-					err = expectRootCAExists(ctx, f, ns.Name, rootCA)
-					if err != nil {
-						By(fmt.Sprintf("rootCA not yet propagated: %s", err))
-						return false, nil
-					}
-				}
-
-				return true, nil
-			},
-		)
+			return true, nil
+		})
 
 		Expect(err).NotTo(HaveOccurred())
 	})

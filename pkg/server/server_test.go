@@ -34,7 +34,7 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 	securityapi "istio.io/api/security/v1alpha1"
-	"k8s.io/klog/v2/klogr"
+	"k8s.io/klog/v2/ktesting"
 
 	"github.com/cert-manager/istio-csr/pkg/certmanager"
 	cmfake "github.com/cert-manager/istio-csr/pkg/certmanager/fake"
@@ -191,10 +191,10 @@ func Test_CreateCertificate(t *testing.T) {
 				opts: Options{
 					MaximumClientCertificateDuration: test.maxDuration,
 				},
-				auther: newMockAuthn([]string{spiffeDomain}, ""),
-				log:    klogr.New(),
-				cm:     test.cm(t),
-				tls:    test.tls,
+				authenticator: newMockAuthn([]string{spiffeDomain}, ""),
+				log:           ktesting.NewLogger(t, ktesting.DefaultConfig),
+				cm:            test.cm(t),
+				tls:           test.tls,
 			}
 
 			resp, err := s.CreateCertificate(context.TODO(), test.icr(t))

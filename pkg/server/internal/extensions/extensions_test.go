@@ -324,7 +324,6 @@ func powerset(set []interface{}) (subsets [][]interface{}) {
 
 	// Go through all possible combinations of objects
 	// from 1 (only first object in subset) to 2^length (all objects in subset)
-	//math.Pow(
 	for subsetBits := 1; subsetBits < (1 << length); subsetBits++ {
 		var subset []interface{}
 

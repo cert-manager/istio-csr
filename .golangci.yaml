@@ -1,24 +1,11 @@
 issues:
   exclude-rules:
     - linters:
-        - errcheck
         - errorlint
-        - staticcheck
-        - gocritic
         - prealloc
-        - errorlint
         - gosec
-        - staticcheck
-        - unused
-        - dupword
         - gomoddirectives
-        - misspell
-        - nilnil
         - promlinter
-        - gosimple
-        - unconvert
-        - exportloopref
-        - gofmt
       text: ".*"
 linters:
   # Explicitly define all enabled linters

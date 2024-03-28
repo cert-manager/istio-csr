@@ -28,7 +28,7 @@ import (
 	apiequality "k8s.io/apimachinery/pkg/api/equality"
 	"k8s.io/apimachinery/pkg/watch"
 	coretesting "k8s.io/client-go/testing"
-	"k8s.io/klog/v2/klogr"
+	"k8s.io/klog/v2/ktesting"
 
 	"github.com/cert-manager/istio-csr/test/gen"
 )
@@ -214,7 +214,7 @@ func Test_Sign(t *testing.T) {
 			client := test.client()
 			m := &manager{
 				client: client.CertmanagerV1().CertificateRequests(gen.DefaultTestNamespace),
-				log:    klogr.New(),
+				log:    ktesting.NewLogger(t, ktesting.DefaultConfig),
 				opts: Options{
 					PreserveCertificateRequests: test.preserveCRs,
 				},
@@ -433,7 +433,7 @@ func Test_waitForCertificateRequest(t *testing.T) {
 				client: test.client(),
 			}
 
-			log := klogr.New()
+			log := ktesting.NewLogger(t, ktesting.DefaultConfig)
 			cr, err := m.waitForCertificateRequest(context.TODO(), log, gen.CertificateRequest("test-cr"))
 			if (err != nil) != test.expErr {
 				t.Errorf("unexpected error, exp=%t got=%v", test.expErr, err)

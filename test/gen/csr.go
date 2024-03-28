@@ -45,7 +45,6 @@ func init() {
 type CSRBuilder struct {
 	ids, dns, ips, emails []string
 	cn                    string
-	usages                []x509.KeyUsage
 }
 
 type CSRModifier func(*CSRBuilder)

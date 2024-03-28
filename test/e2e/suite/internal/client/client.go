@@ -26,6 +26,7 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 	securityapi "istio.io/api/security/v1alpha1"
 	"istio.io/istio/pkg/security"
@@ -140,7 +141,7 @@ func (c *certmanagerClient) buildConnection() (*grpc.ClientConn, error) {
 			return nil, err
 		}
 	} else {
-		opts = grpc.WithInsecure()
+		opts = grpc.WithTransportCredentials(insecure.NewCredentials())
 	}
 
 	conn, err := grpc.Dial(c.caEndpoint, opts)

@@ -97,7 +97,7 @@ func validateKeyUsageExtension(value []byte) error {
 	// Clear allowed usages bits from value
 	for _, usage := range allowedKeyUsages {
 		for i, b := range usage {
-			extValue[i] = extValue[i] &^ b
+			extValue[i] &^= b
 		}
 	}
 

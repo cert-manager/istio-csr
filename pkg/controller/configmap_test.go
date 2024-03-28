@@ -28,7 +28,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
-	"k8s.io/klog/v2/klogr"
+	"k8s.io/klog/v2/ktesting"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	fakeclient "sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -215,7 +215,7 @@ func Test_Reconcile(t *testing.T) {
 			c := &configmap{
 				client:            fakeclient,
 				lister:            fakeclient,
-				log:               klogr.New(),
+				log:               ktesting.NewLogger(t, ktesting.DefaultConfig),
 				tls:               tlsfake.New().WithRootCAs([]byte(rootCAData), nil),
 				namespaceSelector: namespaceSelector,
 			}

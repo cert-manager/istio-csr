@@ -24,7 +24,7 @@ import (
 	"testing"
 
 	"istio.io/istio/pkg/security"
-	"k8s.io/klog/v2/klogr"
+	"k8s.io/klog/v2/ktesting"
 
 	"github.com/cert-manager/istio-csr/test/gen"
 )
@@ -116,7 +116,7 @@ func (authn *mockAuthenticator) Authenticate(ctx security.AuthContext) (*securit
 }
 
 func (authn *mockAuthenticator) AuthenticateRequest(_ *http.Request) (*security.Caller, error) {
-	return nil, nil
+	return nil, fmt.Errorf("not implemented")
 }
 
 func newMockAuthn(ids []string, errMsg string) *mockAuthenticator {
@@ -232,8 +232,8 @@ func TestAuthRequest(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			s := &Server{
-				log:    klogr.New(),
-				auther: test.authn,
+				log:           ktesting.NewLogger(t, ktesting.DefaultConfig),
+				authenticator: test.authn,
 			}
 
 			identities, authed := s.authRequest(context.TODO(), test.inpCSR)

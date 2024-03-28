@@ -166,7 +166,7 @@ func (p *Provider) Start(ctx context.Context) error {
 
 	for {
 		// Create a new timer every loop. Renew 2/3 into certificate duration
-		renewalTime := (2 * notAfter.Sub(time.Now())) / 3
+		renewalTime := (2 * time.Until(notAfter)) / 3
 		timer := time.NewTimer(renewalTime)
 
 		if !notAfter.IsZero() {

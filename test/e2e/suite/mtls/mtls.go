@@ -89,7 +89,7 @@ var _ = framework.CasesDescribe("mTLS correctness", func() {
 
 		for _, ns := range namespaces {
 			By(fmt.Sprintf("waiting for pods in %q namespace to become ready", ns.name))
-			err := f.Helper().WaitForPodsReady(ns.name, time.Minute*10)
+			err := f.Helper().WaitForPodsReady(ctx, ns.name, time.Minute*10)
 			if err != nil {
 				cmd := exec.Command(f.Config().KubectlPath, "describe", "-n"+ns.name, "pods")
 				cmd.Stdout = GinkgoWriter
@@ -138,7 +138,7 @@ var _ = framework.CasesDescribe("mTLS correctness", func() {
 					"curl", fmt.Sprintf("http://httpbin.%s:8000/ip", targetNs.name), "-s", "-o", "/dev/null", "-w", "%{http_code}")
 				cmd.Stdout = buf
 				cmd.Stderr = GinkgoWriter
-				cmd.Run()
+				cmdErr := cmd.Run()
 
 				// if the origin pod has proxy, target pod has a proxy, we should expect 200
 				// if the origin pod has proxy, target does not, we should expect 200
@@ -147,8 +147,10 @@ var _ = framework.CasesDescribe("mTLS correctness", func() {
 
 				var badResult bool
 				if !originNs.inject && targetNs.inject {
+					Expect(cmdErr).To(HaveOccurred())
 					badResult = buf.String() != "000"
 				} else {
+					Expect(cmdErr).NotTo(HaveOccurred())
 					badResult = buf.String() != "200"
 				}
 
