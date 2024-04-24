@@ -122,7 +122,7 @@ func AddConfigMapController(ctx context.Context, log logr.Logger, opts Options) 
 		)).
 
 		// If the CA roots change then reconcile all ConfigMaps
-		WatchesRawSource(&source.Channel{Source: c.tls.SubscribeRootCAsEvent()}, handler.EnqueueRequestsFromMapFunc(
+		WatchesRawSource(source.Channel(c.tls.SubscribeRootCAsEvent(), handler.EnqueueRequestsFromMapFunc(
 			func(context.Context, client.Object) []reconcile.Request {
 				var namespaceList corev1.NamespaceList
 				if err := c.lister.List(ctx, &namespaceList); err != nil {
@@ -135,7 +135,7 @@ func AddConfigMapController(ctx context.Context, log logr.Logger, opts Options) 
 				}
 				return requests
 			},
-		)).
+		))).
 
 		// Complete controller.
 		Complete(c)
