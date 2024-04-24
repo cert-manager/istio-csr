@@ -1,7 +1,6 @@
 module github.com/cert-manager/istio-csr
 
-go 1.21
-toolchain go1.22.2
+go 1.22.0
 
 // https://github.com/darccio/mergo/blob/cde9f0ea26cccb1168ee3900cf8ca457bb928c3c/README.md#100
 replace github.com/imdario/mergo => github.com/imdario/mergo v0.3.16
