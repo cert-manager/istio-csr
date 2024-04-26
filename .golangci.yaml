@@ -1,7 +1,6 @@
 issues:
   exclude-rules:
     - linters:
-        - gosec
         - gomoddirectives
         - promlinter
       text: ".*"

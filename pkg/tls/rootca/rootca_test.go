@@ -37,7 +37,7 @@ func Test_Watch(t *testing.T) {
 	rootCAs2 := genRootCAs(t)
 
 	t.Log("writing first root CA PEM to file")
-	if err := os.WriteFile(filepath, rootCAs1.PEM, 0644); err != nil {
+	if err := os.WriteFile(filepath, rootCAs1.PEM, 0600); err != nil {
 		t.Fatal(err)
 	}
 
@@ -56,7 +56,7 @@ func Test_Watch(t *testing.T) {
 	assert.True(t, rootCAs1.CertPool.Equal(env1.CertPool))
 
 	t.Log("writing a different root CAs PEM to file")
-	if err := os.WriteFile(filepath, rootCAs2.PEM, 0644); err != nil {
+	if err := os.WriteFile(filepath, rootCAs2.PEM, 0600); err != nil {
 		t.Fatal(err)
 	}
 
@@ -84,7 +84,7 @@ func Test_loadRootCAsFile(t *testing.T) {
 		"if the data hasn't changed, return nil": {
 			filepath: func(t *testing.T, dir string) string {
 				path := filepath.Join(dir, "test")
-				if err := os.WriteFile(path, []byte("root-certs"), 0644); err != nil {
+				if err := os.WriteFile(path, []byte("root-certs"), 0600); err != nil {
 					t.Fatal(err)
 				}
 				return path
@@ -96,7 +96,7 @@ func Test_loadRootCAsFile(t *testing.T) {
 		"if new root cert cannot be decoded, return error": {
 			filepath: func(t *testing.T, dir string) string {
 				path := filepath.Join(dir, "test")
-				if err := os.WriteFile(path, []byte("new-root-certs"), 0644); err != nil {
+				if err := os.WriteFile(path, []byte("new-root-certs"), 0600); err != nil {
 					t.Fatal(err)
 				}
 				return path
@@ -108,7 +108,7 @@ func Test_loadRootCAsFile(t *testing.T) {
 		"return new cert if it changes": {
 			filepath: func(t *testing.T, dir string) string {
 				path := filepath.Join(dir, "test")
-				if err := os.WriteFile(path, rootCAs.PEM, 0644); err != nil {
+				if err := os.WriteFile(path, rootCAs.PEM, 0600); err != nil {
 					t.Fatal(err)
 				}
 				return path
