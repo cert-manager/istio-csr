@@ -19,6 +19,7 @@ package namespace
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -155,17 +156,18 @@ func expectRootCAExists(ctx context.Context, f *framework.Framework, ns string, 
 	ctx, cancel := context.WithTimeout(ctx, time.Second*10)
 	defer cancel()
 
+	var err error
 	for {
-		cm, err := f.KubeClientSet.CoreV1().ConfigMaps(ns).Get(ctx, "istio-ca-root-cert", metav1.GetOptions{})
-
-		if err == nil {
-			if data, ok := cm.Data["root-cert.pem"]; !ok || !bytes.Equal([]byte(data), rootCA) {
-				err = fmt.Errorf("%+#v: expected root CA not present in ConfigMap", cm)
+		if cm, getErr := f.KubeClientSet.CoreV1().ConfigMaps(ns).Get(ctx, "istio-ca-root-cert", metav1.GetOptions{}); getErr != nil {
+			if err == nil || (!errors.Is(getErr, context.Canceled) && !errors.Is(getErr, context.DeadlineExceeded)) {
+				err = getErr
 			}
-		}
+		} else {
+			if data, ok := cm.Data["root-cert.pem"]; ok && bytes.Equal([]byte(data), rootCA) {
+				return nil
+			}
 
-		if err == nil {
-			return nil
+			err = fmt.Errorf("%+#v: expected root CA not present in ConfigMap", cm)
 		}
 
 		select {
