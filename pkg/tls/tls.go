@@ -241,6 +241,7 @@ func (p *Provider) Config(ctx context.Context) (*tls.Config, error) {
 
 		if conf != nil {
 			return &tls.Config{
+				MinVersion:         tls.VersionTLS12,
 				GetConfigForClient: p.getConfigForClient,
 				ClientAuth:         tls.RequireAndVerifyClientCert,
 			}, nil
@@ -365,6 +366,7 @@ func (p *Provider) fetchCertificate(ctx context.Context) (time.Time, error) {
 	// and private key. Mutually authenticate incoming client requests based if a
 	// certificate is present.
 	p.tlsConfig = &tls.Config{
+		MinVersion:   tls.VersionTLS12,
 		Certificates: []tls.Certificate{tlsCert},
 		ClientAuth:   tls.VerifyClientCertIfGiven,
 		ClientCAs:    peerCertVerifier.GetGeneralCertPool(),

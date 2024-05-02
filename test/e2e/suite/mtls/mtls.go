@@ -81,7 +81,8 @@ var _ = framework.CasesDescribe("mTLS correctness", func() {
 			}, metav1.CreateOptions{})
 			Expect(err).NotTo(HaveOccurred())
 
-			cmd := exec.Command(f.Config().KubectlPath, "apply", "-n"+ns.name, "-f", "./manifests/.")
+			// #nosec G204
+			cmd := exec.Command(f.Config().KubectlPath, "apply", "-n", ns.name, "-f", "./manifests/.")
 			cmd.Stdout = GinkgoWriter
 			cmd.Stderr = GinkgoWriter
 			Expect(cmd.Run()).NotTo(HaveOccurred())
@@ -91,7 +92,8 @@ var _ = framework.CasesDescribe("mTLS correctness", func() {
 			By(fmt.Sprintf("waiting for pods in %q namespace to become ready", ns.name))
 			err := f.Helper().WaitForPodsReady(ctx, ns.name, time.Minute*10)
 			if err != nil {
-				cmd := exec.Command(f.Config().KubectlPath, "describe", "-n"+ns.name, "pods")
+				// #nosec G204
+				cmd := exec.Command(f.Config().KubectlPath, "describe", "-n", ns.name, "pods")
 				cmd.Stdout = GinkgoWriter
 				cmd.Stderr = GinkgoWriter
 				Expect(cmd.Run()).NotTo(HaveOccurred())
@@ -134,7 +136,8 @@ var _ = framework.CasesDescribe("mTLS correctness", func() {
 			for _, targetNs := range namespaces {
 				buf := new(bytes.Buffer)
 
-				cmd := exec.Command(f.Config().KubectlPath, "exec", "-n"+originNs.name, originPods.Items[0].Name, "-csleep", "--",
+				// #nosec G204
+				cmd := exec.Command(f.Config().KubectlPath, "exec", "-n", originNs.name, originPods.Items[0].Name, "-csleep", "--",
 					"curl", fmt.Sprintf("http://httpbin.%s:8000/ip", targetNs.name), "-s", "-o", "/dev/null", "-w", "%{http_code}")
 				cmd.Stdout = buf
 				cmd.Stderr = GinkgoWriter

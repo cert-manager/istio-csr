@@ -116,6 +116,7 @@ func (c *certmanagerClient) getTLSDialOption() (grpc.DialOption, error) {
 	}
 	var certificate tls.Certificate
 	config := tls.Config{
+		MinVersion:   tls.VersionTLS12,
 		Certificates: []tls.Certificate{certificate},
 		GetClientCertificate: func(*tls.CertificateRequestInfo) (*tls.Certificate, error) {
 			return &certificate, nil
