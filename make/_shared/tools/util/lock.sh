@@ -14,7 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -eu -o pipefail
+set -o errexit
+set -o nounset
+set -o pipefail
 
 # This script is used to lock a file while it is being downloaded. It prevents
 # multiple processes from downloading the same file at the same time or from reading
@@ -26,8 +28,6 @@ set -eu -o pipefail
 
 finalfile="$1"
 lockfile="$finalfile.lock"
-# Timeout in seconds.
-timeout=60
 
 # On OSX, flock is not installed, we just skip locking in that case,
 # this means that running verify in parallel without downloading all
@@ -40,8 +40,8 @@ if [[ "$flock_installed" == "yes" ]]; then
   exec {FD}<>"$lockfile"
 
   # wait for the file to be unlocked
-  if ! flock -x -w $timeout $FD; then
-    echo "Failed to obtain a lock for $lockfile within $timeout seconds"
+  if ! flock -x $FD; then
+    echo "Failed to obtain a lock for $lockfile"
     exit 1
   fi
 fi
@@ -66,6 +66,5 @@ finish() {
     rm -rf "$finalfile" || true
   fi
   rm -rf "$lockfile" || true
-  exit $rv
 }
-trap finish EXIT
+trap finish EXIT SIGINT
