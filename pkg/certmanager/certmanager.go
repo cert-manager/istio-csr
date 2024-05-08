@@ -126,12 +126,15 @@ func (m *manager) Sign(ctx context.Context, identities string, csrPEM []byte, du
 	// If we are not preserving CertificateRequests, always delete from
 	// Kubernetes on return.
 	if !m.opts.PreserveCertificateRequests {
+		// nolint:contextcheck
 		defer func() {
 			// Use go routine to prevent blocking on Delete call.
 			go func() {
 				// Use the Background context so that this call is not cancelled by the
 				// gRPC context closing.
-				if err := m.client.Delete(context.Background(), cr.Name, metav1.DeleteOptions{}); err != nil {
+				cleanupCtx := context.Background()
+
+				if err := m.client.Delete(cleanupCtx, cr.Name, metav1.DeleteOptions{}); err != nil {
 					log.Error(err, "failed to delete CertificateRequest")
 					return
 				}
