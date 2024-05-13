@@ -229,7 +229,10 @@ affinity: {}
 #     effect: NoSchedule
 tolerations: []
 
-nodeSelector: {}
+# Kubernetes node selector: node labels for pod assignment.
+# +docs:property=nodeSelector
+nodeSelector:
+  kubernetes.io/os: linux
 
 # Labels to apply to all resources
 commonLabels: {}
