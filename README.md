@@ -33,6 +33,10 @@ Please follow the documentation at
 [cert-manager.io](https://cert-manager.io/docs/usage/istio/) for installing and
 using istio-csr.
 
+## Release Process
+
+The release process is documented in [RELEASE.md](RELEASE.md).
+
 ## Inner workings
 
 istio-csr has 3 main components: the TLS certificate obtainer, the gRPC server and the CA bundle distributor.
