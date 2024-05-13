@@ -424,8 +424,11 @@ tolerations:
 #### **nodeSelector** ~ `object`
 > Default value:
 > ```yaml
-> {}
+> kubernetes.io/os: linux
 > ```
+
+Kubernetes node selector: node labels for pod assignment.
+
 #### **commonLabels** ~ `object`
 > Default value:
 > ```yaml

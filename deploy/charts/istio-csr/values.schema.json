@@ -508,7 +508,10 @@
       "type": "array"
     },
     "helm-values.nodeSelector": {
-      "default": {},
+      "default": {
+        "kubernetes.io/os": "linux"
+      },
+      "description": "Kubernetes node selector: node labels for pod assignment.",
       "type": "object"
     },
     "helm-values.replicaCount": {
