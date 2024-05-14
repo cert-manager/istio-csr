@@ -229,6 +229,13 @@ func (o *Options) addCertManagerFlags(fs *pflag.FlagSet) {
 	fs.StringVarP(&o.CertManager.IssuerRef.Group,
 		"issuer-group", "g", "cert-manager.io",
 		"Group of the issuer to sign istio workload certificates.")
+
+	fs.StringVar(&o.CertManager.IssuanceConfigMapName, "runtime-issuance-config-map-name", "",
+		"Name of a ConfigMap to watch at runtime for issuer details. If such a ConfigMap is found, overrides issuer-name, issuer-kind and issuer-group")
+
+	fs.StringVar(&o.CertManager.IssuanceConfigMapNamespace, "runtime-issuance-config-map-namespace", "",
+		"Namespace for ConfigMap to be watched at runtime for issuer details")
+
 }
 
 func (o *Options) addAdditionalAnnotationsFlags(fs *pflag.FlagSet) {

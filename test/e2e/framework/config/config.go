@@ -21,7 +21,6 @@ import (
 	"flag"
 
 	cmmeta "github.com/cert-manager/cert-manager/pkg/apis/meta/v1"
-	utilerrors "k8s.io/apimachinery/pkg/util/errors"
 )
 
 type Config struct {
@@ -29,6 +28,11 @@ type Config struct {
 	KubectlPath    string
 
 	IssuerRef cmmeta.ObjectReference
+
+	IssuanceConfigMapName      string
+	IssuanceConfigMapNamespace string
+
+	IstioctlPath string
 }
 
 var (
@@ -49,6 +53,11 @@ func (c *Config) AddFlags(fs *flag.FlagSet) {
 	fs.StringVar(&c.IssuerRef.Group, "issuer-group ", "cert-manager.io", "issuer Group to use for e2e test")
 	fs.StringVar(&c.KubeConfigPath, "kubeconfig-path", "", "path to Kubeconfig")
 	fs.StringVar(&c.KubectlPath, "kubectl-path", "", "path to Kubectl binary")
+
+	fs.StringVar(&c.IssuanceConfigMapName, "runtime-issuance-config-map-name", "runtime-config-map", "Name of runtime issuance ConfigMap")
+	fs.StringVar(&c.IssuanceConfigMapNamespace, "runtime-issuance-config-map-namespace", "cert-manager", "Namespace for runtime issuance ConfigMap")
+
+	fs.StringVar(&c.IstioctlPath, "istioctl-path", "", "path to istioctl binary")
 }
 
 func (c *Config) Validate() error {
@@ -62,5 +71,9 @@ func (c *Config) Validate() error {
 		errs = append(errs, errors.New("--kubectl-path not set"))
 	}
 
-	return utilerrors.NewAggregate(errs)
+	if c.IstioctlPath == "" {
+		errs = append(errs, errors.New("--istioctl-path not set"))
+	}
+
+	return errors.Join(errs...)
 }

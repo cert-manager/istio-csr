@@ -101,6 +101,12 @@ func NewCommand(ctx context.Context) *cobra.Command {
 				return fmt.Errorf("failed to create manager: %w", err)
 			}
 
+			if opts.CertManager.HasRuntimeConfiguration() {
+				if err := mgr.Add(cm.RuntimeConfigurationWatcher(ctx)); err != nil {
+					return fmt.Errorf("failed to add runtime configuration watcher as runnable: %w", err)
+				}
+			}
+
 			// Create a new TLS provider for the serving certificate and private key.
 			tls, err := tls.NewProvider(opts.Logr, cm, opts.TLS)
 			if err != nil {

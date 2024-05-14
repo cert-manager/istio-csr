@@ -57,7 +57,7 @@ app:
         # Create Prometheus ServiceMonitor resource for approver-policy.
         enabled: false
         # The value for the "prometheus" label on the ServiceMonitor. This allows
-        # for multiple Prometheus instances selecting difference ServiceMonitors 
+        # for multiple Prometheus instances selecting difference ServiceMonitors
         # using label selectors.
         prometheusInstance: default
         # The interval that the Prometheus will scrape for metrics.
@@ -66,6 +66,13 @@ app:
         scrapeTimeout: 5s
         # Additional labels to give the ServiceMonitor resource.
         labels: {}
+
+  # Name of a ConfigMap in the installation namespace to watch, providing
+  # runtime configuration of an issuer to use.
+  #
+  # The "issuer-name", "issuer-kind" and "issuer-group" keys must be present in
+  # the ConfigMap for it to be used.
+  runtimeIssuanceConfigMap: ""
 
   readinessProbe:
     # Container port to expose istio-csr HTTP readiness probe on default network interface.
@@ -118,7 +125,7 @@ app:
     # Based on NIST 800-204A recommendations (SM-DR13).
     # https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf
     certificateDuration: 1h
-    # Provide additional DNS names to request on the istiod certificate. Useful if istiod 
+    # Provide additional DNS names to request on the istiod certificate. Useful if istiod
     # should be accessible via multiple DNS names and/or outside of the cluster.
     istiodAdditionalDNSNames: []
     # Requested duration of istio's Certificate. Will be automatically

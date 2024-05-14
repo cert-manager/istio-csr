@@ -139,6 +139,15 @@ The timeout on each metric probe request.
 > ```
 
 Additional labels to give the ServiceMonitor resource.
+#### **app.runtimeIssuanceConfigMap** ~ `string`
+> Default value:
+> ```yaml
+> ""
+> ```
+
+Name of a ConfigMap in the installation namespace to watch, providing runtime configuration of an issuer to use.  
+  
+The "issuer-name", "issuer-kind" and "issuer-group" keys must be present in the ConfigMap for it to be used.
 #### **app.readinessProbe.port** ~ `number`
 > Default value:
 > ```yaml

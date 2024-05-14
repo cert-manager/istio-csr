@@ -212,9 +212,20 @@ func Test_Sign(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			client := test.client()
+
+			dummyIssuerRef := cmmeta.ObjectReference{
+				Name:  "dummy",
+				Kind:  "Issuer",
+				Group: "cert-manager.io",
+			}
+
 			m := &manager{
-				client: client.CertmanagerV1().CertificateRequests(gen.DefaultTestNamespace),
-				log:    ktesting.NewLogger(t, ktesting.DefaultConfig),
+				certManagerClient: client.CertmanagerV1().CertificateRequests(gen.DefaultTestNamespace),
+
+				originalIssuerRef: &dummyIssuerRef,
+				activeIssuerRef:   &dummyIssuerRef,
+
+				log: ktesting.NewLogger(t, ktesting.DefaultConfig),
 				opts: Options{
 					PreserveCertificateRequests: test.preserveCRs,
 				},
@@ -223,6 +234,10 @@ func Test_Sign(t *testing.T) {
 			bundle, err := m.Sign(context.TODO(), "", nil, 0, nil)
 			if (err != nil) != test.expErr {
 				t.Errorf("unexpected error, exp=%t got=%v", test.expErr, err)
+			}
+
+			if test.expErr {
+				return
 			}
 
 			// Wait for delete go routine to finish
@@ -430,7 +445,7 @@ func Test_waitForCertificateRequest(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			m := &manager{
-				client: test.client(),
+				certManagerClient: test.client(),
 			}
 
 			log := ktesting.NewLogger(t, ktesting.DefaultConfig)
