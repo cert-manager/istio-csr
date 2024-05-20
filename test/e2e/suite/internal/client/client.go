@@ -145,7 +145,7 @@ func (c *certmanagerClient) buildConnection() (*grpc.ClientConn, error) {
 		opts = grpc.WithTransportCredentials(insecure.NewCredentials())
 	}
 
-	conn, err := grpc.Dial(c.caEndpoint, opts)
+	conn, err := grpc.NewClient(c.caEndpoint, opts)
 	if err != nil {
 		certmanagerClientLog.Errorf("Failed to connect to endpoint %s: %v", c.caEndpoint, err)
 		return nil, fmt.Errorf("failed to connect to endpoint %s", c.caEndpoint)
