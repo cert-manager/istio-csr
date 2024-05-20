@@ -50,7 +50,7 @@ tools += helm=v3.14.4
 # https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl
 tools += kubectl=v1.30.0
 # https://github.com/kubernetes-sigs/kind/releases
-tools += kind=v0.22.0
+tools += kind=v0.23.0
 # https://www.vaultproject.io/downloads
 tools += vault=1.16.2
 # https://github.com/Azure/azure-workload-identity/releases
@@ -72,7 +72,7 @@ tools += rclone=v1.66.0
 
 ### go packages
 # https://pkg.go.dev/sigs.k8s.io/controller-tools/cmd/controller-gen?tab=versions
-tools += controller-gen=v0.14.0
+tools += controller-gen=v0.15.0
 # https://pkg.go.dev/golang.org/x/tools/cmd/goimports?tab=versions
 tools += goimports=v0.20.0
 # https://pkg.go.dev/github.com/google/go-licenses/licenses?tab=versions
@@ -132,15 +132,16 @@ tools += gci=v0.13.4
 tools += yamlfmt=v0.12.1
 
 # https://pkg.go.dev/k8s.io/code-generator/cmd?tab=versions
-K8S_CODEGEN_VERSION := v0.29.3
+K8S_CODEGEN_VERSION := v0.30.1
 tools += client-gen=$(K8S_CODEGEN_VERSION)
 tools += deepcopy-gen=$(K8S_CODEGEN_VERSION)
 tools += informer-gen=$(K8S_CODEGEN_VERSION)
 tools += lister-gen=$(K8S_CODEGEN_VERSION)
 tools += applyconfiguration-gen=$(K8S_CODEGEN_VERSION)
-tools += openapi-gen=$(K8S_CODEGEN_VERSION)
 tools += defaulter-gen=$(K8S_CODEGEN_VERSION)
 tools += conversion-gen=$(K8S_CODEGEN_VERSION)
+# https://github.com/kubernetes/kube-openapi
+tools += openapi-gen=f0e62f92d13f418e2732b21c952fd17cab771c75
 
 # https://github.com/kubernetes-sigs/kubebuilder/blob/tools-releases/build/cloudbuild_tools.yaml
 KUBEBUILDER_ASSETS_VERSION := 1.30.0
@@ -317,9 +318,9 @@ go_dependencies += deepcopy-gen=k8s.io/code-generator/cmd/deepcopy-gen
 go_dependencies += informer-gen=k8s.io/code-generator/cmd/informer-gen
 go_dependencies += lister-gen=k8s.io/code-generator/cmd/lister-gen
 go_dependencies += applyconfiguration-gen=k8s.io/code-generator/cmd/applyconfiguration-gen
-go_dependencies += openapi-gen=k8s.io/code-generator/cmd/openapi-gen
 go_dependencies += defaulter-gen=k8s.io/code-generator/cmd/defaulter-gen
 go_dependencies += conversion-gen=k8s.io/code-generator/cmd/conversion-gen
+go_dependencies += openapi-gen=k8s.io/kube-openapi/cmd/openapi-gen
 go_dependencies += helm-tool=github.com/cert-manager/helm-tool
 go_dependencies += cmctl=github.com/cert-manager/cmctl/v2
 go_dependencies += cmrel=github.com/cert-manager/release/cmd/cmrel
@@ -399,10 +400,10 @@ $(DOWNLOAD_DIR)/tools/kubectl@$(KUBECTL_VERSION)_$(HOST_OS)_$(HOST_ARCH): | $(DO
 		$(checkhash_script) $(outfile) $(kubectl_$(HOST_OS)_$(HOST_ARCH)_SHA256SUM); \
 		chmod +x $(outfile)
 
-kind_linux_amd64_SHA256SUM=e4264d7ee07ca642fe52818d7c0ed188b193c214889dd055c929dbcb968d1f62
-kind_linux_arm64_SHA256SUM=4431805115da3b54290e3e976fe2db9a7e703f116177aace6735dfa1d8a4f3fe
-kind_darwin_amd64_SHA256SUM=28a9f7ad7fd77922c639e21c034d0f989b33402693f4f842099cd9185b144d20
-kind_darwin_arm64_SHA256SUM=c8dd3b287965150ae4db668294edc48229116e95d94620c306d8fae932ee633f
+kind_linux_amd64_SHA256SUM=1d86e3069ffbe3da9f1a918618aecbc778e00c75f838882d0dfa2d363bc4a68c
+kind_linux_arm64_SHA256SUM=a416d6c311882337f0e56910e4a2e1f8c106ec70c22cbf0ac1dd8f33c1e284fe
+kind_darwin_amd64_SHA256SUM=81c77f104b4b668812f7930659dc01ad88fa4d1cfc56900863eacdfb2731c457
+kind_darwin_arm64_SHA256SUM=68ec87c1e1ea2a708df883f4b94091150d19552d7b344e80ca59f449b301c2a0
 
 .PRECIOUS: $(DOWNLOAD_DIR)/tools/kind@$(KIND_VERSION)_$(HOST_OS)_$(HOST_ARCH)
 $(DOWNLOAD_DIR)/tools/kind@$(KIND_VERSION)_$(HOST_OS)_$(HOST_ARCH): | $(DOWNLOAD_DIR)/tools
