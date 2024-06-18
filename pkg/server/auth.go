@@ -30,6 +30,8 @@ import (
 	"github.com/cert-manager/istio-csr/pkg/server/internal/extensions"
 )
 
+const nodeAuthIdentity = "spiffe://cluster.local/ns/istio-system/sa/ztunnel"
+
 // authRequest will authenticate the request and authorize the CSR is valid for
 // the identity
 func (s *Server) authRequest(ctx context.Context, csrPEM []byte) (string, bool) {
@@ -81,12 +83,33 @@ func (s *Server) authRequest(ctx context.Context, csrPEM []byte) (string, bool) 
 
 	// ensure identity matches requests URIs
 	if !identitiesMatch(caller.Identities, csr.URIs) {
-		log.Error(fmt.Errorf("%v != %v", caller.Identities, csr.URIs), "failed to match URIs with identities")
-		return identities, false
+		// Special case: this may be a ztunnel identity, which can get certificates on behalf of pods on the same node
+		if !nodeAuthorized(caller.Identities, csr.URIs) {
+			log.Error(fmt.Errorf("%v != %v", caller.Identities, csr.URIs), "failed to match URIs with identities")
+			return identities, false
+		} else {
+			// fallthrough
+			// TODO: should we return 'identities' (ztunnel) or csr.URIS?
+		}
 	}
 
 	// return positive authn of given csr
 	return identities, true
+}
+
+func nodeAuthorized(identities []string, is []*url.URL) bool {
+	shouldNodeAuthorize := false
+	for _, identity := range identities {
+		if identity == nodeAuthIdentity {
+			shouldNodeAuthorize = true
+			break
+		}
+	}
+	if !shouldNodeAuthorize {
+		return false
+	}
+	// TODO: check the requested identities run on the node
+	return true
 }
 
 // identitiesMatch will ensure that two list of identities given from the
