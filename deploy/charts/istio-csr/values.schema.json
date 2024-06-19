@@ -406,6 +406,9 @@
         "authenticators": {
           "$ref": "#/$defs/helm-values.app.server.authenticators"
         },
+        "caTrustedNodeAccounts": {
+          "$ref": "#/$defs/helm-values.app.server.caTrustedNodeAccounts"
+        },
         "clusterID": {
           "$ref": "#/$defs/helm-values.app.server.clusterID"
         },
@@ -431,6 +434,11 @@
       "default": false,
       "description": "Enable the client certificate authenticator. This will allow workloads to use preexisting certificates to authenticate with istio-csr when rotating their certificate.",
       "type": "boolean"
+    },
+    "helm-values.app.server.caTrustedNodeAccounts": {
+      "default": "",
+      "description": "A list of service accounts that are allowed to use node authentication for CSRs, eg. istio-system/ztunnel",
+      "type": "string"
     },
     "helm-values.app.server.clusterID": {
       "default": "Kubernetes",

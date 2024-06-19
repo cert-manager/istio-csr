@@ -302,6 +302,14 @@ func (o *Options) addServerFlags(fs *pflag.FlagSet) {
 	fs.BoolVar(&o.Server.Authenticators.EnableClientCert,
 		"enable-client-cert-authenticator", false,
 		"Enable the client certificate authenticator.")
+
+	fs.StringSliceVar(&o.Server.CATrustedNodeAccounts,
+		"ca-trusted-node-accounts", []string{},
+		"A list of service accounts that are allowed to use node authentication for CSRs. "+
+			"Node authentication allows an identity to create CSRs on behalf of other identities, but only if there is a pod "+
+			"running on the same node with that identity. "+
+			"This is intended for use with node proxies.",
+	)
 }
 
 func (o *Options) addControllerFlags(fs *pflag.FlagSet) {

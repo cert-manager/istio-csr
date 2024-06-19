@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -40,8 +41,10 @@ import (
 	"istio.io/istio/pkg/config/mesh"
 	"istio.io/istio/pkg/kube"
 	"istio.io/istio/pkg/security"
+	"istio.io/istio/pkg/util/sets"
 	"istio.io/istio/security/pkg/server/ca/authenticate"
 	"istio.io/istio/security/pkg/server/ca/authenticate/kubeauth"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/metrics"
 
@@ -63,6 +66,8 @@ type Options struct {
 
 	// Authenticators configures authenticators to use for incoming CSR requests.
 	Authenticators AuthenticatorOptions
+
+	CATrustedNodeAccounts []string
 }
 
 type AuthenticatorOptions struct {
@@ -84,6 +89,8 @@ type Server struct {
 
 	ready bool
 	lock  sync.RWMutex
+
+	nodeAuthorizer *ClusterNodeAuthorizer
 }
 
 func New(log logr.Logger, restConfig *rest.Config, cm certmanager.Signer, tls tls.Interface, opts Options) (*Server, error) {
@@ -106,12 +113,30 @@ func New(log logr.Logger, restConfig *rest.Config, cm certmanager.Signer, tls tl
 		nil,
 	))
 
+	var nodeAuthorizer *ClusterNodeAuthorizer
+	if len(opts.CATrustedNodeAccounts) > 0 {
+		trustedNodeAccounts := sets.New[types.NamespacedName]()
+		for _, v := range opts.CATrustedNodeAccounts {
+			ns, sa, valid := strings.Cut(v, "/")
+			if !valid {
+				log.Info("Invalid CA_TRUSTED_NODE_ACCOUNTS, ignoring", "account", v)
+				continue
+			}
+			trustedNodeAccounts.Insert(types.NamespacedName{
+				Namespace: ns,
+				Name:      sa,
+			})
+		}
+		nodeAuthorizer = NewClusterNodeAuthorizer(client, trustedNodeAccounts)
+	}
+
 	return &Server{
 		opts:           opts,
 		log:            log.WithName("grpc-server").WithValues("serving-addr", opts.ServingAddress),
 		authenticators: authenticators,
 		cm:             cm,
 		tls:            tls,
+		nodeAuthorizer: nodeAuthorizer,
 	}, nil
 }
 
@@ -171,8 +196,9 @@ func (s *Server) Start(ctx context.Context) error {
 // CreateCertificate is the istio grpc API func, to authenticate, authorize,
 // and sign CSRs requests from istio clients.
 func (s *Server) CreateCertificate(ctx context.Context, icr *securityapi.IstioCertificateRequest) (*securityapi.IstioCertificateResponse, error) {
+
 	// authn incoming requests, and build concatenated identities for labelling
-	identities, ok := s.authRequest(ctx, []byte(icr.GetCsr()))
+	identities, ok := s.authRequest(ctx, icr)
 	if !ok {
 		return nil, status.Error(codes.Unauthenticated, "request authenticate failure")
 	}
