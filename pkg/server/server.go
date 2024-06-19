@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -38,12 +39,12 @@ import (
 	securityapi "istio.io/api/security/v1alpha1"
 	"istio.io/istio/pkg/cluster"
 	"istio.io/istio/pkg/config/mesh"
-	"istio.io/istio/pkg/jwt"
+	"istio.io/istio/pkg/kube"
 	"istio.io/istio/pkg/security"
-	"istio.io/istio/pkg/spiffe"
+	"istio.io/istio/pkg/util/sets"
 	"istio.io/istio/security/pkg/server/ca/authenticate"
 	"istio.io/istio/security/pkg/server/ca/authenticate/kubeauth"
-	"k8s.io/client-go/kubernetes"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/metrics"
 
@@ -65,6 +66,8 @@ type Options struct {
 
 	// Authenticators configures authenticators to use for incoming CSR requests.
 	Authenticators AuthenticatorOptions
+
+	CATrustedNodeAccounts []string
 }
 
 type AuthenticatorOptions struct {
@@ -86,13 +89,16 @@ type Server struct {
 
 	ready bool
 	lock  sync.RWMutex
+
+	nodeAuthorizer *ClusterNodeAuthorizer
 }
 
 func New(log logr.Logger, restConfig *rest.Config, cm certmanager.Signer, tls tls.Interface, opts Options) (*Server, error) {
 
-	kubeClient, err := kubernetes.NewForConfig(restConfig)
+	client, err := kube.NewClient(kube.NewClientConfigForRestConfig(restConfig), cluster.ID(opts.ClusterID))
+
 	if err != nil {
-		return nil, fmt.Errorf("failed to build kubernetes client: %s", err)
+		return nil, fmt.Errorf("failed creating kube client: %v", err)
 	}
 
 	meshcnf := mesh.DefaultMeshConfig()
@@ -102,7 +108,6 @@ func New(log logr.Logger, restConfig *rest.Config, cm certmanager.Signer, tls tl
 	// set both since we don't know what might (get changed to) consume it
 	// from where.
 	meshcnf.TrustDomain = tls.TrustDomain()
-	spiffe.SetTrustDomain(tls.TrustDomain())
 
 	var authenticators []security.Authenticator
 	if opts.Authenticators.EnableClientCert {
@@ -110,10 +115,27 @@ func New(log logr.Logger, restConfig *rest.Config, cm certmanager.Signer, tls tl
 	}
 	authenticators = append(authenticators, kubeauth.NewKubeJWTAuthenticator(
 		mesh.NewFixedWatcher(meshcnf),
-		kubeClient,
+		client.Kube(),
 		cluster.ID(opts.ClusterID),
-		nil, jwt.PolicyThirdParty,
+		nil,
 	))
+
+	var nodeAuthorizer *ClusterNodeAuthorizer
+	if len(opts.CATrustedNodeAccounts) > 0 {
+		trustedNodeAccounts := sets.New[types.NamespacedName]()
+		for _, v := range opts.CATrustedNodeAccounts {
+			ns, sa, valid := strings.Cut(v, "/")
+			if !valid {
+				log.Info("Invalid CA_TRUSTED_NODE_ACCOUNTS, ignoring", "account", v)
+				continue
+			}
+			trustedNodeAccounts.Insert(types.NamespacedName{
+				Namespace: ns,
+				Name:      sa,
+			})
+		}
+		nodeAuthorizer = NewClusterNodeAuthorizer(client, trustedNodeAccounts)
+	}
 
 	return &Server{
 		opts:           opts,
@@ -121,6 +143,7 @@ func New(log logr.Logger, restConfig *rest.Config, cm certmanager.Signer, tls tl
 		authenticators: authenticators,
 		cm:             cm,
 		tls:            tls,
+		nodeAuthorizer: nodeAuthorizer,
 	}, nil
 }
 
@@ -180,8 +203,9 @@ func (s *Server) Start(ctx context.Context) error {
 // CreateCertificate is the istio grpc API func, to authenticate, authorize,
 // and sign CSRs requests from istio clients.
 func (s *Server) CreateCertificate(ctx context.Context, icr *securityapi.IstioCertificateRequest) (*securityapi.IstioCertificateResponse, error) {
+
 	// authn incoming requests, and build concatenated identities for labelling
-	identities, ok := s.authRequest(ctx, []byte(icr.GetCsr()))
+	identities, ok := s.authRequest(ctx, icr)
 	if !ok {
 		return nil, status.Error(codes.Unauthenticated, "request authenticate failure")
 	}

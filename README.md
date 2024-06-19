@@ -45,3 +45,8 @@ It uses the cert-manager API to create a CertificateRequest resource, which will
 2. The gRPC server is responsible for receiving certificate signing requests from istiod and sending back the signed certificate.
 Herefore, it uses the cert-manager CertificateRequest API to obtain the signed certificate.
 3. The CA bundle distributor is responsible for creating and updating istio-ca-root-cert ConfigMaps in all namespaces (filtered using namespaceSelector).
+
+## Istio Ambient
+
+When istio-csr is being deployed into Istio Ambient, the `--ca-trusted-node-accounts` flag must be set with the `<namespace>/<service-account-name>` of ztunnel, eg. `istio-system/ztunnel`.
+This allows ztunnel to authenticate using it's own identity, then request certificates for the identity it will impersonate. For more information on how ztunnel handles certificate, see the Istio Ambient [docs](https://github.com/istio/istio/blob/master/architecture/ambient/ztunnel.md).

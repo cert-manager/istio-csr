@@ -24,6 +24,8 @@ import (
 	"sort"
 	"strings"
 
+	securityapi "istio.io/api/security/v1alpha1"
+	"istio.io/istio/pkg/log"
 	"istio.io/istio/pkg/security"
 	pkiutil "istio.io/istio/security/pkg/pki/util"
 
@@ -32,7 +34,7 @@ import (
 
 // authRequest will authenticate the request and authorize the CSR is valid for
 // the identity
-func (s *Server) authRequest(ctx context.Context, csrPEM []byte) (string, bool) {
+func (s *Server) authRequest(ctx context.Context, icr *securityapi.IstioCertificateRequest) (string, bool) {
 	var caller *security.Caller
 	var errs []error
 	found := false
@@ -57,11 +59,29 @@ func (s *Server) authRequest(ctx context.Context, csrPEM []byte) (string, bool) 
 		return "", false
 	}
 
+	var identities string
+
+	crMetadata := icr.GetMetadata().GetFields()
+	impersonatedIdentity := crMetadata[security.ImpersonatedIdentity].GetStringValue()
+	if impersonatedIdentity != "" {
+		log.Debugf("impersonated identity: %s", impersonatedIdentity)
+		if s.nodeAuthorizer == nil {
+			log.Warnf("impersonation not allowed, as node authorizer (CA_TRUSTED_NODE_ACCOUNTS) is not configured")
+			return "", false
+		}
+		if err := s.nodeAuthorizer.authenticateImpersonation(caller.KubernetesInfo, impersonatedIdentity); err != nil {
+			log.Error(fmt.Errorf("failed to validate impersonated identity %v: %v", impersonatedIdentity, err))
+			return identities, false
+		}
+		identities = impersonatedIdentity
+	} else {
+		identities = strings.Join(caller.Identities, ",")
+	}
+
 	// return concatenated list of verified ids
-	identities := strings.Join(caller.Identities, ",")
 	log := s.log.WithValues("identities", identities)
 
-	csr, err := pkiutil.ParsePemEncodedCSR(csrPEM)
+	csr, err := pkiutil.ParsePemEncodedCSR([]byte(icr.GetCsr()))
 	if err != nil {
 		log.Error(err, "failed to decode CSR")
 		return identities, false
@@ -90,9 +110,13 @@ func (s *Server) authRequest(ctx context.Context, csrPEM []byte) (string, bool) 
 		return identities, false
 	}
 
-	// ensure identity matches requests URIs
-	if !identitiesMatch(caller.Identities, csr.URIs) {
-		log.Error(fmt.Errorf("%v != %v", caller.Identities, csr.URIs), "failed to match URIs with identities")
+	if impersonatedIdentity == "" {
+		if !identitiesMatch(caller.Identities, csr.URIs) {
+			log.Error(fmt.Errorf("%v != %v", caller.Identities, csr.URIs), "failed to match URIs with identities")
+			return identities, false
+		}
+	} else if !identitiesMatch([]string{impersonatedIdentity}, csr.URIs) {
+		log.Error(fmt.Errorf("%v != %v", impersonatedIdentity, csr.URIs), "failed to match URIs with impersonated identities")
 		return identities, false
 	}
 

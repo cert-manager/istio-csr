@@ -91,7 +91,11 @@ spec:
 
           # server authenticators
           - "--enable-client-cert-authenticator={{.Values.app.server.authenticators.enableClientCert}}"
-
+          
+          # trusted node accounts
+          {{- if .Values.app.server.caTrustedNodeAccounts }}
+          - "--ca-trusted-node-accounts={{.Values.app.server.caTrustedNodeAccounts }}"
+          {{- end }}
           # controller
           - "--leader-election-namespace={{.Values.app.controller.leaderElectionNamespace}}"
           {{- if .Values.app.controller.configmapNamespaceSelector }}
