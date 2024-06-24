@@ -26,6 +26,7 @@ oci_manager_base_image_flavor := static
 oci_manager_image_name := quay.io/jetstack/cert-manager-istio-csr
 oci_manager_image_tag := $(VERSION)
 oci_manager_image_name_development := cert-manager.local/cert-manager-istio-csr
+oci_platforms := linux/amd64,linux/arm/v7,linux/arm64,linux/ppc64le,linux/s390x
 
 deploy_name := istio-csr
 deploy_namespace := cert-manager
