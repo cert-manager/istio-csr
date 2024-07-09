@@ -61,6 +61,8 @@ e2e-setup-istio: | kind-cluster install $(NEEDS_KUBECTL) $(bin_dir)/scratch/isti
 	$(bin_dir)/scratch/istioctl-$(ISTIO_VERSION) install -y -f ./make/config/istio/istio-config-$(ISTIO_VERSION).yaml
 	$(KUBECTL) -n istio-system apply --server-side -f ./make/config/peer-authentication.yaml
 
+E2E_FOCUS ?=
+
 test-e2e-deps: INSTALL_OPTIONS :=
 test-e2e-deps: INSTALL_OPTIONS += --set image.repository=$(oci_manager_image_name_development)
 test-e2e-deps: INSTALL_OPTIONS += -f ./make/config/istio-csr-values.yaml
@@ -75,6 +77,7 @@ test-e2e-deps: e2e-setup-istio
 test-e2e: test-e2e-deps | kind-cluster $(NEEDS_GINKGO) $(NEEDS_KUBECTL)
 	$(GINKGO) \
 		--output-dir=$(ARTIFACTS) \
+		--focus="$(E2E_FOCUS)" \
 		--junit-report=junit-go-e2e.xml \
 		./test/e2e/ \
 		-ldflags $(go_manager_ldflags) \
