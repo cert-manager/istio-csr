@@ -1,0 +1,9 @@
+# These CVEs are detected by trivy but apply to running Istio in a cluster
+# None of these are an issue for istio-csr, and even if they were they're only detected
+# because the trivy rules don't account for the fast that the istio library we import doesn't provide tagged releases
+# for the purposes of importing in Go.
+CVE-2019-14993
+CVE-2021-39155
+CVE-2021-39156
+CVE-2022-23635
+CVE-2022-31045
