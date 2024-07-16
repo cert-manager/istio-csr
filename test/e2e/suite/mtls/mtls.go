@@ -89,8 +89,21 @@ var _ = framework.CasesDescribe("mTLS correctness", func() {
 		}
 
 		for _, ns := range namespaces {
-			By(fmt.Sprintf("waiting for pods in %q namespace to become ready", ns.name))
-			err := f.Helper().WaitForPodsReady(ctx, ns.name, time.Minute*10)
+			By(fmt.Sprintf("waiting for sleep pods in %q namespace to become ready", ns.name))
+
+			err := f.Helper().WaitForLabelledPodsReady(ctx, ns.name, "app=sleep", time.Minute*10)
+			if err != nil {
+				// #nosec G204
+				cmd := exec.Command(f.Config().KubectlPath, "describe", "-n", ns.name, "pods")
+				cmd.Stdout = GinkgoWriter
+				cmd.Stderr = GinkgoWriter
+				Expect(cmd.Run()).NotTo(HaveOccurred())
+
+				Expect(err).NotTo(HaveOccurred())
+			}
+
+			By(fmt.Sprintf("waiting for httpbin pods in %q namespace to become ready", ns.name))
+			err = f.Helper().WaitForLabelledPodsReady(ctx, ns.name, "app=httpbin", time.Minute*10)
 			if err != nil {
 				// #nosec G204
 				cmd := exec.Command(f.Config().KubectlPath, "describe", "-n", ns.name, "pods")

@@ -89,6 +89,9 @@ spec:
           {{- if .Values.app.controller.configmapNamespaceSelector }}
           - "--configmap-namespace-selector={{ .Values.app.controller.configmapNamespaceSelector }}"
           {{- end }}
+
+          - "--runtime-issuance-config-map-name={{.Values.app.runtimeIssuanceConfigMap}}"
+          - "--runtime-issuance-config-map-namespace={{.Release.Namespace}}"
         {{- if .Values.volumeMounts }}
         volumeMounts:
 {{ toYaml .Values.volumeMounts | indent 10 }}

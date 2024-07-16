@@ -68,34 +68,43 @@ func (h *Helper) WaitForCertificateReady(ctx context.Context, ns, name string, t
 	return certificate, err
 }
 
-// WaitForPodsReady waits for all pods in a namespace to become ready
-func (h *Helper) WaitForPodsReady(ctx context.Context, ns string, timeout time.Duration) error {
-	podsList, err := h.kubeclient.CoreV1().Pods(ns).List(ctx, metav1.ListOptions{})
-	if err != nil {
-		return err
-	}
+const (
+	pollInterval  = time.Second
+	pollImmediate = true
+)
 
-	for _, pod := range podsList.Items {
-		err := wait.PollUntilContextTimeout(ctx, time.Second, timeout, true, func(ctx context.Context) (bool, error) {
-			var err error
-			pod, err := h.kubeclient.CoreV1().Pods(ns).Get(ctx, pod.Name, metav1.GetOptions{})
+// WaitForLabelledPodsReady waits until at least one pod matching the given label selector is ready in the given namespace
+func (h *Helper) WaitForLabelledPodsReady(ctx context.Context, ns string, labelSelector string, timeout time.Duration) error {
+	return wait.PollUntilContextTimeout(ctx, pollInterval, timeout, pollImmediate, func(ctx context.Context) (bool, error) {
+		podsList, err := h.kubeclient.CoreV1().Pods(ns).List(ctx, metav1.ListOptions{
+			LabelSelector: labelSelector,
+		})
+		if err != nil {
+			return false, err
+		}
+
+		// if there's no pods there yet, assume some will be created and continue
+		if len(podsList.Items) == 0 {
+			return false, nil
+		}
+
+		allReady := true
+
+		for _, podFromList := range podsList.Items {
+			pod, err := h.kubeclient.CoreV1().Pods(ns).Get(ctx, podFromList.Name, metav1.GetOptions{})
 			if err != nil {
-				return false, fmt.Errorf("error getting Pod %q: %v", pod.Name, err)
+				return false, fmt.Errorf("error getting Pod %q: %v", podFromList.Name, err)
 			}
+
 			for _, c := range pod.Status.Conditions {
 				if c.Type == corev1.PodReady {
-					return c.Status == corev1.ConditionTrue, nil
+					if c.Status != corev1.ConditionTrue {
+						allReady = false
+					}
 				}
 			}
-
-			return false, nil
-		})
-
-		if err != nil {
-			return fmt.Errorf("failed to wait for pod %q to become ready: %s",
-				pod.Name, err)
 		}
-	}
 
-	return nil
+		return allReady, nil
+	})
 }

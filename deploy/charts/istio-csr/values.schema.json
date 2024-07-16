@@ -71,6 +71,9 @@
         "readinessProbe": {
           "$ref": "#/$defs/helm-values.app.readinessProbe"
         },
+        "runtimeIssuanceConfigMap": {
+          "$ref": "#/$defs/helm-values.app.runtimeIssuanceConfigMap"
+        },
         "server": {
           "$ref": "#/$defs/helm-values.app.server"
         },
@@ -305,6 +308,11 @@
       "default": 6060,
       "description": "Container port to expose istio-csr HTTP readiness probe on default network interface.",
       "type": "number"
+    },
+    "helm-values.app.runtimeIssuanceConfigMap": {
+      "default": "",
+      "description": "Name of a ConfigMap in the installation namespace to watch, providing runtime configuration of an issuer to use.\n\nThe \"issuer-name\", \"issuer-kind\" and \"issuer-group\" keys must be present in the ConfigMap for it to be used.",
+      "type": "string"
     },
     "helm-values.app.server": {
       "additionalProperties": false,

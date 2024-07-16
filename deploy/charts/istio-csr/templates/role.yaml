@@ -20,3 +20,10 @@ rules:
 - apiGroups: [""]
   resources: ["events"]
   verbs: ["create"]
+{{- if .Values.app.runtimeIssuanceConfigMap }}
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "list", "watch"]
+  resourceNames: ["{{.Values.app.runtimeIssuanceConfigMap}}"]
+{{- end }}
+
