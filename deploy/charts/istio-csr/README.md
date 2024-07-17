@@ -6,6 +6,10 @@
 
 <!-- AUTO-GENERATED -->
 
+#### **nameOverride** ~ `string`
+
+nameOverride replaces the name of the chart in the Chart.yaml file, when this is used to construct Kubernetes object names.
+
 #### **replicaCount** ~ `number`
 > Default value:
 > ```yaml
