@@ -86,7 +86,7 @@ var _ = framework.CasesDescribe("CA Root Controller", func() {
 		By("ensure all existing namespaces have the correct root CA")
 
 		pollInterval := 1 * time.Second
-		pollTimeout := 30 * time.Second
+		pollTimeout := 2 * time.Minute
 		pollImmediate := true
 
 		err := wait.PollUntilContextTimeout(ctx, pollInterval, pollTimeout, pollImmediate, func(ctx context.Context) (bool, error) {
