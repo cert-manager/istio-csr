@@ -1,3 +1,8 @@
+# nameOverride replaces the name of the chart in the Chart.yaml file, when this
+# is used to construct Kubernetes object names.
+# +docs:property
+# nameOverride: approver-policy
+
 # Number of replicas of istio-csr to run.
 replicaCount: 1
 

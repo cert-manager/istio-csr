@@ -21,6 +21,9 @@
         "imagePullSecrets": {
           "$ref": "#/$defs/helm-values.imagePullSecrets"
         },
+        "nameOverride": {
+          "$ref": "#/$defs/helm-values.nameOverride"
+        },
         "nodeSelector": {
           "$ref": "#/$defs/helm-values.nodeSelector"
         },
@@ -514,6 +517,10 @@
       "description": "Optional secrets used for pulling the istio-csr container image.",
       "items": {},
       "type": "array"
+    },
+    "helm-values.nameOverride": {
+      "description": "nameOverride replaces the name of the chart in the Chart.yaml file, when this is used to construct Kubernetes object names.",
+      "type": "string"
     },
     "helm-values.nodeSelector": {
       "default": {
