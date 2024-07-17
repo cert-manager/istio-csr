@@ -73,6 +73,15 @@ test-e2e-deps: e2e-create-cert-manager-istio-resources
 test-e2e-deps: install
 test-e2e-deps: e2e-setup-istio
 
+CI ?=
+EXTRA_GINKGO_FLAGS :=
+
+# In Prow, the CI environment variable is set to "true"
+# See https://docs.prow.k8s.io/docs/jobs/#job-environment-variables
+ifeq ($(CI),true)
+EXTRA_GINKGO_FLAGS += --no-color
+endif
+
 .PHONY: test-e2e
 ## e2e end-to-end tests
 ## @category Testing
@@ -81,6 +90,7 @@ test-e2e: test-e2e-deps | kind-cluster $(NEEDS_GINKGO) $(NEEDS_KUBECTL)
 		--output-dir=$(ARTIFACTS) \
 		--focus="$(E2E_FOCUS)" \
 		--junit-report=junit-go-e2e.xml \
+		$(EXTRA_GINKGO_FLAGS) \
 		./test/e2e/ \
 		-ldflags $(go_manager_ldflags) \
 		-- \
