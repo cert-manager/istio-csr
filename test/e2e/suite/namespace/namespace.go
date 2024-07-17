@@ -85,7 +85,11 @@ var _ = framework.CasesDescribe("CA Root Controller", func() {
 	It("all namespaces should have valid configs in", func() {
 		By("ensure all existing namespaces have the correct root CA")
 
-		err := wait.PollUntilContextTimeout(ctx, time.Second, time.Second*30, true, func(ctx context.Context) (bool, error) {
+		pollInterval := 1 * time.Second
+		pollTimeout := 30 * time.Second
+		pollImmediate := true
+
+		err := wait.PollUntilContextTimeout(ctx, pollInterval, pollTimeout, pollImmediate, func(ctx context.Context) (bool, error) {
 			nss, err := f.KubeClientSet.CoreV1().Namespaces().List(ctx, metav1.ListOptions{})
 			if err != nil {
 				return false, err
