@@ -49,4 +49,4 @@ Herefore, it uses the cert-manager CertificateRequest API to obtain the signed c
 ## Istio Ambient
 
 When istio-csr is being deployed into Istio Ambient, the `--ca-trusted-node-accounts` flag must be set with the `<namespace>/<service-account-name>` of ztunnel, eg. `istio-system/ztunnel`.
-This allows ztunnel to authenticate using it's own identity, then request certificates for the identity it will impersonate. For more information on how ztunnel handles certificate, see the Istio Ambient [docs](https://github.com/istio/istio/blob/master/architecture/ambient/ztunnel.md).
+This allows ztunnel to authenticate using its own identity, then request certificates for the identity it will impersonate. For more information on how ztunnel handles certificate, see the Istio Ambient [docs](https://github.com/istio/istio/blob/master/architecture/ambient/ztunnel.md).

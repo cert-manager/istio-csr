@@ -379,7 +379,7 @@ The type of private key to generate for the serving certificate. Only RSA (defau
 > ""
 > ```
 
-A list of service accounts that are allowed to use node authentication for CSRs, eg. istio-system/ztunnel
+A comma-separated list of service accounts that are allowed to use node authentication for CSRs, eg. "istio-system/ztunnel"
 #### **app.istio.revisions[0]** ~ `string`
 > Default value:
 > ```yaml

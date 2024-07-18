@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ISTIO_VERSION ?= 1.20.2
+ISTIO_VERSION ?= 1.22.2
 
 $(bin_dir)/scratch/istioctl-$(ISTIO_VERSION): | $(bin_dir)/scratch/
 	curl -L https://istio.io/downloadIstio | ISTIO_VERSION=$(ISTIO_VERSION) sh -
@@ -72,23 +72,32 @@ endif
 
 .PHONY: e2e-setup-istio
 e2e-setup-istio: | kind-cluster install $(NEEDS_KUBECTL) $(bin_dir)/scratch/istioctl-$(ISTIO_VERSION)
-	$(bin_dir)/scratch/istioctl-$(ISTIO_VERSION) install -y -f ./make/config/istio/istio-config-$(ISTIO_VERSION).yaml
+	$(bin_dir)/scratch/istioctl-$(ISTIO_VERSION) install -y -f ./make/config/istio/istio-config-$(ISTIO_VERSION).yaml $(ISTIO_INSTALL_OPTIONS)
 	$(KUBECTL) -n istio-system apply --server-side -f ./make/config/peer-authentication.yaml
 
 E2E_RUNTIME_CONFIG_MAP_NAME ?= runtime-config-map
 E2E_FOCUS ?=
 
-test-e2e-deps: INSTALL_OPTIONS :=
-test-e2e-deps: INSTALL_OPTIONS += --set image.repository=$(oci_manager_image_name_development)
-test-e2e-deps: INSTALL_OPTIONS += --set app.runtimeConfiguration.name=$(E2E_RUNTIME_CONFIG_MAP_NAME)
-test-e2e-deps: INSTALL_OPTIONS += --set app.logFormat=json
-test-e2e-deps: INSTALL_OPTIONS += --set app.controller.disableKubernetesClientRateLimiter=true
-test-e2e-deps: INSTALL_OPTIONS += --set app.server.authenticators.enableClientCert=true
-test-e2e-deps: INSTALL_OPTIONS += -f ./make/config/istio-csr-values.yaml
+INSTALL_OPTIONS += --set image.repository=$(oci_manager_image_name_development)
+INSTALL_OPTIONS += --set app.runtimeIssuanceConfigMap=$(E2E_RUNTIME_CONFIG_MAP_NAME)
+INSTALL_OPTIONS += --set app.logFormat=json
+INSTALL_OPTIONS += --set app.controller.disableKubernetesClientRateLimiter=true
+INSTALL_OPTIONS += --set app.server.authenticators.enableClientCert=true
+INSTALL_OPTIONS += -f ./make/config/istio-csr-values.yaml
+
 test-e2e-deps: e2e-setup-cert-manager
 test-e2e-deps: e2e-create-cert-manager-istio-resources
-test-e2e-deps: install
-test-e2e-deps: e2e-setup-istio
+
+test-e2e-deps-sidecars: test-e2e-deps
+test-e2e-deps-sidecars: install
+test-e2e-deps-sidecars: e2e-setup-istio
+
+test-e2e-deps-ambient: test-e2e-deps
+test-e2e-deps-ambient: INSTALL_OPTIONS += --set app.server.caTrustedNodeAccounts="istio-system/ztunnel"
+test-e2e-deps-ambient: install
+test-e2e-deps-ambient: ISTIO_INSTALL_OPTIONS :=
+test-e2e-deps-ambient: ISTIO_INSTALL_OPTIONS += --set profile=ambient
+test-e2e-deps-ambient: e2e-setup-istio
 
 CI ?=
 EXTRA_GINKGO_FLAGS :=
@@ -100,9 +109,9 @@ EXTRA_GINKGO_FLAGS += --no-color
 endif
 
 .PHONY: test-e2e
-## e2e end-to-end tests
+## e2e end-to-end tests using Istio with Sidecars
 ## @category Testing
-test-e2e: test-e2e-deps | kind-cluster $(NEEDS_GINKGO) $(NEEDS_KUBECTL)
+test-e2e: test-e2e-deps-sidecars | kind-cluster $(NEEDS_GINKGO) $(NEEDS_KUBECTL)
 	$(GINKGO) \
 		--output-dir=$(ARTIFACTS) \
 		--focus="$(E2E_FOCUS)" \
@@ -141,3 +150,21 @@ test-e2e-pure-runtime: test-e2e-pure-runtime-deps | kind-cluster $(NEEDS_GINKGO)
 		--kubeconfig-path $(CURDIR)/$(kind_kubeconfig) \
 		--kubectl-path $(KUBECTL) \
 		--runtime-issuance-config-map-name=$(E2E_RUNTIME_CONFIG_MAP_NAME)
+
+.PHONY: test-e2e-ambient
+## e2e end-to-end tests using Istio Ambient
+## @category Testing
+test-e2e-ambient: test-e2e-deps-ambient | kind-cluster $(NEEDS_GINKGO) $(NEEDS_KUBECTL)
+	$(GINKGO) \
+		--output-dir=$(ARTIFACTS) \
+		--focus="$(E2E_FOCUS)" \
+		--junit-report=junit-go-e2e.xml \
+		$(EXTRA_GINKGO_FLAGS) \
+		./test/e2e/ \
+		-ldflags $(go_manager_ldflags) \
+		-- \
+		--istioctl-path $(CURDIR)/$(bin_dir)/scratch/istioctl-$(ISTIO_VERSION) \
+		--kubeconfig-path $(CURDIR)/$(kind_kubeconfig) \
+		--kubectl-path $(KUBECTL) \
+		--runtime-issuance-config-map-name=$(E2E_RUNTIME_CONFIG_MAP_NAME) \
+		--ambient-enabled=true

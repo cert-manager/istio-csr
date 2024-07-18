@@ -54,6 +54,18 @@ var _ = framework.CasesDescribe("mTLS correctness", func() {
 			},
 		}
 
+		injectLabel = func() map[string]string {
+			if f.Config().AmbientEnabled {
+				return map[string]string{
+					"istio.io/dataplane-mode": "ambient",
+				}
+			} else {
+				return map[string]string{
+					"istio-injection": "enabled",
+				}
+			}
+		}()
+
 		ctx = context.Background()
 	)
 
@@ -66,17 +78,15 @@ var _ = framework.CasesDescribe("mTLS correctness", func() {
 				ns.name, ns.inject,
 			))
 
-			injectEnabled := "enabled"
 			if !ns.inject {
-				injectEnabled = "disabled"
+				injectLabel = map[string]string{
+					"istio-injection": "disabled"}
 			}
 
 			_, err := f.KubeClientSet.CoreV1().Namespaces().Create(ctx, &corev1.Namespace{
 				ObjectMeta: metav1.ObjectMeta{
-					Name: ns.name,
-					Labels: map[string]string{
-						"istio-injection": injectEnabled,
-					},
+					Name:   ns.name,
+					Labels: injectLabel,
 				},
 			}, metav1.CreateOptions{})
 			Expect(err).NotTo(HaveOccurred())

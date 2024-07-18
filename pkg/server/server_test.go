@@ -38,21 +38,17 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/structpb"
 	securityapi "istio.io/api/security/v1alpha1"
-<<<<<<< HEAD
-	"istio.io/istio/pkg/security"
-	"istio.io/istio/security/pkg/pki/util"
-	"istio.io/istio/security/pkg/server/ca/authenticate"
-=======
 	"istio.io/istio/pkg/kube"
 	"istio.io/istio/pkg/security"
 	"istio.io/istio/pkg/spiffe"
 	testUtil "istio.io/istio/pkg/test"
 	"istio.io/istio/pkg/util/sets"
+	"istio.io/istio/security/pkg/pki/util"
+	"istio.io/istio/security/pkg/server/ca/authenticate"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
->>>>>>> 0b4c130 (Add support for impersonation for certificate requests)
 	"k8s.io/klog/v2/ktesting"
 
 	"github.com/cert-manager/istio-csr/pkg/certmanager"
@@ -391,6 +387,9 @@ func Test_CreateCertificateE2EUsingClientCertAuthenticator(t *testing.T) {
 		})
 	}
 }
+
+// See original code: https://github.com/istio/istio/blob/1.22.3/security/pkg/server/ca/server_test.go
+// See license of original code: https://github.com/istio/istio/blob/1.22.3/LICENSE
 func Test_CreateCertificateWithImpersonateIdentity(t *testing.T) {
 
 	rootCertPEM, leafCertPEM, rootPool := genRootLeafPEM(t)
@@ -423,10 +422,10 @@ func Test_CreateCertificateWithImpersonateIdentity(t *testing.T) {
 		csr string
 
 		cm          func(t *testing.T) certmanager.Signer
-		tls         tls.Interface
+		tls         csrtls.Interface
 		maxDuration time.Duration
 
-		authenticator        *mockAuthenticator
+		authenticators       []security.Authenticator
 		trustedNodeAccounts  sets.Set[types.NamespacedName]
 		pods                 []pod
 		impersonatedIdentity string
@@ -453,10 +452,10 @@ func Test_CreateCertificateWithImpersonateIdentity(t *testing.T) {
 			},
 			tls:         tlsfake.New().WithRootCAs(rootCertPEM, rootPool),
 			maxDuration: time.Hour * 2,
-			authenticator: newMockAuthnImpersonate(
+			authenticators: []security.Authenticator{newMockAuthnImpersonate(
 				[]string{ztunnelPod.Identity()},
 				&ztunnelCaller,
-			),
+			)},
 			trustedNodeAccounts:  allowZtunnel,
 			pods:                 []pod{ztunnelPod, podSameNode},
 			impersonatedIdentity: podSameNode.Identity(),
@@ -470,10 +469,10 @@ func Test_CreateCertificateWithImpersonateIdentity(t *testing.T) {
 			cm:          func(t *testing.T) certmanager.Signer { return cmfake.New() },
 			tls:         tlsfake.New().WithRootCAs(rootCertPEM, rootPool),
 			maxDuration: time.Hour * 2,
-			authenticator: newMockAuthnImpersonate(
+			authenticators: []security.Authenticator{newMockAuthnImpersonate(
 				[]string{ztunnelPod.Identity()},
 				&ztunnelCaller,
-			),
+			)},
 			trustedNodeAccounts:  map[types.NamespacedName]struct{}{},
 			pods:                 []pod{ztunnelPod, podSameNode},
 			impersonatedIdentity: podSameNode.Identity(),
@@ -487,10 +486,10 @@ func Test_CreateCertificateWithImpersonateIdentity(t *testing.T) {
 			cm:          func(t *testing.T) certmanager.Signer { return cmfake.New() },
 			tls:         tlsfake.New().WithRootCAs(rootCertPEM, rootPool),
 			maxDuration: time.Hour * 2,
-			authenticator: newMockAuthnImpersonate(
+			authenticators: []security.Authenticator{newMockAuthnImpersonate(
 				[]string{ztunnelPod.Identity()},
 				&ztunnelCaller,
-			),
+			)},
 			trustedNodeAccounts:  allowZtunnel,
 			pods:                 []pod{ztunnelPod, podSameNode},
 			impersonatedIdentity: podSameNode.Identity(),
@@ -524,7 +523,7 @@ func Test_CreateCertificateWithImpersonateIdentity(t *testing.T) {
 				opts: Options{
 					MaximumClientCertificateDuration: test.maxDuration,
 				},
-				authenticator:  test.authenticator,
+				authenticators: test.authenticators,
 				log:            ktesting.NewLogger(t, ktesting.DefaultConfig),
 				cm:             test.cm(t),
 				tls:            test.tls,
