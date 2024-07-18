@@ -30,5 +30,6 @@ echo ">> $ISTIO_BIN uninstall -y -f \"$TEST_DIR/values/istio-ecdsa_p${KEY_SIZE}.
 
 $ISTIO_BIN uninstall -y --purge -f "$TEST_DIR/values/istio-ecdsa_p${KEY_SIZE}.yaml"
 $KUBECTL_BIN delete cr --all -n istio-system
-$KUBECTL_BIN delete mutatingwebhookconfigurations istio-revision-tag-default
+# istioctl uninstall will not remove MutatingWebhookConfiguration::istio-revision-tag-default in versions before 1.21
+$KUBECTL_BIN delete mutatingwebhookconfigurations istio-revision-tag-default || true
 rm -f "${ISTIO_CSR_SERVING_CERTFILE}"

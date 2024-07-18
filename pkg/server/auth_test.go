@@ -151,6 +151,8 @@ func newistioRequestMetadata(identity pod) *structpb.Struct {
 	return reqMeta
 }
 
+// See original code: https://github.com/istio/istio/blob/1.22.3/security/pkg/server/ca/server_test.go
+// See license of original code: https://github.com/istio/istio/blob/1.22.3/LICENSE
 func TestAuthRequestImpersonation(t *testing.T) {
 	allowZtunnel := map[types.NamespacedName]struct{}{
 		{Name: "ztunnel", Namespace: "istio-system"}: {},

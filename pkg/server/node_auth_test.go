@@ -32,6 +32,8 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
+// See original code: https://github.com/istio/istio/blob/1.22.3/security/pkg/server/ca/node_auth_test.go
+// See license of original code: https://github.com/istio/istio/blob/1.22.3/LICENSE
 func TestAuthImpersonation(t *testing.T) {
 	allowZtunnel := map[types.NamespacedName]struct{}{
 		{Name: "ztunnel", Namespace: "istio-system"}: {},

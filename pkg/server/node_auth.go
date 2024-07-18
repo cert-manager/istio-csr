@@ -37,6 +37,7 @@ import (
 // This implementation is based on Istio, but ensures the pod informer is synced before
 // creating the index.
 // (https://github.com/istio/istio/blob/1.22.1/security/pkg/server/ca/node_auth.go#L74)
+// See license of original code: https://github.com/istio/istio/blob/1.22.3/LICENSE
 
 type ClusterNodeAuthorizer struct {
 	trustedNodeAccounts sets.Set[types.NamespacedName]
@@ -90,13 +91,13 @@ func (na *ClusterNodeAuthorizer) authenticateImpersonation(caller security.Kuber
 		return fmt.Errorf("caller (%v) is not allowed to impersonate", caller)
 	}
 
-	// // Next, make sure the identity they want to impersonate is valid, in general
+	// Next, make sure the identity they want to impersonate is valid, in general
 	requestedIdentity, err := spiffe.ParseIdentity(requestedIdentityString)
 	if err != nil {
 		return err
 	}
 
-	// // Finally, we validate the requested identity is running on the same node the caller is on
+	// Finally, we validate the requested identity is running on the same node the caller is on
 	callerPod := na.pods.Get(caller.PodName, caller.PodNamespace)
 	if callerPod == nil {
 		return fmt.Errorf("pod %v/%v not found", caller.PodNamespace, caller.PodName)
