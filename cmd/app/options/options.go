@@ -152,6 +152,12 @@ func (o *Options) addFlags(cmd *cobra.Command) {
 	o.addCertManagerFlags(nfs.FlagSet("cert-manager"))
 	o.kubeConfigFlags = genericclioptions.NewConfigFlags(true)
 	o.kubeConfigFlags.AddFlags(nfs.FlagSet("Kubernetes"))
+	o.kubeConfigFlags.WrapConfigFn = func(c *rest.Config) *rest.Config {
+		// Trust that K8s server side API Priority and Fairness is enabled
+		c.QPS = -1
+		c.Burst = -1
+		return c
+	}
 	o.addTLSFlags(nfs.FlagSet("TLS"))
 	o.addServerFlags(nfs.FlagSet("Server"))
 	o.addControllerFlags(nfs.FlagSet("controller"))
