@@ -18,11 +18,13 @@ spec:
   {{- $revisions := dict -}}
   {{- if .Values.app.istio.revisions }}
   {{- $namespace := .Values.app.istio.namespace }}
+  {{- /* We want to add a DNS SAN for every requested revision. The default revision is a special case since it doesn't have "default" in the name. */ -}}
   {{- range $revision := .Values.app.istio.revisions -}}
   {{- if eq $revision "default" }}{{ $revision = "" }}{{ end }}
   {{- if hasKey $revisions $revision }}
   {{- printf "Duplicate revisions defined %s" $revision | fail -}}
   {{- else -}}
+  {{- /* https://helm.sh/docs/chart_template_guide/function_list/#set */ -}}
   {{- $_ := set $revisions $revision $revision -}}
   {{- end -}}
   {{- if ne $revision "" }}{{ $revision = print "-" $revision }}{{ end }}
