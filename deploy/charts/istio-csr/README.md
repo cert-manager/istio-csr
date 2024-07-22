@@ -243,13 +243,13 @@ An optional file location to a PEM encoded root CA that the root CA. ConfigMap i
 Requested duration of gRPC serving certificate. Will be automatically renewed.  
 Based on NIST 800-204A recommendations (SM-DR13).  
 https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf
-#### **app.tls.istiodAdditionalDNSNames** ~ `array`
+#### **app.tls.istiodCertificateEnable** ~ `bool`
 > Default value:
 > ```yaml
-> []
+> true
 > ```
 
-Provide additional DNS names to request on the istiod certificate. Useful if istiod should be accessible via multiple DNS names and/or outside of the cluster.
+Create the default certificate as part of install.
 #### **app.tls.istiodCertificateDuration** ~ `string`
 > Default value:
 > ```yaml
@@ -264,13 +264,9 @@ https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf. Warn
 > ```yaml
 > 30m
 > ```
-#### **app.tls.istiodCertificateEnable** ~ `bool`
-> Default value:
-> ```yaml
-> true
-> ```
 
-Create the default certificate as part of install.
+Amount of time to wait before trying to renew the istiod certificate.  
+Must be smaller than the certificate's duration.
 #### **app.tls.istiodPrivateKeySize** ~ `number`
 > Default value:
 > ```yaml
@@ -278,6 +274,13 @@ Create the default certificate as part of install.
 > ```
 
 Number of bits to use for istiod-tls Key
+#### **app.tls.istiodAdditionalDNSNames** ~ `array`
+> Default value:
+> ```yaml
+> []
+> ```
+
+Provide additional DNS names to request on the istiod certificate. Useful if istiod should be accessible via multiple DNS names and/or outside of the cluster.
 #### **app.server.clusterID** ~ `string`
 > Default value:
 > ```yaml

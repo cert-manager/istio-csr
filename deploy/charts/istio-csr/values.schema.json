@@ -446,6 +446,7 @@
     },
     "helm-values.app.tls.istiodCertificateRenewBefore": {
       "default": "30m",
+      "description": "Amount of time to wait before trying to renew the istiod certificate.\nMust be smaller than the certificate's duration.",
       "type": "string"
     },
     "helm-values.app.tls.istiodPrivateKeySize": {
