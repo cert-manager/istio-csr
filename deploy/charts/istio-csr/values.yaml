@@ -130,21 +130,24 @@ app:
     # Based on NIST 800-204A recommendations (SM-DR13).
     # https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf
     certificateDuration: 1h
+
+    # Create the default certificate as part of install.
+    istiodCertificateEnable: true
+    # Requested duration of istio's Certificate. Will be automatically renewed.
+    # Default is based on NIST 800-204A recommendations (SM-DR13).
+    # https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf
+    # Warning: cert-manager does not allow a duration on Certificates less than 1 hour.
+    istiodCertificateDuration: 1h
+    # Amount of time to wait before trying to renew the istiod certificate.
+    # Must be smaller than the certificate's duration.
+    istiodCertificateRenewBefore: 30m
+    # Private key algorithm to use. For backwards compatibility, defaults to the same value as app.server.serving.signatureAlgorithm
+    istiodPrivateKeyAlgorithm: ""
+    # Parameter for istiod certificate key. For RSA, must be a number of bits >= 2048. For ECDSA, can only be 256 or 384, corresponding to P-256 and P-384 respectively.
+    istiodPrivateKeySize: 2048
     # Provide additional DNS names to request on the istiod certificate. Useful if istiod
     # should be accessible via multiple DNS names and/or outside of the cluster.
     istiodAdditionalDNSNames: []
-    # Requested duration of istio's Certificate. Will be automatically
-    # renewed.
-    # Based on NIST 800-204A recommendations (SM-DR13).
-    # https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf
-    # Warning: cert-manager does not allow a duration on Certificates less than
-    # 1 hour.
-    istiodCertificateDuration: 1h
-    istiodCertificateRenewBefore: 30m
-    # Create the default certificate as part of install.
-    istiodCertificateEnable: true
-    # Number of bits to use for istiod-tls Key
-    istiodPrivateKeySize: 2048
 
   server:
     # The istio cluster ID to verify incoming CSRs.
@@ -160,16 +163,18 @@ app:
       address: 0.0.0.0
       # Container port to serve istio-csr gRPC service.
       port: 6443
-      # Number of bits to use for the server's serving certificate, can only be 256 or 384 when signature algorithm is ECDSA.
+      # Parameter for serving certificate key. For RSA, must be a number of bits >= 2048. For ECDSA, can only be 256 or 384, corresponding to P-256 and P-384 respectively.
       certificateKeySize: 2048
-      # The type of signature algorithm to use when generating private keys. Currently only RSA and ECDSA are supported. By default RSA is used.
+      # The type of private key to generate for the serving certificate. Only RSA (default) and ECDSA are supported.
+      # NB: This variable is named incorrectly; it controls private key algorithm, not signature algorithm.
       signatureAlgorithm: "RSA"
 
   istio:
     # The istio revisions that are currently installed in the cluster.
     # Changing this field will modify the DNS names that will be requested for
-    # the istiod certificate. The common name for the istiod certificate is
-    # hard coded to the `default` revision DNS name.
+    # the istiod certificate (if enabled).
+    # The common name for the istiod certificate is hard coded to the `default` revision
+    # DNS name.
     # Some issuers may require that the common name on certificates match one
     # of the DNS names. If 1. Your issuer has this constraint, and 2. You are
     # not using `default` as a revision, add the `default` revision here

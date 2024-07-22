@@ -243,27 +243,6 @@ An optional file location to a PEM encoded root CA that the root CA. ConfigMap i
 Requested duration of gRPC serving certificate. Will be automatically renewed.  
 Based on NIST 800-204A recommendations (SM-DR13).  
 https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf
-#### **app.tls.istiodAdditionalDNSNames** ~ `array`
-> Default value:
-> ```yaml
-> []
-> ```
-
-Provide additional DNS names to request on the istiod certificate. Useful if istiod should be accessible via multiple DNS names and/or outside of the cluster.
-#### **app.tls.istiodCertificateDuration** ~ `string`
-> Default value:
-> ```yaml
-> 1h
-> ```
-
-Requested duration of istio's Certificate. Will be automatically renewed.  
-Based on NIST 800-204A recommendations (SM-DR13).  
-https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf. Warning: cert-manager does not allow a duration on Certificates less than 1 hour.
-#### **app.tls.istiodCertificateRenewBefore** ~ `string`
-> Default value:
-> ```yaml
-> 30m
-> ```
 #### **app.tls.istiodCertificateEnable** ~ `bool`
 > Default value:
 > ```yaml
@@ -271,13 +250,42 @@ https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf. Warn
 > ```
 
 Create the default certificate as part of install.
+#### **app.tls.istiodCertificateDuration** ~ `string`
+> Default value:
+> ```yaml
+> 1h
+> ```
+
+Requested duration of istio's Certificate. Will be automatically renewed. Default is based on NIST 800-204A recommendations (SM-DR13). https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf. Warning: cert-manager does not allow a duration on Certificates less than 1 hour.
+#### **app.tls.istiodCertificateRenewBefore** ~ `string`
+> Default value:
+> ```yaml
+> 30m
+> ```
+
+Amount of time to wait before trying to renew the istiod certificate.  
+Must be smaller than the certificate's duration.
+#### **app.tls.istiodPrivateKeyAlgorithm** ~ `string`
+> Default value:
+> ```yaml
+> ""
+> ```
+
+Private key algorithm to use. For backwards compatibility, defaults to the same value as app.server.serving.signatureAlgorithm
 #### **app.tls.istiodPrivateKeySize** ~ `number`
 > Default value:
 > ```yaml
 > 2048
 > ```
 
-Number of bits to use for istiod-tls Key
+Parameter for istiod certificate key. For RSA, must be a number of bits >= 2048. For ECDSA, can only be 256 or 384, corresponding to P-256 and P-384 respectively.
+#### **app.tls.istiodAdditionalDNSNames** ~ `array`
+> Default value:
+> ```yaml
+> []
+> ```
+
+Provide additional DNS names to request on the istiod certificate. Useful if istiod should be accessible via multiple DNS names and/or outside of the cluster.
 #### **app.server.clusterID** ~ `string`
 > Default value:
 > ```yaml
@@ -314,14 +322,14 @@ Container port to serve istio-csr gRPC service.
 > 2048
 > ```
 
-Number of bits to use for the server's serving certificate, can only be 256 or 384 when signature algorithm is ECDSA.
+Parameter for serving certificate key. For RSA, must be a number of bits >= 2048. For ECDSA, can only be 256 or 384, corresponding to P-256 and P-384 respectively.
 #### **app.server.serving.signatureAlgorithm** ~ `string`
 > Default value:
 > ```yaml
 > RSA
 > ```
 
-The type of signature algorithm to use when generating private keys. Currently only RSA and ECDSA are supported. By default RSA is used.
+The type of private key to generate for the serving certificate. Only RSA (default) and ECDSA are supported. NB: This variable is named incorrectly; it controls private key algorithm, not signature algorithm.
 #### **app.istio.revisions[0]** ~ `string`
 > Default value:
 > ```yaml

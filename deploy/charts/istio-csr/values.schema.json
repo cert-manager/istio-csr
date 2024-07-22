@@ -367,7 +367,7 @@
     },
     "helm-values.app.server.serving.certificateKeySize": {
       "default": 2048,
-      "description": "Number of bits to use for the server's serving certificate, can only be 256 or 384 when signature algorithm is ECDSA.",
+      "description": "Parameter for serving certificate key. For RSA, must be a number of bits >= 2048. For ECDSA, can only be 256 or 384, corresponding to P-256 and P-384 respectively.",
       "type": "number"
     },
     "helm-values.app.server.serving.port": {
@@ -377,7 +377,7 @@
     },
     "helm-values.app.server.serving.signatureAlgorithm": {
       "default": "RSA",
-      "description": "The type of signature algorithm to use when generating private keys. Currently only RSA and ECDSA are supported. By default RSA is used.",
+      "description": "The type of private key to generate for the serving certificate. Only RSA (default) and ECDSA are supported. NB: This variable is named incorrectly; it controls private key algorithm, not signature algorithm.",
       "type": "string"
     },
     "helm-values.app.tls": {
@@ -400,6 +400,9 @@
         },
         "istiodCertificateRenewBefore": {
           "$ref": "#/$defs/helm-values.app.tls.istiodCertificateRenewBefore"
+        },
+        "istiodPrivateKeyAlgorithm": {
+          "$ref": "#/$defs/helm-values.app.tls.istiodPrivateKeyAlgorithm"
         },
         "istiodPrivateKeySize": {
           "$ref": "#/$defs/helm-values.app.tls.istiodPrivateKeySize"
@@ -436,7 +439,7 @@
     },
     "helm-values.app.tls.istiodCertificateDuration": {
       "default": "1h",
-      "description": "Requested duration of istio's Certificate. Will be automatically renewed.\nBased on NIST 800-204A recommendations (SM-DR13).\nhttps://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf. Warning: cert-manager does not allow a duration on Certificates less than 1 hour.",
+      "description": "Requested duration of istio's Certificate. Will be automatically renewed. Default is based on NIST 800-204A recommendations (SM-DR13). https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf. Warning: cert-manager does not allow a duration on Certificates less than 1 hour.",
       "type": "string"
     },
     "helm-values.app.tls.istiodCertificateEnable": {
@@ -446,11 +449,17 @@
     },
     "helm-values.app.tls.istiodCertificateRenewBefore": {
       "default": "30m",
+      "description": "Amount of time to wait before trying to renew the istiod certificate.\nMust be smaller than the certificate's duration.",
+      "type": "string"
+    },
+    "helm-values.app.tls.istiodPrivateKeyAlgorithm": {
+      "default": "",
+      "description": "Private key algorithm to use. For backwards compatibility, defaults to the same value as app.server.serving.signatureAlgorithm",
       "type": "string"
     },
     "helm-values.app.tls.istiodPrivateKeySize": {
       "default": 2048,
-      "description": "Number of bits to use for istiod-tls Key",
+      "description": "Parameter for istiod certificate key. For RSA, must be a number of bits >= 2048. For ECDSA, can only be 256 or 384, corresponding to P-256 and P-384 respectively.",
       "type": "number"
     },
     "helm-values.app.tls.rootCAFile": {
