@@ -452,8 +452,7 @@
     },
     "helm-values.app.tls.istiodCertificateEnable": {
       "default": true,
-      "description": "Create the default certificate as part of install.",
-      "type": "boolean"
+      "description": "If true, create the istiod certificate using a cert-manager certificate as part of the install. If set to \"dynamic\", will create the cert dynamically when istio-csr pods start up. If false, no cert is created."
     },
     "helm-values.app.tls.istiodCertificateRenewBefore": {
       "default": "30m",

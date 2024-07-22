@@ -29,6 +29,7 @@ import (
 	"time"
 
 	cmapi "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
+	cmmeta "github.com/cert-manager/cert-manager/pkg/apis/meta/v1"
 	"github.com/cert-manager/cert-manager/pkg/util/pki"
 	"github.com/go-logr/logr"
 	"github.com/prometheus/client_golang/prometheus"
@@ -118,14 +119,20 @@ type Provider struct {
 	lock          sync.RWMutex
 	tlsConfig     *tls.Config
 	subscriptions []chan<- event.GenericEvent
+
+	issuerChangeNotifier certmanager.IssuerChangeNotifier
+	issuerChangeChan     <-chan *cmmeta.ObjectReference
 }
 
 // NewProvider will return a new provider where a TLS config is ready to be fetched.
-func NewProvider(log logr.Logger, cm certmanager.Signer, opts Options) (*Provider, error) {
+func NewProvider(log logr.Logger, cm certmanager.Signer, opts Options, issuerChangeNotifier certmanager.IssuerChangeNotifier) (*Provider, error) {
 	return &Provider{
 		opts: opts,
 		log:  log.WithName("tls-provider"),
 		cm:   cm,
+
+		issuerChangeNotifier: issuerChangeNotifier,
+		issuerChangeChan:     issuerChangeNotifier.SubscribeIssuerChange(),
 	}, nil
 }
 
@@ -155,6 +162,14 @@ func (p *Provider) Start(ctx context.Context) error {
 				}
 			}
 		}()
+	}
+
+	// If using pure runtime configuration (i.e. no issuerRef provided on startup)
+	// we need to wait for an issuer to be available before we try to fetch the initial
+	// serving certificate
+
+	if p.issuerChangeNotifier.MustWaitForIssuer() {
+		p.waitForInitialIssuer(ctx)
 	}
 
 	notAfter, err := p.fetchCertificate(ctx)
@@ -194,6 +209,30 @@ func (p *Provider) Start(ctx context.Context) error {
 		p.log.Info("renewing serving certificate")
 		notAfter = p.mustFetchCertificate(ctx)
 		p.log.Info("fetched new serving certificate", "expiry-time", notAfter)
+	}
+}
+
+// waitForInitialIssuer blocks until there's an issuer provided for creating the initial
+// serving cert.
+func (p *Provider) waitForInitialIssuer(ctx context.Context) {
+	for {
+		timer := time.NewTimer(5 * time.Second)
+
+		select {
+		case <-ctx.Done():
+			p.log.Info("abandoning trying to fetch initial serving certificate due to context cancellation")
+
+		case newIssuerRef := <-p.issuerChangeChan:
+			if newIssuerRef != nil {
+				// we're done waiting and there's an issuer configured
+				p.log.Info("saw issuerRef configuration; issuing initial serving certificate")
+				return
+			}
+
+		case <-timer.C:
+			p.log.Info("still waiting for runtime configuration of issuerRef for initial serving certificate")
+		}
+
 	}
 }
 

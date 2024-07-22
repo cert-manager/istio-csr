@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 
+	cmapi "github.com/cert-manager/cert-manager/pkg/api"
 	"github.com/spf13/cobra"
 	"k8s.io/apimachinery/pkg/api/validation"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -34,6 +35,7 @@ import (
 	"github.com/cert-manager/istio-csr/cmd/app/options"
 	"github.com/cert-manager/istio-csr/pkg/certmanager"
 	"github.com/cert-manager/istio-csr/pkg/controller"
+	"github.com/cert-manager/istio-csr/pkg/istiodcert"
 	"github.com/cert-manager/istio-csr/pkg/server"
 	"github.com/cert-manager/istio-csr/pkg/tls"
 )
@@ -58,6 +60,7 @@ func NewCommand(ctx context.Context) *cobra.Command {
 			if errs := validation.ValidateAnnotations(opts.CertManager.AdditionalAnnotations, field.NewPath("certificate-request-additional-annotations")); len(errs) > 0 {
 				return errs.ToAggregate()
 			}
+
 			cm, err := certmanager.New(opts.Logr, opts.RestConfig, opts.CertManager)
 			if err != nil {
 				return fmt.Errorf("failed to initialise cert-manager manager: %w", err)
@@ -66,6 +69,10 @@ func NewCommand(ctx context.Context) *cobra.Command {
 			intscheme := runtime.NewScheme()
 			if err := scheme.AddToScheme(intscheme); err != nil {
 				return fmt.Errorf("failed to add kubernetes scheme: %s", err)
+			}
+
+			if err := cmapi.AddToScheme(intscheme); err != nil {
+				return fmt.Errorf("failed to add cert-manager scheme: %s", err)
 			}
 
 			cl, err := kubernetes.NewForConfig(opts.RestConfig)
@@ -101,6 +108,18 @@ func NewCommand(ctx context.Context) *cobra.Command {
 				return fmt.Errorf("failed to create manager: %w", err)
 			}
 
+			if opts.IstiodCert.Enabled {
+				istiodCertController, err := istiodcert.New(opts.Logr.WithName("istiod-dynamic"), opts.RestConfig, opts.IstiodCert, cm, opts.TLS.TrustDomain)
+				if err != nil {
+					return fmt.Errorf("failed to create dynamic istiod certificate provisioner: %s", err)
+				}
+
+				err = istiodCertController.AddControllersToManager(mgr)
+				if err != nil {
+					return fmt.Errorf("failed to add dynamic istiod cert controllers: %w", err)
+				}
+			}
+
 			if opts.CertManager.HasRuntimeConfiguration() {
 				if err := mgr.Add(cm.RuntimeConfigurationWatcher(ctx)); err != nil {
 					return fmt.Errorf("failed to add runtime configuration watcher as runnable: %w", err)
@@ -108,7 +127,7 @@ func NewCommand(ctx context.Context) *cobra.Command {
 			}
 
 			// Create a new TLS provider for the serving certificate and private key.
-			tls, err := tls.NewProvider(opts.Logr, cm, opts.TLS)
+			tls, err := tls.NewProvider(opts.Logr, cm, opts.TLS, cm)
 			if err != nil {
 				return fmt.Errorf("failed to create tls provider: %w", err)
 			}

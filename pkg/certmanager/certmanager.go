@@ -75,6 +75,25 @@ type Signer interface {
 	Sign(ctx context.Context, identities string, csrPEM []byte, duration time.Duration, usages []cmapi.KeyUsage) (Bundle, error)
 }
 
+// IssuerChangeNotifier allows subscription to a channel providing updates on when an
+// issuer changes.
+type IssuerChangeNotifier interface {
+	// SubscribeIssuerChange provides a channel which will update with new issuerRefs
+	// as updates happen.
+	SubscribeIssuerChange() <-chan *cmmeta.ObjectReference
+
+	// MustWaitForIssuer returns true if there's no "default" issuerRef available
+	// (i.e. no static issuerRef was configured at startup)
+	// If this function returns true, InitialIssuer will always return nil and
+	// subscribers must wait for runtime configuration before trying to issue
+	// certificates
+	MustWaitForIssuer() bool
+
+	// InitialIssuer returns the "static" issuer which was configured at startup. Will
+	// always return nil if no such issuer exists.
+	InitialIssuer() *cmmeta.ObjectReference
+}
+
 // manager is used for signing CSRs via cert-manager. manager will create
 // CertificateRequests and wait for them to be signed, before returning the
 // result.
@@ -98,6 +117,9 @@ type manager struct {
 	// if no runtime configuration (ConfigMap configuration) is found, or if the
 	// ConfigMap for runtime configuration is deleted.
 	originalIssuerRef *cmmeta.ObjectReference
+
+	issuerChangeSubscriptions      []chan *cmmeta.ObjectReference
+	issuerChangeSubscriptionsMutex sync.Mutex
 }
 
 // Bundle represents the `status.Certificate` and `status.CA` that is
@@ -320,6 +342,8 @@ func (m *manager) handleRuntimeConfigIssuerChange(logger logr.Logger, event watc
 
 	logger.Info("Changed active issuerRef in response to runtime configuration ConfigMap", "issuer-name", m.activeIssuerRef.Name, "issuer-kind", m.activeIssuerRef.Kind, "issuer-group", m.activeIssuerRef.Group)
 
+	m.notifyIssuerChange(m.activeIssuerRef)
+
 	return nil
 }
 
@@ -336,6 +360,10 @@ func (m *manager) handleRuntimeConfigIssuerDeletion(logger logr.Logger) {
 	logger.Info("Runtime issuance configuration was deleted; issuance will revert to original issuerRef configured at install time")
 
 	m.activeIssuerRef = m.originalIssuerRef
+
+	// only send a nil pointer on the assumption that anything which cared about the original issuer ref
+	// kept track of it on startup
+	m.notifyIssuerChange(nil)
 }
 
 // RuntimeConfigurationWatcher is a wrapper around ctrlmgr.Runnable for watching runtime config
@@ -433,6 +461,35 @@ LOOP:
 func (m *manager) RuntimeConfigurationWatcher(ctx context.Context) ctrlmgr.Runnable {
 	return &RuntimeConfigurationWatcher{
 		m: m,
+	}
+}
+
+func (m *manager) SubscribeIssuerChange() <-chan *cmmeta.ObjectReference {
+	m.issuerChangeSubscriptionsMutex.Lock()
+	defer m.issuerChangeSubscriptionsMutex.Unlock()
+
+	ch := make(chan *cmmeta.ObjectReference)
+
+	m.issuerChangeSubscriptions = append(m.issuerChangeSubscriptions, ch)
+
+	return ch
+}
+
+func (m *manager) MustWaitForIssuer() bool {
+	// if no originalIssuerRef was configured, must wait for runtime configuration
+	return m.originalIssuerRef == nil
+}
+
+func (m *manager) InitialIssuer() *cmmeta.ObjectReference {
+	return m.originalIssuerRef
+}
+
+func (m *manager) notifyIssuerChange(issuerRef *cmmeta.ObjectReference) {
+	m.issuerChangeSubscriptionsMutex.Lock()
+	defer m.issuerChangeSubscriptionsMutex.Unlock()
+
+	for i := range m.issuerChangeSubscriptions {
+		go func(i int) { m.issuerChangeSubscriptions[i] <- issuerRef }(i)
 	}
 }
 

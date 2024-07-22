@@ -32,6 +32,7 @@ import (
 	"k8s.io/klog/v2"
 
 	"github.com/cert-manager/istio-csr/pkg/certmanager"
+	"github.com/cert-manager/istio-csr/pkg/istiodcert"
 	"github.com/cert-manager/istio-csr/pkg/server"
 	"github.com/cert-manager/istio-csr/pkg/tls"
 
@@ -64,6 +65,7 @@ type Options struct {
 	CertManager certmanager.Options
 	TLS         tls.Options
 	Server      server.Options
+	IstiodCert  istiodcert.Options
 }
 
 // OptionsController is the Controller specific options
@@ -142,6 +144,11 @@ func (o *Options) Complete() error {
 		log.Info("WARNING: --preserve-certificate-requests is enabled. Do not enable this option in production, or environments with any non-trivial number of workloads for an extended period of time. Doing so will balloon the resource consumption of ETCD, the API server, and istio-csr, leading to errors and slowdown. This option is intended for debugging purposes only, for limited periods of time.")
 	}
 
+	err = o.IstiodCert.Validate()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -156,6 +163,8 @@ func (o *Options) addFlags(cmd *cobra.Command) {
 	o.addServerFlags(nfs.FlagSet("Server"))
 	o.addControllerFlags(nfs.FlagSet("controller"))
 	o.addAdditionalAnnotationsFlags(nfs.FlagSet("additional-annotations"))
+
+	istiodcert.AddFlags(&o.IstiodCert, nfs.FlagSet("istiod-cert"))
 
 	usageFmt := "Usage:\n  %s\n"
 	cmd.SetUsageFunc(func(cmd *cobra.Command) error {
