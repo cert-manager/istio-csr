@@ -18,6 +18,7 @@ package options
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -86,14 +87,25 @@ func (o *Options) Prepare(cmd *cobra.Command) *Options {
 
 func (o *Options) Complete() error {
 	logOpts := logsapi.NewLoggingConfiguration()
-	if o.logFormat != "" {
-		logOpts.Format = o.logFormat
+
+	if o.logFormat == "" {
+		o.logFormat = "text"
 	}
+
+	o.logFormat = strings.ToLower(o.logFormat)
+	if o.logFormat != "json" && o.logFormat != "text" {
+		return fmt.Errorf("invalid log-format; must be either \"text\" or \"json\"")
+	}
+
+	logOpts.Format = o.logFormat
+
 	logOpts.Verbosity = logsapi.VerbosityLevel(o.logLevel)
+
 	err := logsapi.ValidateAndApply(logOpts, nil)
 	if err != nil {
 		return fmt.Errorf("failed to set log config: %w", err)
 	}
+
 	klog.InitFlags(nil)
 	log := klog.TODO()
 	o.Logr = log
@@ -110,25 +122,13 @@ func (o *Options) Complete() error {
 	}
 
 	if len(o.TLS.RootCAsCertFile) == 0 {
-		log.Info("------------------------------------------------------------------------------------------------------------")
-		log.Info("WARNING!: --root-ca-file is not defined which means the root CA will be discovered by the configured issuer.")
-		log.Info("WARNING!: It is strongly recommended that a root CA bundle be statically defined.")
-		log.Info("------------------------------------------------------------------------------------------------------------")
+		log.Info("WARNING: --root-ca-file is not defined which means the root CA will be discovered by the configured issuer. Without a statically defined trust bundle, it will be very difficult to safely rotate the chain used for issuance.")
 	} else {
-		log.Info("-----------------------------------------------------------------")
 		log.Info("Using root CAs from file: " + o.TLS.RootCAsCertFile)
-		log.Info("-----------------------------------------------------------------")
 	}
 
 	if o.CertManager.PreserveCertificateRequests {
-		log.Info("------------------------------------------------------------------------------------------------------------")
-		log.Info("WARNING!: --preserve-certificate-requests is enabled. Do not enable this option in")
-		log.Info("WARNING!: production, or environments with any non-trivial number of workloads for an")
-		log.Info("WARNING!: extended period of time. Doing so will balloon the resource consumption of")
-		log.Info("WARNING!: ETCD, the API server, and istio-csr, leading to errors and slow down.")
-		log.Info("WARNING!: This option is intended for debugging purposes only, for limited periods of")
-		log.Info("WARNING!: time.")
-		log.Info("------------------------------------------------------------------------------------------------------------")
+		log.Info("WARNING: --preserve-certificate-requests is enabled. Do not enable this option in production, or environments with any non-trivial number of workloads for an extended period of time. Doing so will balloon the resource consumption of ETCD, the API server, and istio-csr, leading to errors and slowdown. This option is intended for debugging purposes only, for limited periods of time.")
 	}
 
 	return nil
