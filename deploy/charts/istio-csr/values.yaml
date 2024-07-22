@@ -48,6 +48,9 @@ app:
   # Verbosity of istio-csr logging.
   logLevel: 1 # 1-5
 
+  # Output format of istio-csr logging.
+  logFormat: text # text or json
+
   metrics:
     # Port for exposing Prometheus metrics on 0.0.0.0 on path '/metrics'.
     port: 9402

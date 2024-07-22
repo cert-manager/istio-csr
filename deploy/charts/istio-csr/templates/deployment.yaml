@@ -48,6 +48,7 @@ spec:
           periodSeconds: 7
         args:
           - "--log-level={{.Values.app.logLevel}}"
+          - "--log-format={{.Values.app.logFormat}}"
           - "--metrics-port={{.Values.app.metrics.port}}"
           - "--readiness-probe-port={{.Values.app.readinessProbe.port}}"
           - "--readiness-probe-path={{.Values.app.readinessProbe.path}}"

@@ -87,6 +87,13 @@ Service nodePort to expose istio-csr gRPC service.
 > ```
 
 Verbosity of istio-csr logging.
+#### **app.logFormat** ~ `string`
+> Default value:
+> ```yaml
+> text
+> ```
+
+Output format of istio-csr logging.
 #### **app.metrics.port** ~ `number`
 > Default value:
 > ```yaml

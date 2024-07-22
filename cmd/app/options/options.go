@@ -17,7 +17,6 @@ limitations under the License.
 package options
 
 import (
-	"flag"
 	"fmt"
 	"time"
 
@@ -27,6 +26,7 @@ import (
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/rest"
 	cliflag "k8s.io/component-base/cli/flag"
+	logsapi "k8s.io/component-base/logs/api/v1"
 	"k8s.io/klog/v2"
 
 	"github.com/cert-manager/istio-csr/pkg/certmanager"
@@ -38,7 +38,8 @@ import (
 
 // Options is a struct to hold options for cert-manager-istio-csr
 type Options struct {
-	logLevel        string
+	logLevel        uint32
+	logFormat       string
 	kubeConfigFlags *genericclioptions.ConfigFlags
 
 	// ReadyzPort if the port used to expose Prometheus metrics.
@@ -84,11 +85,17 @@ func (o *Options) Prepare(cmd *cobra.Command) *Options {
 }
 
 func (o *Options) Complete() error {
+	logOpts := logsapi.NewLoggingConfiguration()
+	if o.logFormat != "" {
+		logOpts.Format = o.logFormat
+	}
+	logOpts.Verbosity = logsapi.VerbosityLevel(o.logLevel)
+	err := logsapi.ValidateAndApply(logOpts, nil)
+	if err != nil {
+		return fmt.Errorf("failed to set log config: %w", err)
+	}
 	klog.InitFlags(nil)
 	log := klog.TODO()
-	if err := flag.Set("v", o.logLevel); err != nil {
-		return fmt.Errorf("failed to set log level: %s", err)
-	}
 	o.Logr = log
 
 	// Ensure there is at least one DNS name to set in the serving certificate
@@ -97,7 +104,6 @@ func (o *Options) Complete() error {
 		return fmt.Errorf("the list of DNS names to add to the serving certificate is empty")
 	}
 
-	var err error
 	o.RestConfig, err = o.kubeConfigFlags.ToRESTConfig()
 	if err != nil {
 		return fmt.Errorf("failed to build kubernetes rest config: %s", err)
@@ -159,9 +165,13 @@ func (o *Options) addFlags(cmd *cobra.Command) {
 }
 
 func (o *Options) addAppFlags(fs *pflag.FlagSet) {
-	fs.StringVarP(&o.logLevel,
-		"log-level", "v", "1",
+	fs.Uint32VarP(&o.logLevel,
+		"log-level", "v", 1,
 		"Log level (1-5).")
+
+	fs.StringVar(&o.logFormat,
+		"log-format", "text",
+		"log output format: text|json")
 
 	fs.IntVar(&o.ReadyzPort,
 		"readiness-probe-port", 6060,
@@ -235,7 +245,6 @@ func (o *Options) addCertManagerFlags(fs *pflag.FlagSet) {
 
 	fs.StringVar(&o.CertManager.IssuanceConfigMapNamespace, "runtime-issuance-config-map-namespace", "",
 		"Namespace for ConfigMap to be watched at runtime for issuer details")
-
 }
 
 func (o *Options) addAdditionalAnnotationsFlags(fs *pflag.FlagSet) {
