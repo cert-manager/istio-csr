@@ -65,6 +65,9 @@
         "istio": {
           "$ref": "#/$defs/helm-values.app.istio"
         },
+        "logFormat": {
+          "$ref": "#/$defs/helm-values.app.logFormat"
+        },
         "logLevel": {
           "$ref": "#/$defs/helm-values.app.logLevel"
         },
@@ -195,6 +198,11 @@
     },
     "helm-values.app.istio.revisions[0]": {
       "default": "default",
+      "type": "string"
+    },
+    "helm-values.app.logFormat": {
+      "default": "text",
+      "description": "Output format of istio-csr logging.",
       "type": "string"
     },
     "helm-values.app.logLevel": {
