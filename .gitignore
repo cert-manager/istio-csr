@@ -2,3 +2,5 @@
 /_bin
 /kubeconfig.yaml
 /_artifacts
+
+test/e2e/e2e.test
