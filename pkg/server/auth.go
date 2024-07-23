@@ -33,10 +33,21 @@ import (
 // authRequest will authenticate the request and authorize the CSR is valid for
 // the identity
 func (s *Server) authRequest(ctx context.Context, csrPEM []byte) (string, bool) {
-	caller, err := s.authenticator.Authenticate(security.AuthContext{GrpcContext: ctx})
-	if err != nil {
+	var caller *security.Caller
+	var errs []error
+	found := false
+	for _, authenticator := range s.authenticators {
+		var err error
+		caller, err = authenticator.Authenticate(security.AuthContext{GrpcContext: ctx})
+		if err == nil {
+			found = true
+			break
+		}
+		errs = append(errs, err)
+	}
+	if !found {
 		// TODO: pass in logger with request context
-		s.log.Error(err, "failed to authenticate request")
+		s.log.Error(errors.Join(errs...), "failed to authenticate request")
 		return "", false
 	}
 

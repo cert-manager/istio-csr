@@ -20,6 +20,7 @@ import (
 	"context"
 	"crypto"
 	"crypto/rand"
+	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"errors"
@@ -31,14 +32,19 @@ import (
 	"github.com/cert-manager/cert-manager/pkg/util/pki"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/peer"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 	securityapi "istio.io/api/security/v1alpha1"
+	"istio.io/istio/pkg/security"
+	"istio.io/istio/security/pkg/pki/util"
+	"istio.io/istio/security/pkg/server/ca/authenticate"
 	"k8s.io/klog/v2/ktesting"
 
 	"github.com/cert-manager/istio-csr/pkg/certmanager"
 	cmfake "github.com/cert-manager/istio-csr/pkg/certmanager/fake"
-	"github.com/cert-manager/istio-csr/pkg/tls"
+	csrtls "github.com/cert-manager/istio-csr/pkg/tls"
 	tlsfake "github.com/cert-manager/istio-csr/pkg/tls/fake"
 	"github.com/cert-manager/istio-csr/test/gen"
 )
@@ -91,7 +97,7 @@ func Test_CreateCertificate(t *testing.T) {
 		icr func(t *testing.T) *securityapi.IstioCertificateRequest
 
 		cm          func(t *testing.T) certmanager.Signer
-		tls         tls.Interface
+		tls         csrtls.Interface
 		maxDuration time.Duration
 
 		expResponse *securityapi.IstioCertificateResponse
@@ -191,13 +197,159 @@ func Test_CreateCertificate(t *testing.T) {
 				opts: Options{
 					MaximumClientCertificateDuration: test.maxDuration,
 				},
-				authenticator: newMockAuthn([]string{spiffeDomain}, ""),
-				log:           ktesting.NewLogger(t, ktesting.DefaultConfig),
-				cm:            test.cm(t),
-				tls:           test.tls,
+				authenticators: []security.Authenticator{
+					newMockAuthn([]string{spiffeDomain}, ""),
+				},
+				log: ktesting.NewLogger(t, ktesting.DefaultConfig),
+				cm:  test.cm(t),
+				tls: test.tls,
 			}
 
 			resp, err := s.CreateCertificate(context.TODO(), test.icr(t))
+			errS, _ := status.FromError(err)
+			expErrS, _ := status.FromError(test.expErr)
+
+			if !proto.Equal(errS.Proto(), expErrS.Proto()) {
+				t.Errorf("unexpected error, exp=%v got=%v", test.expErr, err)
+			}
+
+			assert.Equal(t, test.expResponse, resp)
+		})
+	}
+}
+
+func Test_CreateCertificateE2EUsingClientCertAuthenticator(t *testing.T) {
+	const spiffeDomain = "spiffe://foo"
+
+	rootPK, err := pki.GenerateECPrivateKey(256)
+	if err != nil {
+		t.Fatal(err)
+	}
+	rootCert := &x509.Certificate{
+		Version:               2,
+		BasicConstraintsValid: true,
+		SerialNumber:          big.NewInt(0),
+		Subject: pkix.Name{
+			CommonName: "root-ca",
+		},
+		NotBefore: time.Now(),
+		NotAfter:  time.Now().Add(time.Minute),
+		KeyUsage:  x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
+		PublicKey: rootPK.Public(),
+		IsCA:      true,
+	}
+	rootCertPEM, rootCert, err := pki.SignCertificate(rootCert, rootCert, rootPK.Public(), rootPK)
+	if err != nil {
+		t.Fatal(err)
+	}
+	rootPool := x509.NewCertPool()
+	rootPool.AddCert(rootCert)
+
+	leafPK, err := pki.GenerateECPrivateKey(256)
+	if err != nil {
+		t.Fatal(err)
+	}
+	leafCertPEM, _, err := pki.SignCertificate(&x509.Certificate{
+		Version: 2, BasicConstraintsValid: true, SerialNumber: big.NewInt(0),
+		Subject: pkix.Name{
+			CommonName: "leaf-cert",
+		},
+		NotBefore: time.Now(), NotAfter: time.Now().Add(time.Minute),
+		KeyUsage:  x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
+		PublicKey: leafPK.Public(), IsCA: false,
+	}, rootCert, leafPK.Public(), rootPK)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tests := map[string]struct {
+		certChain   func(t *testing.T) [][]*x509.Certificate
+		expResponse *securityapi.IstioCertificateResponse
+		expErr      error
+	}{
+		"no client cert": {
+			certChain:   func(t *testing.T) [][]*x509.Certificate { return nil },
+			expResponse: nil,
+			expErr:      status.Error(codes.Unauthenticated, "request authenticate failure"),
+		},
+		"invalid identity": {
+			certChain: func(t *testing.T) [][]*x509.Certificate {
+				sanExt, err := util.BuildSANExtension([]util.Identity{
+					{Type: util.TypeURI, Value: []byte("spiffe://bar")},
+				})
+				if err != nil {
+					t.Error(err)
+				}
+				return [][]*x509.Certificate{
+					{
+						{
+							Extensions: []pkix.Extension{*sanExt},
+						},
+					},
+				}
+			},
+			expResponse: nil,
+			expErr:      status.Error(codes.Unauthenticated, "request authenticate failure"),
+		},
+		"if cert provides valid identities, should sign and respond": {
+			certChain: func(t *testing.T) [][]*x509.Certificate {
+				sanExt, err := util.BuildSANExtension([]util.Identity{
+					{Type: util.TypeURI, Value: []byte(spiffeDomain)},
+				})
+				if err != nil {
+					t.Error(err)
+				}
+				return [][]*x509.Certificate{
+					{
+						{
+							Extensions: []pkix.Extension{*sanExt},
+						},
+					},
+				}
+			},
+			expResponse: &securityapi.IstioCertificateResponse{CertChain: []string{string(leafCertPEM), string(rootCertPEM)}},
+			expErr:      nil,
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			s := &Server{
+				opts: Options{
+					MaximumClientCertificateDuration: time.Hour / 2,
+				},
+				authenticators: []security.Authenticator{
+					&authenticate.ClientCertAuthenticator{},
+				},
+				log: ktesting.NewLogger(t, ktesting.DefaultConfig),
+				cm: cmfake.New().WithSign(func(_ context.Context, identity string, _ []byte, dur time.Duration, _ []cmapi.KeyUsage) (certmanager.Bundle, error) {
+					if identity != spiffeDomain {
+						t.Errorf("unexpected identity, exp=%s got=%s", spiffeDomain, identity)
+					}
+
+					if dur != time.Hour/2 {
+						t.Errorf("unexpected requested duration, exp=%s got=%s", time.Hour/2, dur)
+					}
+
+					return certmanager.Bundle{Certificate: leafCertPEM, CA: []byte("bad-cert")}, nil
+				}),
+				tls: tlsfake.New().WithRootCAs(rootCertPEM, rootPool),
+			}
+
+			ctx := peer.NewContext(context.TODO(), &peer.Peer{
+				AuthInfo: credentials.TLSInfo{
+					State: tls.ConnectionState{
+						VerifiedChains: test.certChain(t),
+					},
+				},
+			})
+
+			resp, err := s.CreateCertificate(ctx, &securityapi.IstioCertificateRequest{
+				Csr: string(gen.MustCSR(t,
+					gen.SetCSRIdentities([]string{spiffeDomain}),
+				)),
+				ValidityDuration: 60 * 60,
+			})
 			errS, _ := status.FromError(err)
 			expErrS, _ := status.FromError(test.expErr)
 

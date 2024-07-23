@@ -41,6 +41,7 @@ import (
 	"istio.io/istio/pkg/jwt"
 	"istio.io/istio/pkg/security"
 	"istio.io/istio/pkg/spiffe"
+	"istio.io/istio/security/pkg/server/ca/authenticate"
 	"istio.io/istio/security/pkg/server/ca/authenticate/kubeauth"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -70,7 +71,7 @@ type Server struct {
 	opts Options
 	log  logr.Logger
 
-	authenticator security.Authenticator
+	authenticators []security.Authenticator
 
 	cm  certmanager.Signer
 	tls tls.Interface
@@ -95,14 +96,17 @@ func New(log logr.Logger, restConfig *rest.Config, cm certmanager.Signer, tls tl
 	meshcnf.TrustDomain = tls.TrustDomain()
 	spiffe.SetTrustDomain(tls.TrustDomain())
 
-	authenticator := kubeauth.NewKubeJWTAuthenticator(mesh.NewFixedWatcher(meshcnf), kubeClient, cluster.ID(opts.ClusterID), nil, jwt.PolicyThirdParty)
+	authenticators := []security.Authenticator{
+		&authenticate.ClientCertAuthenticator{},
+		kubeauth.NewKubeJWTAuthenticator(mesh.NewFixedWatcher(meshcnf), kubeClient, cluster.ID(opts.ClusterID), nil, jwt.PolicyThirdParty),
+	}
 
 	return &Server{
-		opts:          opts,
-		log:           log.WithName("grpc-server").WithValues("serving-addr", opts.ServingAddress),
-		authenticator: authenticator,
-		cm:            cm,
-		tls:           tls,
+		opts:           opts,
+		log:            log.WithName("grpc-server").WithValues("serving-addr", opts.ServingAddress),
+		authenticators: authenticators,
+		cm:             cm,
+		tls:            tls,
 	}, nil
 }
 
