@@ -24,6 +24,7 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	istiolog "istio.io/istio/pkg/log"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/rest"
 	cliflag "k8s.io/component-base/cli/flag"
@@ -87,6 +88,7 @@ func (o *Options) Prepare(cmd *cobra.Command) *Options {
 
 func (o *Options) Complete() error {
 	logOpts := logsapi.NewLoggingConfiguration()
+	istioLogOptions := istiolog.DefaultOptions()
 
 	if o.logFormat == "" {
 		o.logFormat = "text"
@@ -101,6 +103,10 @@ func (o *Options) Complete() error {
 
 	logOpts.Verbosity = logsapi.VerbosityLevel(o.logLevel)
 
+	if o.logFormat == "json" {
+		istioLogOptions.JSONEncoding = true
+	}
+
 	err := logsapi.ValidateAndApply(logOpts, nil)
 	if err != nil {
 		return fmt.Errorf("failed to set log config: %w", err)
@@ -109,6 +115,11 @@ func (o *Options) Complete() error {
 	klog.InitFlags(nil)
 	log := klog.TODO()
 	o.Logr = log
+
+	err = istiolog.Configure(istioLogOptions)
+	if err != nil {
+		return fmt.Errorf("failed to configure istio logging: %w", err)
+	}
 
 	// Ensure there is at least one DNS name to set in the serving certificate
 	// to ensure clients can properly verify the serving certificate
