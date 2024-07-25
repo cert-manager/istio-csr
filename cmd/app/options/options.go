@@ -75,6 +75,11 @@ type OptionsController struct {
 	// ConfigMapNamespaceSelector is the selector to filter on the namespaces that
 	// receives the istio-root-ca ConfigMap
 	ConfigMapNamespaceSelector string
+
+	// DisableKubernetesClientRateLimiter allows the default client-go rate limiter to be disabled
+	// if the Kubernetes API server supports
+	// [API Priority and Fairness](https://kubernetes.io/docs/concepts/cluster-administration/flow-control/).
+	DisableKubernetesClientRateLimiter bool
 }
 
 func New() *Options {
@@ -132,6 +137,14 @@ func (o *Options) Complete() error {
 		return fmt.Errorf("failed to build kubernetes rest config: %s", err)
 	}
 
+	if o.Controller.DisableKubernetesClientRateLimiter {
+		log.Info("Disabling Kubernetes client rate limiter.")
+		// A negative QPS and Burst indicates that the client should not have a rate limiter.
+		// Ref: https://github.com/kubernetes/kubernetes/blob/v1.24.0/staging/src/k8s.io/client-go/rest/config.go#L354-L364
+		o.RestConfig.QPS = -1
+		o.RestConfig.Burst = -1
+	}
+
 	if len(o.TLS.RootCAsCertFile) == 0 {
 		log.Info("WARNING: --root-ca-file is not defined which means the root CA will be discovered by the configured issuer. Without a statically defined trust bundle, it will be very difficult to safely rotate the chain used for issuance.")
 	} else {
@@ -152,12 +165,6 @@ func (o *Options) addFlags(cmd *cobra.Command) {
 	o.addCertManagerFlags(nfs.FlagSet("cert-manager"))
 	o.kubeConfigFlags = genericclioptions.NewConfigFlags(true)
 	o.kubeConfigFlags.AddFlags(nfs.FlagSet("Kubernetes"))
-	o.kubeConfigFlags.WrapConfigFn = func(c *rest.Config) *rest.Config {
-		// Trust that K8s server side API Priority and Fairness is enabled
-		c.QPS = -1
-		c.Burst = -1
-		return c
-	}
 	o.addTLSFlags(nfs.FlagSet("TLS"))
 	o.addServerFlags(nfs.FlagSet("Server"))
 	o.addControllerFlags(nfs.FlagSet("controller"))
@@ -293,4 +300,9 @@ func (o *Options) addControllerFlags(fs *pflag.FlagSet) {
 		"configmap-namespace-selector", "",
 		"Selector to filter on namespaces where the controller creates istio-ca-root-cert"+
 			" ConfigMap. Supports '=', '==', and '!='.(e.g. -l key1=value1,key2=value2)")
+
+	fs.BoolVar(&o.Controller.DisableKubernetesClientRateLimiter,
+		"disable-kubernetes-client-rate-limiter", false,
+		"Allows the default client-go rate limiter to be disabled if the Kubernetes API server supports "+
+			"[API Priority and Fairness](https://kubernetes.io/docs/concepts/cluster-administration/flow-control/)")
 }
