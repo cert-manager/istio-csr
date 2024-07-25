@@ -90,6 +90,7 @@ spec:
           {{- if .Values.app.controller.configmapNamespaceSelector }}
           - "--configmap-namespace-selector={{ .Values.app.controller.configmapNamespaceSelector }}"
           {{- end }}
+          - "--disable-kubernetes-client-rate-limiter={{ .Values.app.controller.disableKubernetesClientRateLimiter }}"
 
           - "--runtime-issuance-config-map-name={{.Values.app.runtimeIssuanceConfigMap}}"
           - "--runtime-issuance-config-map-namespace={{.Release.Namespace}}"
