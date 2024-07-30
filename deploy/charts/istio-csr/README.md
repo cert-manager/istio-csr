@@ -250,13 +250,14 @@ An optional file location to a PEM encoded root CA that the root CA. ConfigMap i
 Requested duration of gRPC serving certificate. Will be automatically renewed.  
 Based on NIST 800-204A recommendations (SM-DR13).  
 https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf
-#### **app.tls.istiodCertificateEnable** ~ `bool`
+#### **app.tls.istiodCertificateEnable** ~ `boolean,string,null`
 > Default value:
 > ```yaml
 > true
 > ```
 
-Create the default certificate as part of install.
+If true, create the istiod certificate using a cert-manager certificate as part of the install. If set to "dynamic", will create the cert dynamically when istio-csr pods start up. If false, no cert is created.
+
 #### **app.tls.istiodCertificateDuration** ~ `string`
 > Default value:
 > ```yaml

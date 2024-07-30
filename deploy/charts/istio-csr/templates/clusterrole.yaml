@@ -21,3 +21,13 @@ rules:
   - "tokenreviews"
   verbs:
   - "create"
+{{- if eq (toString .Values.app.tls.istiodCertificateEnable) "dynamic" }}
+- apiGroups:
+  - "cert-manager.io"
+  resources:
+  - "certificates"
+  verbs:
+  - "list"
+  - "get"
+  - "watch"
+{{- end }}

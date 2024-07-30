@@ -48,11 +48,25 @@ e2e-create-cert-manager-istio-resources: | kind-cluster e2e-setup-cert-manager $
 	$(KUBECTL) create namespace istio-system || true
 	$(KUBECTL) -n istio-system apply --server-side -f ./make/config/cert-manager-bootstrap-resources.yaml
 
+.PHONY: e2e-create-cert-manager-istio-pure-runtime-resources
+e2e-create-cert-manager-istio-pure-runtime-resources: | kind-cluster e2e-setup-cert-manager $(NEEDS_KUBECTL)
+	$(KUBECTL) apply -f test/e2e-pure-runtime/initial-manifests/configmap.yaml
+
+is_e2e_test=
+
 # The "install" target can be run on its own with any currently active cluster,
 # we can't use any other cluster then a target containing "test-e2e" is run.
-# When a "test-e2e" target is run, the currently active cluster must be the kind
+# When a "test-e2e*" target is run, the currently active cluster must be the kind
 # cluster created by the "kind-cluster" target.
 ifeq ($(findstring test-e2e,$(MAKECMDGOALS)),test-e2e)
+is_e2e_test = yes
+endif
+
+ifeq ($(findstring test-e2e-pure-runtime,$(MAKECMDGOALS)),test-e2e-pure-runtime)
+is_e2e_test = yes
+endif
+
+ifdef is_e2e_test
 install: kind-cluster oci-load-manager e2e-create-cert-manager-istio-resources
 endif
 
@@ -94,6 +108,32 @@ test-e2e: test-e2e-deps | kind-cluster $(NEEDS_GINKGO) $(NEEDS_KUBECTL)
 		--junit-report=junit-go-e2e.xml \
 		$(EXTRA_GINKGO_FLAGS) \
 		./test/e2e/ \
+		-ldflags $(go_manager_ldflags) \
+		-- \
+		--istioctl-path $(CURDIR)/$(bin_dir)/scratch/istioctl-$(ISTIO_VERSION) \
+		--kubeconfig-path $(CURDIR)/$(kind_kubeconfig) \
+		--kubectl-path $(KUBECTL) \
+		--runtime-issuance-config-map-name=$(E2E_RUNTIME_CONFIG_MAP_NAME)
+
+test-e2e-pure-runtime-deps: INSTALL_OPTIONS :=
+test-e2e-pure-runtime-deps: INSTALL_OPTIONS += --set image.repository=$(oci_manager_image_name_development)
+test-e2e-pure-runtime-deps: INSTALL_OPTIONS += --set app.runtimeIssuanceConfigMap=$(E2E_RUNTIME_CONFIG_MAP_NAME)
+test-e2e-pure-runtime-deps: INSTALL_OPTIONS += -f ./make/config/istio-csr-pure-runtime-values.yaml
+test-e2e-pure-runtime-deps: e2e-setup-cert-manager
+test-e2e-pure-runtime-deps: e2e-create-cert-manager-istio-resources
+test-e2e-pure-runtime-deps: e2e-create-cert-manager-istio-pure-runtime-resources
+test-e2e-pure-runtime-deps: install
+test-e2e-pure-runtime-deps: e2e-setup-istio
+
+# "Pure" runtime configuration e2e tests require different installation values
+.PHONY: test-e2e-pure-runtime
+test-e2e-pure-runtime: test-e2e-pure-runtime-deps | kind-cluster $(NEEDS_GINKGO) $(NEEDS_KUBECTL)
+	$(GINKGO) \
+		--output-dir=$(ARTIFACTS) \
+		--focus="$(E2E_FOCUS)" \
+		--junit-report=junit-go-e2e.xml \
+		$(EXTRA_GINKGO_FLAGS) \
+		./test/e2e-pure-runtime/ \
 		-ldflags $(go_manager_ldflags) \
 		-- \
 		--istioctl-path $(CURDIR)/$(bin_dir)/scratch/istioctl-$(ISTIO_VERSION) \

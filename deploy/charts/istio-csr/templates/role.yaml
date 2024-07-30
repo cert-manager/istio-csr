@@ -26,4 +26,16 @@ rules:
   verbs: ["get", "list", "watch"]
   resourceNames: ["{{.Values.app.runtimeIssuanceConfigMap}}"]
 {{- end }}
-
+{{- if eq (toString .Values.app.tls.istiodCertificateEnable) "dynamic" }}
+- apiGroups:
+  - "cert-manager.io"
+  resources:
+  - "certificates"
+  verbs:
+  - "get"
+  - "create"
+  - "update"
+  - "delete"
+  - "watch"
+  - "list"
+{{- end }}

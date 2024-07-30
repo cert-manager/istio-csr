@@ -134,7 +134,10 @@ app:
     # https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf
     certificateDuration: 1h
 
-    # Create the default certificate as part of install.
+    # If true, create the istiod certificate using a cert-manager certificate as part
+    # of the install. If set to "dynamic", will create the cert dynamically when
+    # istio-csr pods start up. If false, no cert is created.
+    # +docs:type=boolean,string,null
     istiodCertificateEnable: true
     # Requested duration of istio's Certificate. Will be automatically renewed.
     # Default is based on NIST 800-204A recommendations (SM-DR13).

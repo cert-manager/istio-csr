@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: runtime-config-map
+  namespace: cert-manager
+data:
+  issuer-group: cert-manager.io
+  issuer-kind: Issuer
+  issuer-name: istio-ca

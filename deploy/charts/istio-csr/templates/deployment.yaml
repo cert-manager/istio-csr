@@ -94,6 +94,17 @@ spec:
 
           - "--runtime-issuance-config-map-name={{.Values.app.runtimeIssuanceConfigMap}}"
           - "--runtime-issuance-config-map-namespace={{.Release.Namespace}}"
+
+          # dynamic istiod cert
+          - "--istiod-cert-enabled={{ eq (toString .Values.app.tls.istiodCertificateEnable) "dynamic" }}"
+          - "--istiod-cert-name=istiod-dynamic"
+          - "--istiod-cert-namespace={{ .Values.app.istio.namespace }}"
+          - "--istiod-cert-duration={{ .Values.app.tls.istiodCertificateDuration }}"
+          - "--istiod-cert-renew-before={{ .Values.app.tls.istiodCertificateRenewBefore }}"
+          - "--istiod-cert-key-algorithm={{ default .Values.app.server.serving.signatureAlgorithm .Values.app.tls.istiodPrivateKeyAlgorithm }}"
+          - "--istiod-cert-key-size={{ .Values.app.tls.istiodPrivateKeySize }}"
+          - "--istiod-cert-additional-dns-names={{ join "," .Values.app.tls.istiodAdditionalDNSNames }}"
+          - "--istiod-cert-istio-revisions={{ join "," .Values.app.istio.revisions }}"
         {{- if .Values.volumeMounts }}
         volumeMounts:
 {{ toYaml .Values.volumeMounts | indent 10 }}
