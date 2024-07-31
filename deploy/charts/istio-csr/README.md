@@ -337,6 +337,13 @@ Parameter for serving certificate key. For RSA, must be a number of bits >= 2048
 > ```
 
 The type of private key to generate for the serving certificate. Only RSA (default) and ECDSA are supported. NB: This variable is named incorrectly; it controls private key algorithm, not signature algorithm.
+#### **app.server.authenticators.enableClientCert** ~ `bool`
+> Default value:
+> ```yaml
+> false
+> ```
+
+Enable the client certificate authenticator. This will allow workloads with preexisting certificates to authenticate with istio-csr when rotating their certificate.
 #### **app.istio.revisions[0]** ~ `string`
 > Default value:
 > ```yaml
