@@ -39,6 +39,9 @@
         "tolerations": {
           "$ref": "#/$defs/helm-values.tolerations"
         },
+        "topologySpreadConstraints": {
+          "$ref": "#/$defs/helm-values.topologySpreadConstraints"
+        },
         "volumeMounts": {
           "$ref": "#/$defs/helm-values.volumeMounts"
         },
@@ -595,6 +598,12 @@
     "helm-values.tolerations": {
       "default": [],
       "description": "Expects input structure as per specification https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#toleration-v1-core\n\nFor example:\ntolerations:\n- key: foo.bar.com/role\n  operator: Equal\n  value: master\n  effect: NoSchedule",
+      "items": {},
+      "type": "array"
+    },
+    "helm-values.topologySpreadConstraints": {
+      "default": [],
+      "description": "List of Kubernetes TopologySpreadConstraints. For more information, see [TopologySpreadConstraint v1 core](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#topologyspreadconstraint-v1-core).\nFor example:\ntopologySpreadConstraints:\n- maxSkew: 2\n  topologyKey: topology.kubernetes.io/zone\n  whenUnsatisfiable: ScheduleAnyway\n  labelSelector:\n    matchLabels:\n      app.kubernetes.io/name: cert-manager-istio-csr\n      app.kubernetes.io/instance: istio-csr",
       "items": {},
       "type": "array"
     },

@@ -459,6 +459,25 @@ tolerations:
   value: master
   effect: NoSchedule
 ```
+#### **topologySpreadConstraints** ~ `array`
+> Default value:
+> ```yaml
+> []
+> ```
+
+List of Kubernetes TopologySpreadConstraints. For more information, see [TopologySpreadConstraint v1 core](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#topologyspreadconstraint-v1-core).  
+For example:
+
+```yaml
+topologySpreadConstraints:
+- maxSkew: 2
+  topologyKey: topology.kubernetes.io/zone
+  whenUnsatisfiable: ScheduleAnyway
+  labelSelector:
+    matchLabels:
+      app.kubernetes.io/name: cert-manager-istio-csr
+      app.kubernetes.io/instance: istio-csr
+```
 #### **nodeSelector** ~ `object`
 > Default value:
 > ```yaml
