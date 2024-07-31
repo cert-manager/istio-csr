@@ -128,31 +128,31 @@ func newMockAuthn(ids []string, errMsg string) *mockAuthenticator {
 
 func TestAuthRequest(t *testing.T) {
 	tests := map[string]struct {
-		authn       *mockAuthenticator
+		authns      []security.Authenticator
 		inpCSR      []byte
 		expIdenties string
 		expAuth     bool
 	}{
 		"is auth errors, return empty and false": {
-			authn:       newMockAuthn(nil, "an error"),
+			authns:      []security.Authenticator{newMockAuthn(nil, "an error")},
 			inpCSR:      nil,
 			expIdenties: "",
 			expAuth:     false,
 		},
 		"if auth returns no identities, error": {
-			authn:       newMockAuthn(nil, ""),
+			authns:      []security.Authenticator{newMockAuthn(nil, "")},
 			inpCSR:      nil,
 			expIdenties: "",
 			expAuth:     false,
 		},
 		"if auth returns identities, but given csr is bad ecoded, error": {
-			authn:       newMockAuthn([]string{"spiffe://foo", "spiffe://bar"}, ""),
+			authns:      []security.Authenticator{newMockAuthn([]string{"spiffe://foo", "spiffe://bar"}, "")},
 			inpCSR:      []byte("bad csr"),
 			expIdenties: "spiffe://foo,spiffe://bar",
 			expAuth:     false,
 		},
 		"if auth returns identities, but given csr has dns, error": {
-			authn: newMockAuthn([]string{"spiffe://foo", "spiffe://bar"}, ""),
+			authns: []security.Authenticator{newMockAuthn([]string{"spiffe://foo", "spiffe://bar"}, "")},
 			inpCSR: gen.MustCSR(t,
 				gen.SetCSRIdentities([]string{"spiffe://foo", "spiffe://bar"}),
 				gen.SetCSRDNS([]string{"example.com", "jetstack.io"}),
@@ -161,7 +161,7 @@ func TestAuthRequest(t *testing.T) {
 			expAuth:     false,
 		},
 		"if auth returns identities, but given csr has ips, error": {
-			authn: newMockAuthn([]string{"spiffe://foo", "spiffe://bar"}, ""),
+			authns: []security.Authenticator{newMockAuthn([]string{"spiffe://foo", "spiffe://bar"}, "")},
 			inpCSR: gen.MustCSR(t,
 				gen.SetCSRIdentities([]string{"spiffe://foo", "spiffe://bar"}),
 				gen.SetCSRIPs([]string{"8.8.8.8"}),
@@ -170,7 +170,7 @@ func TestAuthRequest(t *testing.T) {
 			expAuth:     false,
 		},
 		"if auth returns identities, but given csr has common name, error": {
-			authn: newMockAuthn([]string{"spiffe://foo", "spiffe://bar"}, ""),
+			authns: []security.Authenticator{newMockAuthn([]string{"spiffe://foo", "spiffe://bar"}, "")},
 			inpCSR: gen.MustCSR(t,
 				gen.SetCSRIdentities([]string{"spiffe://foo", "spiffe://bar"}),
 				gen.SetCSRCommonName("jetstack.io"),
@@ -179,7 +179,7 @@ func TestAuthRequest(t *testing.T) {
 			expAuth:     false,
 		},
 		"if auth returns identities, but given csr has email addresses, error": {
-			authn: newMockAuthn([]string{"spiffe://foo", "spiffe://bar"}, ""),
+			authns: []security.Authenticator{newMockAuthn([]string{"spiffe://foo", "spiffe://bar"}, "")},
 			inpCSR: gen.MustCSR(t,
 				gen.SetCSRIdentities([]string{"spiffe://foo", "spiffe://bar"}),
 				gen.SetCSREmails([]string{"joshua.vanleeuwen@jetstack.io"}),
@@ -188,7 +188,7 @@ func TestAuthRequest(t *testing.T) {
 			expAuth:     false,
 		},
 		"if auth returns identities, but given csr has miss matched identities, error": {
-			authn: newMockAuthn([]string{"spiffe://foo", "spiffe://bar"}, ""),
+			authns: []security.Authenticator{newMockAuthn([]string{"spiffe://foo", "spiffe://bar"}, "")},
 			inpCSR: gen.MustCSR(t,
 				gen.SetCSRIdentities([]string{"spiffe://josh", "spiffe://bar"}),
 			),
@@ -196,7 +196,7 @@ func TestAuthRequest(t *testing.T) {
 			expAuth:     false,
 		},
 		"if auth returns identities, but given csr has subset of identities, error": {
-			authn: newMockAuthn([]string{"spiffe://foo", "spiffe://bar"}, ""),
+			authns: []security.Authenticator{newMockAuthn([]string{"spiffe://foo", "spiffe://bar"}, "")},
 			inpCSR: gen.MustCSR(t,
 				gen.SetCSRIdentities([]string{"spiffe://bar"}),
 			),
@@ -204,7 +204,7 @@ func TestAuthRequest(t *testing.T) {
 			expAuth:     false,
 		},
 		"if auth returns identities, but given csr has more identities, error": {
-			authn: newMockAuthn([]string{"spiffe://foo", "spiffe://bar"}, ""),
+			authns: []security.Authenticator{newMockAuthn([]string{"spiffe://foo", "spiffe://bar"}, "")},
 			inpCSR: gen.MustCSR(t,
 				gen.SetCSRIdentities([]string{"spiffe://foo", "spiffe://bar", "spiffe://joshua.vanleeuwen"}),
 			),
@@ -212,7 +212,7 @@ func TestAuthRequest(t *testing.T) {
 			expAuth:     false,
 		},
 		"if auth returns identities, and given csr matches identities, return true": {
-			authn: newMockAuthn([]string{"spiffe://foo", "spiffe://bar"}, ""),
+			authns: []security.Authenticator{newMockAuthn([]string{"spiffe://foo", "spiffe://bar"}, "")},
 			inpCSR: gen.MustCSR(t,
 				gen.SetCSRIdentities([]string{"spiffe://foo", "spiffe://bar"}),
 			),
@@ -220,7 +220,18 @@ func TestAuthRequest(t *testing.T) {
 			expAuth:     true,
 		},
 		"if auth returns single id, and given csr matches id, return true": {
-			authn: newMockAuthn([]string{"spiffe://foo"}, ""),
+			authns: []security.Authenticator{newMockAuthn([]string{"spiffe://foo"}, "")},
+			inpCSR: gen.MustCSR(t,
+				gen.SetCSRIdentities([]string{"spiffe://foo"}),
+			),
+			expIdenties: "spiffe://foo",
+			expAuth:     true,
+		},
+		"if one auth is successful, but another isn't, return true": {
+			authns: []security.Authenticator{
+				newMockAuthn([]string{"spiffe://foo"}, ""),
+				newMockAuthn(nil, "an error"),
+			},
 			inpCSR: gen.MustCSR(t,
 				gen.SetCSRIdentities([]string{"spiffe://foo"}),
 			),
@@ -232,8 +243,8 @@ func TestAuthRequest(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			s := &Server{
-				log:           ktesting.NewLogger(t, ktesting.DefaultConfig),
-				authenticator: test.authn,
+				log:            ktesting.NewLogger(t, ktesting.DefaultConfig),
+				authenticators: test.authns,
 			}
 
 			identities, authed := s.authRequest(context.TODO(), test.inpCSR)

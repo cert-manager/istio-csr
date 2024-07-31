@@ -156,6 +156,10 @@ app:
     istiodAdditionalDNSNames: []
 
   server:
+    authenticators:
+      # Enable the client certificate authenticator. This will allow workloads to use preexisting certificates to
+      # authenticate with istio-csr when rotating their certificate.
+      enableClientCert: false
     # The istio cluster ID to verify incoming CSRs.
     clusterID: "Kubernetes"
     # Maximum validity duration that can be requested for a certificate.

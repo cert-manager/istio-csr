@@ -41,6 +41,7 @@ import (
 	"istio.io/istio/pkg/jwt"
 	"istio.io/istio/pkg/security"
 	"istio.io/istio/pkg/spiffe"
+	"istio.io/istio/security/pkg/server/ca/authenticate"
 	"istio.io/istio/security/pkg/server/ca/authenticate/kubeauth"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -61,6 +62,14 @@ type Options struct {
 	// request its duration for. If the client requests a duration larger than
 	// this value, this value will be used instead.
 	MaximumClientCertificateDuration time.Duration
+
+	// Authenticators configures authenticators to use for incoming CSR requests.
+	Authenticators AuthenticatorOptions
+}
+
+type AuthenticatorOptions struct {
+	// EnableClientCert enables the client certificate authenticator when true.
+	EnableClientCert bool
 }
 
 // Server is the implementation of the istio CreateCertificate service
@@ -70,7 +79,7 @@ type Server struct {
 	opts Options
 	log  logr.Logger
 
-	authenticator security.Authenticator
+	authenticators []security.Authenticator
 
 	cm  certmanager.Signer
 	tls tls.Interface
@@ -95,14 +104,23 @@ func New(log logr.Logger, restConfig *rest.Config, cm certmanager.Signer, tls tl
 	meshcnf.TrustDomain = tls.TrustDomain()
 	spiffe.SetTrustDomain(tls.TrustDomain())
 
-	authenticator := kubeauth.NewKubeJWTAuthenticator(mesh.NewFixedWatcher(meshcnf), kubeClient, cluster.ID(opts.ClusterID), nil, jwt.PolicyThirdParty)
+	var authenticators []security.Authenticator
+	if opts.Authenticators.EnableClientCert {
+		authenticators = append(authenticators, &authenticate.ClientCertAuthenticator{})
+	}
+	authenticators = append(authenticators, kubeauth.NewKubeJWTAuthenticator(
+		mesh.NewFixedWatcher(meshcnf),
+		kubeClient,
+		cluster.ID(opts.ClusterID),
+		nil, jwt.PolicyThirdParty,
+	))
 
 	return &Server{
-		opts:          opts,
-		log:           log.WithName("grpc-server").WithValues("serving-addr", opts.ServingAddress),
-		authenticator: authenticator,
-		cm:            cm,
-		tls:           tls,
+		opts:           opts,
+		log:            log.WithName("grpc-server").WithValues("serving-addr", opts.ServingAddress),
+		authenticators: authenticators,
+		cm:             cm,
+		tls:            tls,
 	}, nil
 }
 

@@ -294,6 +294,13 @@ Parameter for istiod certificate key. For RSA, must be a number of bits >= 2048.
 > ```
 
 Provide additional DNS names to request on the istiod certificate. Useful if istiod should be accessible via multiple DNS names and/or outside of the cluster.
+#### **app.server.authenticators.enableClientCert** ~ `bool`
+> Default value:
+> ```yaml
+> false
+> ```
+
+Enable the client certificate authenticator. This will allow workloads to use preexisting certificates to authenticate with istio-csr when rotating their certificate.
 #### **app.server.clusterID** ~ `string`
 > Default value:
 > ```yaml
