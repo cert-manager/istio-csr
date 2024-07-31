@@ -343,7 +343,7 @@ The type of private key to generate for the serving certificate. Only RSA (defau
 > false
 > ```
 
-Enable the client certificate authenticator. This will allow workloads with preexisting certificates to authenticate with istio-csr when rotating their certificate.
+Enable the client certificate authenticator. This will allow workloads to use preexisting certificates to authenticate with istio-csr when rotating their certificate.
 #### **app.istio.revisions[0]** ~ `string`
 > Default value:
 > ```yaml
