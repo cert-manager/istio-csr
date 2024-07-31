@@ -85,6 +85,9 @@ spec:
           - "--serving-certificate-key-size={{.Values.app.server.serving.certificateKeySize}}"
           - "--serving-signature-algorithm={{ .Values.app.server.serving.signatureAlgorithm }}"
 
+          # server authenticators
+          - "--enable-client-cert-authenticator={{.Values.app.server.authenticators.enableClientCert}}"
+
           # controller
           - "--leader-election-namespace={{.Values.app.controller.leaderElectionNamespace}}"
           {{- if .Values.app.controller.configmapNamespaceSelector }}

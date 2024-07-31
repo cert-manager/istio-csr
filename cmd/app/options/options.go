@@ -265,6 +265,10 @@ func (o *Options) addServerFlags(fs *pflag.FlagSet) {
 
 	fs.StringVar(&o.Server.ClusterID, "cluster-id", "Kubernetes",
 		"The ID of the istio cluster to verify.")
+
+	fs.BoolVarP(&o.Server.Authenticators.EnableClientCert,
+		"enable-client-cert-authenticator", "c", false,
+		"Enable the client certificate authenticator.")
 }
 
 func (o *Options) addControllerFlags(fs *pflag.FlagSet) {

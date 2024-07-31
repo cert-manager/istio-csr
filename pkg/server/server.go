@@ -62,6 +62,14 @@ type Options struct {
 	// request its duration for. If the client requests a duration larger than
 	// this value, this value will be used instead.
 	MaximumClientCertificateDuration time.Duration
+
+	// Authenticators configures authenticators to use for incoming CSR requests.
+	Authenticators AuthenticatorOptions
+}
+
+type AuthenticatorOptions struct {
+	// EnableClientCert enables the client certificate authenticator when true.
+	EnableClientCert bool
 }
 
 // Server is the implementation of the istio CreateCertificate service
@@ -96,10 +104,16 @@ func New(log logr.Logger, restConfig *rest.Config, cm certmanager.Signer, tls tl
 	meshcnf.TrustDomain = tls.TrustDomain()
 	spiffe.SetTrustDomain(tls.TrustDomain())
 
-	authenticators := []security.Authenticator{
-		&authenticate.ClientCertAuthenticator{},
-		kubeauth.NewKubeJWTAuthenticator(mesh.NewFixedWatcher(meshcnf), kubeClient, cluster.ID(opts.ClusterID), nil, jwt.PolicyThirdParty),
+	var authenticators []security.Authenticator
+	if opts.Authenticators.EnableClientCert {
+		authenticators = append(authenticators, &authenticate.ClientCertAuthenticator{})
 	}
+	authenticators = append(authenticators, kubeauth.NewKubeJWTAuthenticator(
+		mesh.NewFixedWatcher(meshcnf),
+		kubeClient,
+		cluster.ID(opts.ClusterID),
+		nil, jwt.PolicyThirdParty,
+	))
 
 	return &Server{
 		opts:           opts,

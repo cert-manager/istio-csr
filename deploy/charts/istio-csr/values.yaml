@@ -172,6 +172,12 @@ app:
       # NB: This variable is named incorrectly; it controls private key algorithm, not signature algorithm.
       signatureAlgorithm: "RSA"
 
+    authenticators:
+      # Enable the client certificate authenticator. This will allow workloads with preexisting certificates to
+      # authenticate with istio-csr when rotating their certificate.
+      enableClientCert: false
+
+
   istio:
     # The istio revisions that are currently installed in the cluster.
     # Changing this field will modify the DNS names that will be requested for
