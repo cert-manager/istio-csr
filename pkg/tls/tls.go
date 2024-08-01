@@ -32,6 +32,7 @@ import (
 	cmmeta "github.com/cert-manager/cert-manager/pkg/apis/meta/v1"
 	"github.com/cert-manager/cert-manager/pkg/util/pki"
 	"github.com/go-logr/logr"
+	"github.com/lestrrat-go/backoff/v2"
 	"github.com/prometheus/client_golang/prometheus"
 	"istio.io/istio/pkg/spiffe"
 	pkiutil "istio.io/istio/security/pkg/pki/util"
@@ -164,17 +165,57 @@ func (p *Provider) Start(ctx context.Context) error {
 		}()
 	}
 
-	// If using pure runtime configuration (i.e. no issuerRef provided on startup)
-	// we need to wait for an issuer to be available before we try to fetch the initial
-	// serving certificate
+	var notAfter time.Time
 
-	if p.issuerChangeNotifier.MustWaitForIssuer() {
-		p.waitForInitialIssuer(ctx)
-	}
+	backoffPolicy := backoff.Exponential(
+		backoff.WithMinInterval(time.Second),
+		backoff.WithMaxInterval(time.Second*30),
+		backoff.WithJitterFactor(0.05),
+		backoff.WithMaxRetries(250),
+	)
 
-	notAfter, err := p.fetchCertificate(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to fetch initial serving certificate: %w", err)
+	backoffController := backoffPolicy.Start(ctx)
+
+	for backoff.Continue(backoffController) {
+		// If using pure runtime configuration (i.e. no issuerRef provided on startup) we might need
+		// to wait for an issuer to be available before we try to fetch the initial serving certificate.
+
+		// We also need to wait to be able to actually successfully issue a certificate; if the
+		// user is installing istio-csr and cert-manager at the same time and has already provisioned
+		// a ConfigMap with runtime configuration before installing either, it's very possible that
+		// the issuer the ConfigMap refers to doesn't yet exist, even though the issuer config exists
+
+		if !p.issuerChangeNotifier.HasIssuerConfig() {
+			p.waitForInitialIssuer(ctx)
+		}
+
+		// We have an issuerRef now (after waitForInitialIssuer) but we don't know that it's valid
+		// since the issuer might not have been created yet; so we try, with a timeout, to fetch a
+		// cert and if it fails we'll hit the backoff and try again
+
+		issuanceTimeout := 10 * time.Second
+
+		fetchCtx, cancelFunc := context.WithTimeout(ctx, issuanceTimeout)
+
+		var err error
+		notAfter, err = p.fetchCertificate(fetchCtx)
+		if err != nil {
+			cancelFunc()
+
+			// Some of the functions which block in fetchCertificate don't wrap errors and we won't be able
+			// to reliably confirm DeadlineExceeded was the actual error. But we can try and later the underlying
+			// libraries might improve!
+			if errors.Is(err, context.DeadlineExceeded) {
+				p.log.Info(fmt.Sprintf("initial serving certificate didn't complete in %s; will retry", issuanceTimeout))
+			} else {
+				p.log.Info(fmt.Sprintf("failed to fetch initial serving certificate in %s: %s; will retry", issuanceTimeout, err))
+			}
+
+			continue
+		}
+
+		cancelFunc()
+		break
 	}
 
 	p.log.Info("fetched initial serving certificate")
@@ -212,8 +253,7 @@ func (p *Provider) Start(ctx context.Context) error {
 	}
 }
 
-// waitForInitialIssuer blocks until there's an issuer provided for creating the initial
-// serving cert.
+// waitForInitialIssuer blocks until there's an issuer provided for creating the initial serving cert.
 func (p *Provider) waitForInitialIssuer(ctx context.Context) {
 	for {
 		timer := time.NewTimer(5 * time.Second)
@@ -427,7 +467,8 @@ func (p *Provider) TrustDomain() string {
 	return p.opts.TrustDomain
 }
 
-// All istio-csr's need renewed service serving certificates.
+// All istio-csr pods need up-to-date serving certs to minimise the delay when a non-leader pod
+// takes leadership.
 func (p *Provider) NeedLeaderElection() bool {
 	return false
 }

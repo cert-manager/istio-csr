@@ -82,12 +82,11 @@ type IssuerChangeNotifier interface {
 	// as updates happen.
 	SubscribeIssuerChange() <-chan *cmmeta.ObjectReference
 
-	// MustWaitForIssuer returns true if there's no "default" issuerRef available
-	// (i.e. no static issuerRef was configured at startup)
+	// HasIssuerConfig returns true if there's a configured active issuer ref.
+	// (i.e. a static issuerRef was configured at startup / runtime issuance config has been successfully acquired)
 	// If this function returns true, InitialIssuer will always return nil and
-	// subscribers must wait for runtime configuration before trying to issue
-	// certificates
-	MustWaitForIssuer() bool
+	// subscribers must wait for runtime configuration before trying to issue certificates
+	HasIssuerConfig() bool
 
 	// InitialIssuer returns the "static" issuer which was configured at startup. Will
 	// always return nil if no such issuer exists.
@@ -475,9 +474,8 @@ func (m *manager) SubscribeIssuerChange() <-chan *cmmeta.ObjectReference {
 	return ch
 }
 
-func (m *manager) MustWaitForIssuer() bool {
-	// if no originalIssuerRef was configured, must wait for runtime configuration
-	return m.originalIssuerRef == nil
+func (m *manager) HasIssuerConfig() bool {
+	return m.activeIssuerRef != nil
 }
 
 func (m *manager) InitialIssuer() *cmmeta.ObjectReference {
