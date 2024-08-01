@@ -34,7 +34,7 @@ The release process for this repo is documented below:
 
 This repo will produce the following artifacts each release. For documentation on how those artifacts are produced see the "Process" section.
 
-- *Container Images* - Container images for the are published to . 
+- *Container Images* - Container images for istio-csr are published to `quay.io/jetstack/cert-manager-istio-csr`
 - *Helm chart* - An official Helm chart is maintained within this repo and published to `charts.jetstack.io` on each release.
 
 [release workflow]: https://github.com/cert-manager/istio-csr/actions/workflows/release.yaml
