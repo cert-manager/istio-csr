@@ -243,6 +243,18 @@ volumeMounts: []
 #      memory: 128Mi
 resources: {}
 
+# Kubernetes security context
+# ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+#
+# See the default values for an example.
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  capabilities:
+    drop:
+    - ALL
+
 # Expects input structure as per specification https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#affinity-v1-core
 #
 # For example:

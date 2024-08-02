@@ -428,6 +428,26 @@ resources:
     cpu: 100m
     memory: 128Mi
 ```
+#### **securityContext.allowPrivilegeEscalation** ~ `bool`
+> Default value:
+> ```yaml
+> false
+> ```
+#### **securityContext.readOnlyRootFilesystem** ~ `bool`
+> Default value:
+> ```yaml
+> true
+> ```
+#### **securityContext.runAsNonRoot** ~ `bool`
+> Default value:
+> ```yaml
+> true
+> ```
+#### **securityContext.capabilities.drop[0]** ~ `string`
+> Default value:
+> ```yaml
+> ALL
+> ```
 #### **affinity** ~ `object`
 > Default value:
 > ```yaml

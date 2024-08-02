@@ -33,6 +33,9 @@
         "resources": {
           "$ref": "#/$defs/helm-values.resources"
         },
+        "securityContext": {
+          "$ref": "#/$defs/helm-values.securityContext"
+        },
         "service": {
           "$ref": "#/$defs/helm-values.service"
         },
@@ -582,6 +585,55 @@
       "default": {},
       "description": "Kubernetes pod resources\nref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/\n\nFor example:\nresources:\n  limits:\n    cpu: 100m\n    memory: 128Mi\n  requests:\n    cpu: 100m\n    memory: 128Mi",
       "type": "object"
+    },
+    "helm-values.securityContext": {
+      "additionalProperties": false,
+      "properties": {
+        "allowPrivilegeEscalation": {
+          "$ref": "#/$defs/helm-values.securityContext.allowPrivilegeEscalation"
+        },
+        "capabilities": {
+          "$ref": "#/$defs/helm-values.securityContext.capabilities"
+        },
+        "readOnlyRootFilesystem": {
+          "$ref": "#/$defs/helm-values.securityContext.readOnlyRootFilesystem"
+        },
+        "runAsNonRoot": {
+          "$ref": "#/$defs/helm-values.securityContext.runAsNonRoot"
+        }
+      },
+      "type": "object"
+    },
+    "helm-values.securityContext.allowPrivilegeEscalation": {
+      "default": false,
+      "type": "boolean"
+    },
+    "helm-values.securityContext.capabilities": {
+      "additionalProperties": false,
+      "properties": {
+        "drop": {
+          "$ref": "#/$defs/helm-values.securityContext.capabilities.drop"
+        }
+      },
+      "type": "object"
+    },
+    "helm-values.securityContext.capabilities.drop": {
+      "items": {
+        "$ref": "#/$defs/helm-values.securityContext.capabilities.drop[0]"
+      },
+      "type": "array"
+    },
+    "helm-values.securityContext.capabilities.drop[0]": {
+      "default": "ALL",
+      "type": "string"
+    },
+    "helm-values.securityContext.readOnlyRootFilesystem": {
+      "default": true,
+      "type": "boolean"
+    },
+    "helm-values.securityContext.runAsNonRoot": {
+      "default": true,
+      "type": "boolean"
     },
     "helm-values.service": {
       "additionalProperties": false,

@@ -120,6 +120,9 @@ spec:
         resources:
           {{- toYaml .Values.resources | nindent 12 }}
 
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 12 }}
+
       {{- if .Values.volumes }}
       volumes:
 {{ toYaml .Values.volumes | indent 6 }}
