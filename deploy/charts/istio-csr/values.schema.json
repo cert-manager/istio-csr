@@ -33,6 +33,9 @@
         "resources": {
           "$ref": "#/$defs/helm-values.resources"
         },
+        "seccompProfile": {
+          "$ref": "#/$defs/helm-values.seccompProfile"
+        },
         "service": {
           "$ref": "#/$defs/helm-values.service"
         },
@@ -581,6 +584,11 @@
     "helm-values.resources": {
       "default": {},
       "description": "Kubernetes pod resources\nref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/\n\nFor example:\nresources:\n  limits:\n    cpu: 100m\n    memory: 128Mi\n  requests:\n    cpu: 100m\n    memory: 128Mi",
+      "type": "object"
+    },
+    "helm-values.seccompProfile": {
+      "default": {},
+      "description": "Kubernetes security context seccomp profile\nref: https://kubernetes.io/docs/tutorials/security/seccomp/\n\nFor example:\nseccompProfile:\n  type: RuntimeDefault",
       "type": "object"
     },
     "helm-values.service": {

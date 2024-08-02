@@ -428,6 +428,21 @@ resources:
     cpu: 100m
     memory: 128Mi
 ```
+#### **seccompProfile** ~ `object`
+> Default value:
+> ```yaml
+> {}
+> ```
+
+Kubernetes security context seccomp profile  
+ref: https://kubernetes.io/docs/tutorials/security/seccomp/  
+  
+For example:
+
+```yaml
+seccompProfile:
+  type: RuntimeDefault
+```
 #### **affinity** ~ `object`
 > Default value:
 > ```yaml

@@ -243,6 +243,14 @@ volumeMounts: []
 #      memory: 128Mi
 resources: {}
 
+# Kubernetes security context seccomp profile
+# ref: https://kubernetes.io/docs/tutorials/security/seccomp/
+#
+# For example:
+#   seccompProfile:
+#     type: RuntimeDefault
+seccompProfile: {}
+
 # Expects input structure as per specification https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#affinity-v1-core
 #
 # For example:
