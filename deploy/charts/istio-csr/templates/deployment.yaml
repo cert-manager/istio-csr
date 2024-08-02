@@ -121,16 +121,7 @@ spec:
           {{- toYaml .Values.resources | nindent 12 }}
 
         securityContext:
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
-          runAsNonRoot: true
-          capabilities:
-            drop:
-            - ALL
-          {{- if .Values.seccompProfile }}
-          seccompProfile:
-            {{ toYaml .Values.seccompProfile | indent 14 }}
-          {{- end }}
+          {{- toYaml .Values.securityContext | nindent 12 }}
 
       {{- if .Values.volumes }}
       volumes:

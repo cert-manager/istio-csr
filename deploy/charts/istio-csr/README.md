@@ -428,21 +428,26 @@ resources:
     cpu: 100m
     memory: 128Mi
 ```
-#### **seccompProfile** ~ `object`
+#### **securityContext.allowPrivilegeEscalation** ~ `bool`
 > Default value:
 > ```yaml
-> {}
+> false
 > ```
-
-Kubernetes security context seccomp profile  
-ref: https://kubernetes.io/docs/tutorials/security/seccomp/  
-  
-For example:
-
-```yaml
-seccompProfile:
-  type: RuntimeDefault
-```
+#### **securityContext.readOnlyRootFilesystem** ~ `bool`
+> Default value:
+> ```yaml
+> true
+> ```
+#### **securityContext.runAsNonRoot** ~ `bool`
+> Default value:
+> ```yaml
+> true
+> ```
+#### **securityContext.capabilities.drop[0]** ~ `string`
+> Default value:
+> ```yaml
+> ALL
+> ```
 #### **affinity** ~ `object`
 > Default value:
 > ```yaml

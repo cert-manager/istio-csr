@@ -243,13 +243,17 @@ volumeMounts: []
 #      memory: 128Mi
 resources: {}
 
-# Kubernetes security context seccomp profile
-# ref: https://kubernetes.io/docs/tutorials/security/seccomp/
+# Kubernetes security context
+# ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
 #
-# For example:
-#   seccompProfile:
-#     type: RuntimeDefault
-seccompProfile: {}
+# See the default values for an example.
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  capabilities:
+    drop:
+    - ALL
 
 # Expects input structure as per specification https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#affinity-v1-core
 #
