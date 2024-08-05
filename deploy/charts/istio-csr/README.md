@@ -383,28 +383,28 @@ to avoid overloading the server.
 > {}
 > ```
 
-Optional labels for deployment
+Optional extra labels for deployment.
 #### **deploymentAnnotations** ~ `object`
 > Default value:
 > ```yaml
 > {}
 > ```
 
-Optional annotations for deployment
+Optional extra annotations for deployment.
 #### **podLabels** ~ `object`
 > Default value:
 > ```yaml
 > {}
 > ```
 
-Optional labels for pod
+Optional extra labels for pod.
 #### **podAnnotations** ~ `object`
 > Default value:
 > ```yaml
 > {}
 > ```
 
-Optional annotations for pod
+Optional extra annotations for pod.
 #### **volumes** ~ `array`
 > Default value:
 > ```yaml

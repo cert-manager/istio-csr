@@ -702,22 +702,22 @@
     },
     "helm-values.deploymentLabels": {
       "default": {},
-      "description": "Optional labels for deployment",
+      "description": "Optional extra labels for deployment.",
       "type": "object"
     },
     "helm-values.deploymentAnnotations": {
       "default": {},
-      "description": "Optional annotations for deployment",
+      "description": "Optional extra annotations for deployment.",
       "type": "object"
     },
     "helm-values.podLabels": {
       "default": {},
-      "description": "Optional labels for pod",
+      "description": "Optional extra labels for pod.",
       "type": "object"
     },
     "helm-values.podAnnotations": {
       "default": {},
-      "description": "Optional annotations for pod",
+      "description": "Optional extra annotations for pod.",
       "type": "object"
     }
   },
