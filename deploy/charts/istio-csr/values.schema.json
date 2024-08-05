@@ -53,6 +53,18 @@
         },
         "volumes": {
           "$ref": "#/$defs/helm-values.volumes"
+        },
+        "deploymentAnnotations": {
+          "$ref": "#/$defs/helm-values.deploymentAnnotations"
+        },
+        "deploymentLabels": {
+          "$ref": "#/$defs/helm-values.deploymentLabels"
+        },
+        "podAnnotations": {
+          "$ref": "#/$defs/helm-values.podAnnotations"
+        },
+        "podLabels": {
+          "$ref": "#/$defs/helm-values.podLabels"
         }
       },
       "type": "object"
@@ -770,6 +782,26 @@
       "description": "Optional extra volumes. Useful for mounting custom root CAs\n\nFor example:\nvolumes:\n- name: root-ca\n  secret:\n    secretName: root-cert",
       "items": {},
       "type": "array"
+    },
+    "helm-values.deploymentLabels": {
+      "default": {},
+      "description": "Optional extra labels for deployment.",
+      "type": "object"
+    },
+    "helm-values.deploymentAnnotations": {
+      "default": {},
+      "description": "Optional extra annotations for deployment.",
+      "type": "object"
+    },
+    "helm-values.podLabels": {
+      "default": {},
+      "description": "Optional extra labels for pod.",
+      "type": "object"
+    },
+    "helm-values.podAnnotations": {
+      "default": {},
+      "description": "Optional extra annotations for pod.",
+      "type": "object"
     }
   },
   "$ref": "#/$defs/helm-values",

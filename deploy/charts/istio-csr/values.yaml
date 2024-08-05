@@ -251,6 +251,18 @@ app:
     # to avoid overloading the server.
     disableKubernetesClientRateLimiter: false
 
+# Optional extra labels for deployment.
+deploymentLabels: {}
+
+# Optional extra annotations for deployment.
+deploymentAnnotations: {}
+
+# Optional extra labels for pod.
+podLabels: {}
+
+# Optional extra annotations for pod.
+podAnnotations: {}
+
 # Optional extra volumes. Useful for mounting custom root CAs
 #
 # For example:
