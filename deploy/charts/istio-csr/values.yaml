@@ -127,7 +127,7 @@ app:
     # presented to istio-agents. istio-agents must route to istio-csr using one
     # of these DNS names.
     certificateDNSNames:
-    - cert-manager-istio-csr.cert-manager.svc
+      - cert-manager-istio-csr.cert-manager.svc
     # Requested duration of gRPC serving certificate. Will be automatically
     # renewed.
     # Based on NIST 800-204A recommendations (SM-DR13).
@@ -213,6 +213,18 @@ app:
     # to avoid overloading the server.
     disableKubernetesClientRateLimiter: false
 
+# Optional labels for deployment
+deploymentLabels: {}
+
+# Optional annotations for deployment
+deploymentAnnotations: {}
+
+# Optional labels for pod
+podLabels: {}
+
+# Optional annotations for pod
+podAnnotations: {}
+
 # Optional extra volumes. Useful for mounting custom root CAs
 #
 # For example:
@@ -253,7 +265,7 @@ securityContext:
   runAsNonRoot: true
   capabilities:
     drop:
-    - ALL
+      - ALL
 
 # Expects input structure as per specification https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#affinity-v1-core
 #
