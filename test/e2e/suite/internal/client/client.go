@@ -41,19 +41,22 @@ var (
 	certmanagerClientLog = log.RegisterScope("certmanagerclient", "cert-manager client debugging")
 )
 
+var _ security.Client = &certmanagerClient{}
+
 type certmanagerClient struct {
 	caEndpoint    string
 	enableTLS     bool
 	caTLSRootCert []byte
 	clusterID     string
 	token         string
+	certificate   tls.Certificate
 
 	client securityapi.IstioCertificateServiceClient
 	conn   *grpc.ClientConn
 }
 
 // NewCertManagerClient create a CA client for cert-manager istio agent.
-func NewCertManagerClient(endpoint, token string, tls bool, rootCert []byte, clusterID string) (security.Client, error) {
+func NewCertManagerClient(endpoint, token string, tls bool, rootCert []byte, clusterID string) (*certmanagerClient, error) {
 	c := &certmanagerClient{
 		caEndpoint:    endpoint,
 		token:         token,
@@ -72,6 +75,15 @@ func NewCertManagerClient(endpoint, token string, tls bool, rootCert []byte, clu
 	return c, nil
 }
 
+// UpdateCertificates updates the client certificate chain used to connect with istio-csr
+func (c *certmanagerClient) UpdateCertificates(certificate tls.Certificate) {
+	c.certificate = certificate
+}
+
+func (c *certmanagerClient) RemoveToken() {
+	c.token = ""
+}
+
 // CSR Sign calls cert-manager istio-csr to sign a CSR.
 func (c *certmanagerClient) CSRSign(csrPEM []byte, certValidTTLInSec int64) ([]string, error) {
 	req := &securityapi.IstioCertificateRequest{
@@ -81,7 +93,10 @@ func (c *certmanagerClient) CSRSign(csrPEM []byte, certValidTTLInSec int64) ([]s
 	if err := c.reconnect(); err != nil {
 		return nil, err
 	}
-	ctx := metadata.NewOutgoingContext(context.Background(), metadata.Pairs("Authorization", bearerTokenPrefix+c.token, "ClusterID", c.clusterID))
+	ctx := context.Background()
+	if c.token != "" {
+		ctx = metadata.NewOutgoingContext(ctx, metadata.Pairs("Authorization", bearerTokenPrefix+c.token, "ClusterID", c.clusterID))
+	}
 	resp, err := c.client.CreateCertificate(ctx, req)
 	if err != nil {
 		return nil, fmt.Errorf("create certificate: %v", err)
@@ -114,12 +129,12 @@ func (c *certmanagerClient) getTLSDialOption() (grpc.DialOption, error) {
 		}
 		certmanagerClientLog.Infof("cert-manager client using custom root: %s %s", c.caEndpoint, string(c.caTLSRootCert))
 	}
-	var certificate tls.Certificate
 	config := tls.Config{
 		MinVersion:   tls.VersionTLS12,
-		Certificates: []tls.Certificate{certificate},
+		Certificates: []tls.Certificate{c.certificate},
 		GetClientCertificate: func(*tls.CertificateRequestInfo) (*tls.Certificate, error) {
-			return &certificate, nil
+			certmanagerClientLog.Info("cert-manager client received request for client certificate")
+			return &c.certificate, nil
 		},
 	}
 	config.RootCAs = certPool
