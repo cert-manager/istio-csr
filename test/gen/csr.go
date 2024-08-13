@@ -17,7 +17,6 @@ limitations under the License.
 package gen
 
 import (
-	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
@@ -31,7 +30,7 @@ import (
 
 var (
 	// shared signer to reduce testing time
-	sk crypto.Signer
+	sk *rsa.PrivateKey
 )
 
 func init() {
@@ -128,4 +127,11 @@ func SetCSRCommonName(cn string) CSRModifier {
 	return func(csr *CSRBuilder) {
 		csr.cn = cn
 	}
+}
+
+func Key() []byte {
+	return pem.EncodeToMemory(&pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: x509.MarshalPKCS1PrivateKey(sk),
+	})
 }

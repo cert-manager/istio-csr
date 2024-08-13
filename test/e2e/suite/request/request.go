@@ -19,10 +19,12 @@ package api
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
 	"reflect"
+	"strings"
 	"time"
 
 	cmapi "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
@@ -58,7 +60,7 @@ var _ = framework.CasesDescribe("Request Authentication", func() {
 		var ok bool
 		rootCA, ok = cm.Data["root-cert.pem"]
 		if !ok {
-			Expect(cm, "epected CA root cert not present").NotTo(HaveOccurred())
+			Expect(cm, "expected CA root cert not present").NotTo(HaveOccurred())
 		}
 
 		ns, err := f.KubeClientSet.CoreV1().Namespaces().Create(context.TODO(), &corev1.Namespace{
@@ -96,7 +98,7 @@ var _ = framework.CasesDescribe("Request Authentication", func() {
 		Expect(err).NotTo(HaveOccurred())
 	})
 
-	It("should reject a request with a bad service account token", func() {
+	It("should reject a request with no valid authentication secret", func() {
 		csr, err := gen.CSR(
 			gen.SetCSRIdentities([]string{fmt.Sprintf("spiffe://foo.bar/ns/%s/sa/%s", namespace, saName)}),
 		)
@@ -214,7 +216,7 @@ var _ = framework.CasesDescribe("Request Authentication", func() {
 		roots := x509.NewCertPool()
 		ok := roots.AppendCertsFromPEM([]byte(rootCA))
 		if !ok {
-			Expect("failed to appent root certificate").NotTo(HaveOccurred())
+			Expect("failed to append root certificate").NotTo(HaveOccurred())
 		}
 
 		for i, certPEM := range certs {
@@ -284,5 +286,31 @@ var _ = framework.CasesDescribe("Request Authentication", func() {
 				createdCR.Spec.Duration,
 			))
 		}
+	})
+
+	It("should return a new certificate on a request authenticated with an existing certificate", func() {
+		By("correctly request a valid certificate")
+
+		id := fmt.Sprintf("spiffe://foo.bar/ns/%s/sa/%s", namespace, saName)
+		csr, err := gen.CSR(
+			gen.SetCSRIdentities([]string{id}),
+		)
+		Expect(err).NotTo(HaveOccurred())
+
+		client, err := cmclient.NewCertManagerClient("localhost:30443", saToken, true, []byte(rootCA), "")
+		Expect(err).NotTo(HaveOccurred())
+		certs, err := client.CSRSign(csr, 100)
+		Expect(err).NotTo(HaveOccurred())
+
+		By("correctly creating TLS client certificate from response")
+		combinedCerts := strings.Join(certs, "\n")
+		tlsCert, err := tls.X509KeyPair([]byte(combinedCerts), gen.Key())
+		Expect(err).NotTo(HaveOccurred())
+
+		By("returning a new certificate without the token but over mTLS")
+		client.UpdateCertificates(tlsCert)
+		client.RemoveToken()
+		_, err = client.CSRSign(csr, 100)
+		Expect(err).NotTo(HaveOccurred())
 	})
 })
