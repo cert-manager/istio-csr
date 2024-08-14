@@ -12,6 +12,9 @@
         "commonLabels": {
           "$ref": "#/$defs/helm-values.commonLabels"
         },
+        "extraObjects": {
+          "$ref": "#/$defs/helm-values.extraObjects"
+        },
         "global": {
           "$ref": "#/$defs/helm-values.global"
         },
@@ -570,6 +573,12 @@
       "default": {},
       "description": "Labels to apply to all resources",
       "type": "object"
+    },
+    "helm-values.extraObjects": {
+      "default": [],
+      "description": "Create resources alongside installing istio-csr, via Helm values. Can accept an array of YAML-formatted resources. Each array entry can include multiple YAML documents, separated by '---'\n\nFor example:\nextraObjects:\n  - |\n    apiVersion: v1\n    kind: ConfigMap\n    metadata:\n      name: '{{ template \"cert-manager-istio-csr.fullname\" . }}-extra-configmap'",
+      "items": {},
+      "type": "array"
     },
     "helm-values.global": {
       "description": "Global values shared across all (sub)charts"

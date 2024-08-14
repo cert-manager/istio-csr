@@ -548,5 +548,23 @@ Kubernetes node selector: node labels for pod assignment.
 > ```
 
 Labels to apply to all resources
+#### **extraObjects** ~ `array`
+> Default value:
+> ```yaml
+> []
+> ```
+
+Create resources alongside installing istio-csr, via Helm values. Can accept an array of YAML-formatted resources. Each array entry can include multiple YAML documents, separated by '---'  
+  
+For example:
+
+```yaml
+extraObjects:
+  - |
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: '{{ template "cert-manager-istio-csr.fullname" . }}-extra-configmap'
+```
 
 <!-- /AUTO-GENERATED -->
