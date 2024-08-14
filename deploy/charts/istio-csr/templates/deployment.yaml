@@ -99,7 +99,7 @@ spec:
           {{- end }}
           - "--disable-kubernetes-client-rate-limiter={{ .Values.app.controller.disableKubernetesClientRateLimiter }}"
 
-          - "--runtime-issuance-config-map-name={{.Values.app.runtimeIssuanceConfigMap}}"
+          - "--runtime-issuance-config-map-name={{ include "cert-manager-istio-csr.runtimeConfigurationName" . }}"
           - "--runtime-issuance-config-map-namespace={{.Release.Namespace}}"
 
           # dynamic istiod cert

@@ -83,6 +83,9 @@
         "readinessProbe": {
           "$ref": "#/$defs/helm-values.app.readinessProbe"
         },
+        "runtimeConfiguration": {
+          "$ref": "#/$defs/helm-values.app.runtimeConfiguration"
+        },
         "runtimeIssuanceConfigMap": {
           "$ref": "#/$defs/helm-values.app.runtimeIssuanceConfigMap"
         },
@@ -334,9 +337,64 @@
       "description": "Container port to expose istio-csr HTTP readiness probe on default network interface.",
       "type": "number"
     },
+    "helm-values.app.runtimeConfiguration": {
+      "additionalProperties": false,
+      "properties": {
+        "create": {
+          "$ref": "#/$defs/helm-values.app.runtimeConfiguration.create"
+        },
+        "issuer": {
+          "$ref": "#/$defs/helm-values.app.runtimeConfiguration.issuer"
+        },
+        "name": {
+          "$ref": "#/$defs/helm-values.app.runtimeConfiguration.name"
+        }
+      },
+      "type": "object"
+    },
+    "helm-values.app.runtimeConfiguration.create": {
+      "default": false,
+      "description": "Create the runtime-configuration ConfigMap",
+      "type": "boolean"
+    },
+    "helm-values.app.runtimeConfiguration.issuer": {
+      "additionalProperties": false,
+      "properties": {
+        "group": {
+          "$ref": "#/$defs/helm-values.app.runtimeConfiguration.issuer.group"
+        },
+        "kind": {
+          "$ref": "#/$defs/helm-values.app.runtimeConfiguration.issuer.kind"
+        },
+        "name": {
+          "$ref": "#/$defs/helm-values.app.runtimeConfiguration.issuer.name"
+        }
+      },
+      "type": "object"
+    },
+    "helm-values.app.runtimeConfiguration.issuer.group": {
+      "default": "cert-manager.io",
+      "description": "Issuer group name set on created CertificateRequests for both istio-csr's serving certificate and incoming gRPC CSRs.",
+      "type": "string"
+    },
+    "helm-values.app.runtimeConfiguration.issuer.kind": {
+      "default": "Issuer",
+      "description": "Issuer kind set on created CertificateRequests for both istio-csr's serving certificate and incoming gRPC CSRs.",
+      "type": "string"
+    },
+    "helm-values.app.runtimeConfiguration.issuer.name": {
+      "default": "istio-ca",
+      "description": "Issuer name set on created CertificateRequests for both istio-csr's serving certificate and incoming gRPC CSRs.",
+      "type": "string"
+    },
+    "helm-values.app.runtimeConfiguration.name": {
+      "default": "",
+      "description": "Name of a ConfigMap in the installation namespace to watch, providing runtime configuration of an issuer to use.\n\nIf create is set to true then this name is used to create the ConfigMap, otherwise the ConfigMap must exist and the \"issuer-name\", \"issuer-kind\" and \"issuer-group\" keys must be present in it.",
+      "type": "string"
+    },
     "helm-values.app.runtimeIssuanceConfigMap": {
       "default": "",
-      "description": "Name of a ConfigMap in the installation namespace to watch, providing runtime configuration of an issuer to use.\n\nThe \"issuer-name\", \"issuer-kind\" and \"issuer-group\" keys must be present in the ConfigMap for it to be used.",
+      "description": "DEPRECATED: moved to app.runtimeConfiguration.name\n\nName of a ConfigMap in the installation namespace to watch, providing runtime configuration of an issuer to use.\n\nThe \"issuer-name\", \"issuer-kind\" and \"issuer-group\" keys must be present in the ConfigMap for it to be used.",
       "type": "string"
     },
     "helm-values.app.server": {

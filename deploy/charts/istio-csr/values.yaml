@@ -75,12 +75,39 @@ app:
         # Additional labels to give the ServiceMonitor resource.
         labels: {}
 
+  # DEPRECATED: moved to app.runtimeConfiguration.name
+  #
   # Name of a ConfigMap in the installation namespace to watch, providing
   # runtime configuration of an issuer to use.
   #
   # The "issuer-name", "issuer-kind" and "issuer-group" keys must be present in
   # the ConfigMap for it to be used.
+  #
+  # +docs:hidden
   runtimeIssuanceConfigMap: ""
+
+  runtimeConfiguration:
+    # Create the runtime-configuration ConfigMap
+    create: false
+
+    # Name of a ConfigMap in the installation namespace to watch, providing
+    # runtime configuration of an issuer to use.
+    #
+    # If create is set to true then this name is used to create the ConfigMap,
+    # otherwise the ConfigMap must exist and the "issuer-name", "issuer-kind" 
+    # and "issuer-group" keys must be present in it.
+    name: ""
+
+    issuer:
+      # Issuer name set on created CertificateRequests for both istio-csr's
+      # serving certificate and incoming gRPC CSRs.
+      name: istio-ca
+      # Issuer kind set on created CertificateRequests for both istio-csr's
+      # serving certificate and incoming gRPC CSRs.
+      kind: Issuer
+      # Issuer group name set on created CertificateRequests for both
+      # istio-csr's serving certificate and incoming gRPC CSRs.
+      group: cert-manager.io
 
   readinessProbe:
     # Container port to expose istio-csr HTTP readiness probe on default network interface.
