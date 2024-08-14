@@ -20,11 +20,11 @@ rules:
 - apiGroups: [""]
   resources: ["events"]
   verbs: ["create"]
-{{- if .Values.app.runtimeIssuanceConfigMap }}
+{{- with ( include "cert-manager-istio-csr.runtimeConfigurationName" . ) }}
 - apiGroups: [""]
   resources: ["configmaps"]
   verbs: ["get", "list", "watch"]
-  resourceNames: ["{{.Values.app.runtimeIssuanceConfigMap}}"]
+  resourceNames: [{{ . | quote }}]
 {{- end }}
 {{- if eq (toString .Values.app.tls.istiodCertificateEnable) "dynamic" }}
 - apiGroups:

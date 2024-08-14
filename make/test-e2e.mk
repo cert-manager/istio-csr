@@ -80,7 +80,7 @@ E2E_FOCUS ?=
 
 test-e2e-deps: INSTALL_OPTIONS :=
 test-e2e-deps: INSTALL_OPTIONS += --set image.repository=$(oci_manager_image_name_development)
-test-e2e-deps: INSTALL_OPTIONS += --set app.runtimeIssuanceConfigMap=$(E2E_RUNTIME_CONFIG_MAP_NAME)
+test-e2e-deps: INSTALL_OPTIONS += --set app.runtimeConfiguration.name=$(E2E_RUNTIME_CONFIG_MAP_NAME)
 test-e2e-deps: INSTALL_OPTIONS += --set app.logFormat=json
 test-e2e-deps: INSTALL_OPTIONS += --set app.controller.disableKubernetesClientRateLimiter=true
 test-e2e-deps: INSTALL_OPTIONS += --set app.server.authenticators.enableClientCert=true
@@ -118,7 +118,7 @@ test-e2e: test-e2e-deps | kind-cluster $(NEEDS_GINKGO) $(NEEDS_KUBECTL)
 
 test-e2e-pure-runtime-deps: INSTALL_OPTIONS :=
 test-e2e-pure-runtime-deps: INSTALL_OPTIONS += --set image.repository=$(oci_manager_image_name_development)
-test-e2e-pure-runtime-deps: INSTALL_OPTIONS += --set app.runtimeIssuanceConfigMap=$(E2E_RUNTIME_CONFIG_MAP_NAME)
+test-e2e-pure-runtime-deps: INSTALL_OPTIONS += --set app.runtimeConfiguration.name=$(E2E_RUNTIME_CONFIG_MAP_NAME)
 test-e2e-pure-runtime-deps: INSTALL_OPTIONS += -f ./make/config/istio-csr-pure-runtime-values.yaml
 test-e2e-pure-runtime-deps: e2e-setup-cert-manager
 test-e2e-pure-runtime-deps: e2e-create-cert-manager-istio-resources

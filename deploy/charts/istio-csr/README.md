@@ -150,7 +150,14 @@ The timeout on each metric probe request.
 > ```
 
 Additional labels to give the ServiceMonitor resource.
-#### **app.runtimeIssuanceConfigMap** ~ `string`
+#### **app.runtimeConfiguration.create** ~ `bool`
+> Default value:
+> ```yaml
+> false
+> ```
+
+Create the runtime-configuration ConfigMap
+#### **app.runtimeConfiguration.name** ~ `string`
 > Default value:
 > ```yaml
 > ""
@@ -158,7 +165,28 @@ Additional labels to give the ServiceMonitor resource.
 
 Name of a ConfigMap in the installation namespace to watch, providing runtime configuration of an issuer to use.  
   
-The "issuer-name", "issuer-kind" and "issuer-group" keys must be present in the ConfigMap for it to be used.
+If create is set to true then this name is used to create the ConfigMap, otherwise the ConfigMap must exist and the "issuer-name", "issuer-kind" and "issuer-group" keys must be present in it.
+#### **app.runtimeConfiguration.issuer.name** ~ `string`
+> Default value:
+> ```yaml
+> istio-ca
+> ```
+
+Issuer name set on created CertificateRequests for both istio-csr's serving certificate and incoming gRPC CSRs.
+#### **app.runtimeConfiguration.issuer.kind** ~ `string`
+> Default value:
+> ```yaml
+> Issuer
+> ```
+
+Issuer kind set on created CertificateRequests for both istio-csr's serving certificate and incoming gRPC CSRs.
+#### **app.runtimeConfiguration.issuer.group** ~ `string`
+> Default value:
+> ```yaml
+> cert-manager.io
+> ```
+
+Issuer group name set on created CertificateRequests for both istio-csr's serving certificate and incoming gRPC CSRs.
 #### **app.readinessProbe.port** ~ `number`
 > Default value:
 > ```yaml

@@ -42,3 +42,16 @@ See https://github.com/cert-manager/cert-manager/issues/6329 for a list of linke
 {{- if .digest -}}{{ printf "@%s" .digest }}{{- else -}}{{ printf ":%s" (default $defaultTag .tag) }}{{- end -}}
 {{- end }}
 {{- end }}
+
+{{/*
+Runtime config name
+*/}}
+{{- define "cert-manager-istio-csr.runtimeConfigurationName" -}}
+{{- if .Values.app.runtimeConfiguration.name -}}
+    {{- .Values.app.runtimeConfiguration.name -}}
+{{- else if .Values.app.runtimeIssuanceConfigMap -}}
+    {{- .Values.app.runtimeIssuanceConfigMap -}}
+{{- else if .Values.app.runtimeConfiguration.create -}}
+    {{ include "cert-manager-istio-csr.name" . }}
+{{- end -}}
+{{- end }}
