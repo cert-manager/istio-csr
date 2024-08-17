@@ -20,7 +20,6 @@ linters:
     - errcheck
     - errchkjson
     - errname
-    - execinquery
     - exhaustive
     - exportloopref
     - forbidigo
