@@ -38,12 +38,10 @@ import (
 	securityapi "istio.io/api/security/v1alpha1"
 	"istio.io/istio/pkg/cluster"
 	"istio.io/istio/pkg/config/mesh"
-	"istio.io/istio/pkg/jwt"
+	"istio.io/istio/pkg/kube"
 	"istio.io/istio/pkg/security"
-	"istio.io/istio/pkg/spiffe"
 	"istio.io/istio/security/pkg/server/ca/authenticate"
 	"istio.io/istio/security/pkg/server/ca/authenticate/kubeauth"
-	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/metrics"
 
@@ -89,20 +87,13 @@ type Server struct {
 }
 
 func New(log logr.Logger, restConfig *rest.Config, cm certmanager.Signer, tls tls.Interface, opts Options) (*Server, error) {
-
-	kubeClient, err := kubernetes.NewForConfig(restConfig)
+	client, err := kube.NewClient(kube.NewClientConfigForRestConfig(restConfig), cluster.ID(opts.ClusterID))
 	if err != nil {
-		return nil, fmt.Errorf("failed to build kubernetes client: %s", err)
+		return nil, fmt.Errorf("failed creating kube client: %v", err)
 	}
 
 	meshcnf := mesh.DefaultMeshConfig()
-
-	// These seem to be two alternative ways how to set trust domain to be
-	// consumed by functionality in istio libraries. Probably makes sense to
-	// set both since we don't know what might (get changed to) consume it
-	// from where.
 	meshcnf.TrustDomain = tls.TrustDomain()
-	spiffe.SetTrustDomain(tls.TrustDomain())
 
 	var authenticators []security.Authenticator
 	if opts.Authenticators.EnableClientCert {
@@ -110,9 +101,9 @@ func New(log logr.Logger, restConfig *rest.Config, cm certmanager.Signer, tls tl
 	}
 	authenticators = append(authenticators, kubeauth.NewKubeJWTAuthenticator(
 		mesh.NewFixedWatcher(meshcnf),
-		kubeClient,
+		client.Kube(),
 		cluster.ID(opts.ClusterID),
-		nil, jwt.PolicyThirdParty,
+		nil,
 	))
 
 	return &Server{
