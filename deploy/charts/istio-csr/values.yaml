@@ -110,6 +110,9 @@ app:
       group: cert-manager.io
 
   readinessProbe:
+    # Enable the readiness probe, disabling this allows the Helm install to
+    # complete without the issuer being available.
+    enabled: true
     # Container port to expose istio-csr HTTP readiness probe on default network interface.
     port: 6060
     # Path to expose istio-csr HTTP readiness probe on default network interface.

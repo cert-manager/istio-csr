@@ -44,12 +44,14 @@ spec:
         ports:
         - containerPort: {{ .Values.app.server.serving.port }}
         - containerPort: {{ .Values.app.metrics.port }}
+        {{- if .Values.app.readinessProbe.enabled }}
         readinessProbe:
           httpGet:
             port: {{ .Values.app.readinessProbe.port }}
             path: {{ .Values.app.readinessProbe.path }}
           initialDelaySeconds: 3
           periodSeconds: 7
+        {{- end }}
         args:
           - "--log-level={{.Values.app.logLevel}}"
           - "--log-format={{.Values.app.logFormat}}"

@@ -321,6 +321,9 @@
     "helm-values.app.readinessProbe": {
       "additionalProperties": false,
       "properties": {
+        "enabled": {
+          "$ref": "#/$defs/helm-values.app.readinessProbe.enabled"
+        },
         "path": {
           "$ref": "#/$defs/helm-values.app.readinessProbe.path"
         },
@@ -329,6 +332,11 @@
         }
       },
       "type": "object"
+    },
+    "helm-values.app.readinessProbe.enabled": {
+      "default": true,
+      "description": "Enable the readiness probe, disabling this allows the Helm install to complete without the issuer being available.",
+      "type": "boolean"
     },
     "helm-values.app.readinessProbe.path": {
       "default": "/readyz",

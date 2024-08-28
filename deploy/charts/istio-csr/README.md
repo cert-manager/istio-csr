@@ -187,6 +187,13 @@ Issuer kind set on created CertificateRequests for both istio-csr's serving cert
 > ```
 
 Issuer group name set on created CertificateRequests for both istio-csr's serving certificate and incoming gRPC CSRs.
+#### **app.readinessProbe.enabled** ~ `bool`
+> Default value:
+> ```yaml
+> true
+> ```
+
+Enable the readiness probe, disabling this allows the Helm install to complete without the issuer being available.
 #### **app.readinessProbe.port** ~ `number`
 > Default value:
 > ```yaml
