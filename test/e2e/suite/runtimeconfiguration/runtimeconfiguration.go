@@ -44,15 +44,25 @@ var _ = framework.CasesDescribe("runtime configuration", func() {
 		namespaceName = "runtimeconfig-ns"
 
 		ctx = context.Background()
+
+		injectLabel = func() map[string]string {
+			if f.Config().AmbientEnabled {
+				return map[string]string{
+					"istio.io/dataplane-mode": "ambient",
+				}
+			} else {
+				return map[string]string{
+					"istio-injection": "enabled",
+				}
+			}
+		}()
 	)
 
 	JustBeforeEach(func() {
 		_, err := f.KubeClientSet.CoreV1().Namespaces().Create(ctx, &corev1.Namespace{
 			ObjectMeta: metav1.ObjectMeta{
-				Name: namespaceName,
-				Labels: map[string]string{
-					"istio-injection": "enabled",
-				},
+				Name:   namespaceName,
+				Labels: injectLabel,
 			},
 		}, metav1.CreateOptions{})
 		Expect(err).NotTo(HaveOccurred())
@@ -81,6 +91,10 @@ var _ = framework.CasesDescribe("runtime configuration", func() {
 	})
 
 	It("it should use the runtime configured issuer", func() {
+		//TODO: paulwilljones fix for Ambient
+		if f.Config().AmbientEnabled {
+			Skip("Skipping for Ambient")
+		}
 		By("creating runtime configuration configmap")
 		err := kubectl(f, "apply", "-f", "./runtimeconfig-manifests/configmap/.")
 		Expect(err).NotTo(HaveOccurred())
@@ -208,8 +222,16 @@ type IstioctlJSONWrapper struct {
 func istioctlGetCert(f *framework.Framework, podName string, namespaceName string) ([]*x509.Certificate, error) {
 	buf := &bytes.Buffer{}
 
-	// #nosec G204
-	cmd := exec.Command(f.Config().IstioctlPath, "proxy-config", "secrets", "-n", namespaceName, podName, "-ojson")
+	//TODO: paulwilljones get certs from ztunnel
+	cmd := func() *exec.Cmd {
+		if f.Config().AmbientEnabled {
+			// #nosec G204
+			return exec.Command(f.Config().IstioctlPath, "experimental", "ztunnel-config", "certificates", "-n", namespaceName, "-ojson")
+		} else {
+			// #nosec G204
+			return exec.Command(f.Config().IstioctlPath, "proxy-config", "secrets", "-n", namespaceName, podName, "-ojson")
+		}
+	}()
 
 	cmd.Stdout = buf
 	cmd.Stderr = GinkgoWriter

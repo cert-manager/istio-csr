@@ -373,6 +373,13 @@ Parameter for serving certificate key. For RSA, must be a number of bits >= 2048
 > ```
 
 The type of private key to generate for the serving certificate. Only RSA (default) and ECDSA are supported. NB: This variable is named incorrectly; it controls private key algorithm, not signature algorithm.
+#### **app.server.caTrustedNodeAccounts** ~ `string`
+> Default value:
+> ```yaml
+> ""
+> ```
+
+A comma-separated list of service accounts that are allowed to use node authentication for CSRs, eg. "istio-system/ztunnel"
 #### **app.istio.revisions[0]** ~ `string`
 > Default value:
 > ```yaml

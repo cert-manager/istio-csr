@@ -36,10 +36,19 @@ import (
 	"google.golang.org/grpc/peer"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/structpb"
 	securityapi "istio.io/api/security/v1alpha1"
+	"istio.io/istio/pkg/kube"
 	"istio.io/istio/pkg/security"
+	"istio.io/istio/pkg/spiffe"
+	testUtil "istio.io/istio/pkg/test"
+	"istio.io/istio/pkg/util/sets"
 	"istio.io/istio/security/pkg/pki/util"
 	"istio.io/istio/security/pkg/server/ca/authenticate"
+	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/klog/v2/ktesting"
 
 	"github.com/cert-manager/istio-csr/pkg/certmanager"
@@ -49,9 +58,19 @@ import (
 	"github.com/cert-manager/istio-csr/test/gen"
 )
 
-func Test_CreateCertificate(t *testing.T) {
-	const spiffeDomain = "spiffe://foo"
+type pod struct {
+	name, namespace, account, node, uid string
+}
 
+func (p pod) Identity() string {
+	return spiffe.Identity{
+		TrustDomain:    "cluster.local",
+		Namespace:      p.namespace,
+		ServiceAccount: p.account,
+	}.String()
+}
+
+func genRootLeafPEM(t *testing.T) ([]byte, []byte, *x509.CertPool) {
 	rootPK, err := pki.GenerateECPrivateKey(256)
 	if err != nil {
 		t.Fatal(err)
@@ -92,6 +111,13 @@ func Test_CreateCertificate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	return rootCertPEM, leafCertPEM, rootPool
+}
+
+func Test_CreateCertificate(t *testing.T) {
+	const spiffeDomain = "spiffe://foo"
+
+	rootCertPEM, leafCertPEM, rootPool := genRootLeafPEM(t)
 
 	tests := map[string]struct {
 		icr func(t *testing.T) *securityapi.IstioCertificateRequest
@@ -350,6 +376,170 @@ func Test_CreateCertificateE2EUsingClientCertAuthenticator(t *testing.T) {
 				)),
 				ValidityDuration: 60 * 60,
 			})
+			errS, _ := status.FromError(err)
+			expErrS, _ := status.FromError(test.expErr)
+
+			if !proto.Equal(errS.Proto(), expErrS.Proto()) {
+				t.Errorf("unexpected error, exp=%v got=%v", test.expErr, err)
+			}
+
+			assert.Equal(t, test.expResponse, resp)
+		})
+	}
+}
+
+// See original code: https://github.com/istio/istio/blob/1.22.3/security/pkg/server/ca/server_test.go
+// See license of original code: https://github.com/istio/istio/blob/1.22.3/LICENSE
+func Test_CreateCertificateWithImpersonateIdentity(t *testing.T) {
+
+	rootCertPEM, leafCertPEM, rootPool := genRootLeafPEM(t)
+
+	allowZtunnel := sets.Set[types.NamespacedName]{
+		{Name: "ztunnel", Namespace: "istio-system"}: {},
+	}
+	ztunnelCaller := security.KubernetesInfo{
+		PodName:           "ztunnel-a",
+		PodNamespace:      "istio-system",
+		PodUID:            "12345",
+		PodServiceAccount: "ztunnel",
+	}
+	ztunnelPod := pod{
+		name:      ztunnelCaller.PodName,
+		namespace: ztunnelCaller.PodNamespace,
+		account:   ztunnelCaller.PodServiceAccount,
+		uid:       ztunnelCaller.PodUID,
+		node:      "zt-node",
+	}
+	podSameNode := pod{
+		name:      "pod-a",
+		namespace: "ns-a",
+		account:   "sa-a",
+		uid:       "1",
+		node:      "zt-node",
+	}
+
+	tests := map[string]struct {
+		csr string
+
+		cm          func(t *testing.T) certmanager.Signer
+		tls         csrtls.Interface
+		maxDuration time.Duration
+
+		authenticators       []security.Authenticator
+		trustedNodeAccounts  sets.Set[types.NamespacedName]
+		pods                 []pod
+		impersonatedIdentity string
+
+		expResponse *securityapi.IstioCertificateResponse
+		expErr      error
+	}{
+		"Successful signing with impersonated identity": {
+			csr: string(gen.MustCSR(t,
+				gen.SetCSRIdentities([]string{podSameNode.Identity()}),
+			)),
+			cm: func(t *testing.T) certmanager.Signer {
+				return cmfake.New().WithSign(func(_ context.Context, identity string, _ []byte, dur time.Duration, _ []cmapi.KeyUsage) (certmanager.Bundle, error) {
+					if identity != podSameNode.Identity() {
+						t.Errorf("unexpected identity, exp=%s got=%s", podSameNode.Identity(), identity)
+					}
+
+					if dur != time.Minute*30 {
+						t.Errorf("unexpected requested duration, exp=%s got=%s", time.Minute*30, dur)
+					}
+
+					return certmanager.Bundle{Certificate: leafCertPEM, CA: []byte("bad-cert")}, nil
+				})
+			},
+			tls:         tlsfake.New().WithRootCAs(rootCertPEM, rootPool),
+			maxDuration: time.Hour * 2,
+			authenticators: []security.Authenticator{newMockAuthnImpersonate(
+				[]string{ztunnelPod.Identity()},
+				&ztunnelCaller,
+			)},
+			trustedNodeAccounts:  allowZtunnel,
+			pods:                 []pod{ztunnelPod, podSameNode},
+			impersonatedIdentity: podSameNode.Identity(),
+			expResponse:          &securityapi.IstioCertificateResponse{CertChain: []string{string(leafCertPEM), string(rootCertPEM)}},
+			expErr:               nil,
+		},
+		"Caller not authorized to impersonate": {
+			csr: string(gen.MustCSR(t,
+				gen.SetCSRIdentities([]string{podSameNode.Identity()}),
+			)),
+			cm:          func(t *testing.T) certmanager.Signer { return cmfake.New() },
+			tls:         tlsfake.New().WithRootCAs(rootCertPEM, rootPool),
+			maxDuration: time.Hour * 2,
+			authenticators: []security.Authenticator{newMockAuthnImpersonate(
+				[]string{ztunnelPod.Identity()},
+				&ztunnelCaller,
+			)},
+			trustedNodeAccounts:  map[types.NamespacedName]struct{}{},
+			pods:                 []pod{ztunnelPod, podSameNode},
+			impersonatedIdentity: podSameNode.Identity(),
+			expResponse:          nil,
+			expErr:               status.Error(codes.Unauthenticated, "request authenticate failure"),
+		},
+		"identites do not match": {
+			csr: string(gen.MustCSR(t,
+				gen.SetCSRIdentities([]string{ztunnelPod.Identity()}),
+			)),
+			cm:          func(t *testing.T) certmanager.Signer { return cmfake.New() },
+			tls:         tlsfake.New().WithRootCAs(rootCertPEM, rootPool),
+			maxDuration: time.Hour * 2,
+			authenticators: []security.Authenticator{newMockAuthnImpersonate(
+				[]string{ztunnelPod.Identity()},
+				&ztunnelCaller,
+			)},
+			trustedNodeAccounts:  allowZtunnel,
+			pods:                 []pod{ztunnelPod, podSameNode},
+			impersonatedIdentity: podSameNode.Identity(),
+			expResponse:          nil,
+			expErr:               status.Error(codes.Unauthenticated, "request authenticate failure"),
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			var pods []runtime.Object
+			for _, p := range test.pods {
+				pods = append(pods, &v1.Pod{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      p.name,
+						Namespace: p.namespace,
+						UID:       types.UID(p.uid),
+					},
+					Spec: v1.PodSpec{
+						ServiceAccountName: p.account,
+						NodeName:           p.node,
+					},
+				})
+			}
+			c := kube.NewFakeClient(pods...)
+			na := NewClusterNodeAuthorizer(c, test.trustedNodeAccounts)
+			c.RunAndWait(testUtil.NewStop(t))
+			kube.WaitForCacheSync("test", testUtil.NewStop(t), na.pods.HasSynced)
+
+			s := &Server{
+				opts: Options{
+					MaximumClientCertificateDuration: test.maxDuration,
+				},
+				authenticators: test.authenticators,
+				log:            ktesting.NewLogger(t, ktesting.DefaultConfig),
+				cm:             test.cm(t),
+				tls:            test.tls,
+				nodeAuthorizer: na,
+			}
+
+			reqMeta, _ := structpb.NewStruct(map[string]any{
+				security.ImpersonatedIdentity: test.impersonatedIdentity,
+			})
+			icr := &securityapi.IstioCertificateRequest{
+				Csr:              test.csr,
+				Metadata:         reqMeta,
+				ValidityDuration: 60 * 30,
+			}
+
+			resp, err := s.CreateCertificate(context.TODO(), icr)
 			errS, _ := status.FromError(err)
 			expErrS, _ := status.FromError(test.expErr)
 

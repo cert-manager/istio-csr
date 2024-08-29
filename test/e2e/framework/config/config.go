@@ -33,6 +33,8 @@ type Config struct {
 	IssuanceConfigMapNamespace string
 
 	IstioctlPath string
+
+	AmbientEnabled bool
 }
 
 var (
@@ -58,6 +60,7 @@ func (c *Config) AddFlags(fs *flag.FlagSet) {
 	fs.StringVar(&c.IssuanceConfigMapNamespace, "runtime-issuance-config-map-namespace", "cert-manager", "Namespace for runtime issuance ConfigMap")
 
 	fs.StringVar(&c.IstioctlPath, "istioctl-path", "", "path to istioctl binary")
+	fs.BoolVar(&c.AmbientEnabled, "ambient-enabled", false, "is ambient data plane enabled")
 }
 
 func (c *Config) Validate() error {
