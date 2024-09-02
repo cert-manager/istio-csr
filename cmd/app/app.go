@@ -19,6 +19,7 @@ package app
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	cmapi "github.com/cert-manager/cert-manager/pkg/api"
 	"github.com/spf13/cobra"
@@ -30,6 +31,7 @@ import (
 	clientv1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
 	"github.com/cert-manager/istio-csr/cmd/app/options"
@@ -131,7 +133,18 @@ func NewCommand(ctx context.Context) *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("failed to create tls provider: %w", err)
 			}
-			if err := mgr.AddReadyzCheck("tls_provider", tls.Check); err != nil {
+
+			// Helper to only call health checks once issuer config is available
+			deferCheckUntilIssuerConfig := func(check healthz.Checker) healthz.Checker {
+				return func(req *http.Request) error {
+					if cm.HasIssuerConfig() {
+						return check(req)
+					}
+					return nil
+				}
+			}
+
+			if err := mgr.AddReadyzCheck("tls_provider", deferCheckUntilIssuerConfig(tls.Check)); err != nil {
 				return fmt.Errorf("failed to add tls provider readiness check: %w", err)
 			}
 			if err := mgr.Add(tls); err != nil {
@@ -143,7 +156,7 @@ func NewCommand(ctx context.Context) *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("failed to create grpc server: %w", err)
 			}
-			if err := mgr.AddReadyzCheck("grpc_server", server.Check); err != nil {
+			if err := mgr.AddReadyzCheck("grpc_server", deferCheckUntilIssuerConfig(server.Check)); err != nil {
 				return fmt.Errorf("failed to add grpc server readiness check: %w", err)
 			}
 			if err := mgr.Add(server); err != nil {

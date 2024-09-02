@@ -263,6 +263,9 @@ func (o *Options) addCertManagerFlags(fs *pflag.FlagSet) {
 	fs.StringVarP(&o.CertManager.Namespace,
 		"certificate-namespace", "c", "istio-system",
 		"Namespace to request certificates.")
+	fs.BoolVarP(&o.CertManager.DefaultIssuerEnabled,
+		"issuer-enabled", "e", true,
+		"Enable the default issuer, the application will not become ready until this issuer is available.")
 	fs.StringVarP(&o.CertManager.IssuerRef.Name,
 		"issuer-name", "u", "istio-ca",
 		"Name of the issuer to sign istio workload certificates.")
