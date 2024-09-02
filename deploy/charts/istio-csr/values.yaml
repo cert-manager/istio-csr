@@ -94,7 +94,7 @@ app:
     # runtime configuration of an issuer to use.
     #
     # If create is set to true then this name is used to create the ConfigMap,
-    # otherwise the ConfigMap must exist and the "issuer-name", "issuer-kind" 
+    # otherwise the ConfigMap must exist and the "issuer-name", "issuer-kind"
     # and "issuer-group" keys must be present in it.
     name: ""
 

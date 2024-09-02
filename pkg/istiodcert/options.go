@@ -47,7 +47,8 @@ type Options struct {
 
 	CMKeyAlgorithm cmapi.PrivateKeyAlgorithm
 
-	AdditionalDNSNames []string
+	AdditionalDNSNames    []string
+	AdditionalAnnotations map[string]string
 
 	IstioRevisions []string
 }
@@ -127,6 +128,8 @@ func AddFlags(o *Options, fs *pflag.FlagSet) {
 		fmt.Sprintf("Parameter for istiod certificate key. For RSA, must be a number of bits >= %d. For ECDSA, can only be 256 or 384, corresponding to P-256 and P-384 respectively.", minRSAKeySize))
 
 	fs.StringSliceVar(&o.AdditionalDNSNames, "istiod-cert-additional-dns-names", []string{}, "Additional DNS names to use for istiod cert (if enabled). Useful if istiod needs to be accessible outside of the cluster")
+
+	fs.StringToStringVar(&o.AdditionalAnnotations, "istiod-cert-additional-annotations", map[string]string{}, "Additional annotations to add for the istiod cert (if enabled).")
 
 	fs.StringSliceVar(&o.IstioRevisions, "istiod-cert-istio-revisions", []string{}, "A list of istio revisions which should have DNS SAN entries in the dynamic istiod cert")
 }

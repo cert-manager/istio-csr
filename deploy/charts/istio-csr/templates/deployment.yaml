@@ -92,7 +92,7 @@ spec:
 
           # server authenticators
           - "--enable-client-cert-authenticator={{.Values.app.server.authenticators.enableClientCert}}"
-          
+
           # trusted node accounts
           {{- if .Values.app.server.caTrustedNodeAccounts }}
           - "--ca-trusted-node-accounts={{.Values.app.server.caTrustedNodeAccounts }}"
@@ -116,6 +116,13 @@ spec:
           - "--istiod-cert-key-algorithm={{ default .Values.app.server.serving.signatureAlgorithm .Values.app.tls.istiodPrivateKeyAlgorithm }}"
           - "--istiod-cert-key-size={{ .Values.app.tls.istiodPrivateKeySize }}"
           - "--istiod-cert-additional-dns-names={{ join "," .Values.app.tls.istiodAdditionalDNSNames }}"
+          {{- if .Values.app.certmanager.additionalAnnotations }}
+          {{- $annotationList := list }}
+          {{- range $annotation := .Values.app.certmanager.additionalAnnotations }}
+          {{ $annotationList = append $annotationList (printf "%s=%s" $annotation.name $annotation.value) }}
+          {{- end }}
+          - "--istiod-cert-additional-annotations={{ join "," $annotationList }}"
+          {{- end }}
           - "--istiod-cert-istio-revisions={{ join "," .Values.app.istio.revisions }}"
         {{- if .Values.volumeMounts }}
         volumeMounts:
