@@ -175,14 +175,14 @@ func New(log logr.Logger, restConfig *rest.Config, opts Options) (*manager, erro
 		return nil, fmt.Errorf("failed to build cert-manager client: %s", err)
 	}
 
-	originalIssuerRef, err := handleOriginalIssuerRef(opts.IssuerRef)
+	originalIssuerRef, err := handleOriginalIssuerRef(opts)
 	if err != nil && err != errNoOriginalIssuer {
 		return nil, fmt.Errorf("invalid issuerRef passed at startup: %s", err)
 	}
 
 	activeIssuerRef := originalIssuerRef
 
-	if err == errNoOriginalIssuer || !opts.DefaultIssuerEnabled {
+	if err == errNoOriginalIssuer {
 		if !opts.HasRuntimeConfiguration() {
 			return nil, fmt.Errorf("runtime configuration parameters for name and namespace are required if no issuerRef is provided on startup")
 		}
@@ -581,22 +581,26 @@ func (m *manager) notifyIssuerChange(issuerRef *cmmeta.ObjectReference) {
 
 var errNoOriginalIssuer = fmt.Errorf("no original issuer was provided")
 
-func handleOriginalIssuerRef(in cmmeta.ObjectReference) (*cmmeta.ObjectReference, error) {
-	if in.Name == "" && in.Kind == "" && in.Group == "" {
+func handleOriginalIssuerRef(opts Options) (*cmmeta.ObjectReference, error) {
+	if !opts.DefaultIssuerEnabled {
 		return nil, errNoOriginalIssuer
 	}
 
-	if in.Name == "" {
+	if opts.IssuerRef.Name == "" && opts.IssuerRef.Kind == "" && opts.IssuerRef.Group == "" {
+		return nil, errNoOriginalIssuer
+	}
+
+	if opts.IssuerRef.Name == "" {
 		return nil, fmt.Errorf("issuerRef.Name is a required field if any field is set for issuerRef")
 	}
 
-	if in.Kind == "" {
+	if opts.IssuerRef.Kind == "" {
 		return nil, fmt.Errorf("issuerRef.Kind is a required field if any field is set for issuerRef")
 	}
 
-	if in.Group == "" {
+	if opts.IssuerRef.Group == "" {
 		return nil, fmt.Errorf("issuerRef.Group is a required field if any field is set for issuerRef")
 	}
 
-	return &in, nil
+	return &opts.IssuerRef, nil
 }
