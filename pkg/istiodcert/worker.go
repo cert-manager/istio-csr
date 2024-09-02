@@ -217,8 +217,9 @@ func (dicp *DynamicIstiodCertProvisioner) Reconcile(ctx context.Context, req ctr
 
 		cert := cmapi.Certificate{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      req.Name,
-				Namespace: req.Namespace,
+				Name:        req.Name,
+				Namespace:   req.Namespace,
+				Annotations: dicp.opts.AdditionalAnnotations,
 			},
 			Spec: desiredSpec,
 		}

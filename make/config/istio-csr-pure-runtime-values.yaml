@@ -20,6 +20,8 @@ app:
     additionalAnnotations:
     - name: custom.cert-manager.io/policy-name
       value: istio-csr
+    - name: custom.cert-manager.io/second-annotation
+      value: some-value
     issuer:
       # Explicitly blanked out to test "pure" runtime configuration
       group: ""
