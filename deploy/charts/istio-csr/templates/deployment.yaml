@@ -91,7 +91,7 @@ spec:
 
           # server authenticators
           - "--enable-client-cert-authenticator={{.Values.app.server.authenticators.enableClientCert}}"
-          
+
           # trusted node accounts
           {{- if .Values.app.server.caTrustedNodeAccounts }}
           - "--ca-trusted-node-accounts={{.Values.app.server.caTrustedNodeAccounts }}"
