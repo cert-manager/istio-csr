@@ -229,6 +229,17 @@ additionalAnnotations:
   - name: custom.cert-manager.io/policy-name
     value: istio-csr
 ```
+#### **app.certmanager.issuer.enabled** ~ `bool`
+> Default value:
+> ```yaml
+> true
+> ```
+
+Enable the default issuer, this is the issuer used when no runtime configuration is provided.  
+  
+When enabled the istio-csr Pod will not be "Ready" until the issuer has been used to issue the istio-csr GRPC certificate.  
+  
+For istio-csr to function either this or runtime configuration must be enabled.
 #### **app.certmanager.issuer.name** ~ `string`
 > Default value:
 > ```yaml

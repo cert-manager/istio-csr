@@ -59,6 +59,7 @@ spec:
 
             # cert-manager
           - "--certificate-namespace={{.Values.app.certmanager.namespace}}"
+          - "--issuer-enabled={{.Values.app.certmanager.issuer.enabled}}"
           - "--issuer-name={{.Values.app.certmanager.issuer.name}}"
           - "--issuer-kind={{.Values.app.certmanager.issuer.kind}}"
           - "--issuer-group={{.Values.app.certmanager.issuer.group}}"

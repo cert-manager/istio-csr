@@ -689,7 +689,7 @@ func Test_parseCertificateBundle(t *testing.T) {
 				tls: tlsfake.New().WithRootCAs(rootCAsPEM, rootCAsPool),
 			}
 
-			chain, err := s.parseCertificateBundle(test.bundle)
+			chain, err := s.parseCertificateBundle(context.Background(), test.bundle)
 			assert.Equalf(t, test.expErr, err != nil, "%v", err)
 			assert.Equal(t, test.expChain, chain)
 		})

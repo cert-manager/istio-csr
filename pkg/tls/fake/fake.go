@@ -32,7 +32,7 @@ var _ cmtls.Interface = &FakeTLS{}
 // FakeTLS is a fake implementation of tls.Interface that can be used for testing.
 type FakeTLS struct {
 	funcTrustDomain           func() string
-	funcRootCAs               func() rootca.RootCAs
+	funcRootCAs               func(ctx context.Context) *rootca.RootCAs
 	funcConfig                func(ctx context.Context) (*tls.Config, error)
 	funcSubscribeRootCAsEvent func() <-chan event.GenericEvent
 }
@@ -40,14 +40,14 @@ type FakeTLS struct {
 func New() *FakeTLS {
 	return &FakeTLS{
 		funcTrustDomain:           func() string { return "" },
-		funcRootCAs:               func() rootca.RootCAs { return rootca.RootCAs{} },
+		funcRootCAs:               func(ctx context.Context) *rootca.RootCAs { return &rootca.RootCAs{} },
 		funcConfig:                func(_ context.Context) (*tls.Config, error) { return nil, nil },
 		funcSubscribeRootCAsEvent: func() <-chan event.GenericEvent { return make(chan event.GenericEvent) },
 	}
 }
 
 func (f *FakeTLS) WithRootCAs(rootCAsPEM []byte, rootCAsPool *x509.CertPool) *FakeTLS {
-	f.funcRootCAs = func() rootca.RootCAs { return rootca.RootCAs{PEM: rootCAsPEM, CertPool: rootCAsPool} }
+	f.funcRootCAs = func(context.Context) *rootca.RootCAs { return &rootca.RootCAs{PEM: rootCAsPEM, CertPool: rootCAsPool} }
 	return f
 }
 
@@ -55,8 +55,8 @@ func (f *FakeTLS) TrustDomain() string {
 	return f.funcTrustDomain()
 }
 
-func (f *FakeTLS) RootCAs() rootca.RootCAs {
-	return f.funcRootCAs()
+func (f *FakeTLS) RootCAs(ctx context.Context) *rootca.RootCAs {
+	return f.funcRootCAs(ctx)
 }
 
 func (f *FakeTLS) Config(ctx context.Context) (*tls.Config, error) {

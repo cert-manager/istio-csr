@@ -128,6 +128,7 @@ test-e2e: test-e2e-deps-sidecars | kind-cluster $(NEEDS_GINKGO) $(NEEDS_KUBECTL)
 test-e2e-pure-runtime-deps: INSTALL_OPTIONS :=
 test-e2e-pure-runtime-deps: INSTALL_OPTIONS += --set image.repository=$(oci_manager_image_name_development)
 test-e2e-pure-runtime-deps: INSTALL_OPTIONS += --set app.runtimeConfiguration.name=$(E2E_RUNTIME_CONFIG_MAP_NAME)
+test-e2e-pure-runtime-deps: INSTALL_OPTIONS += --set app.certmanager.issuer.enabled=false
 test-e2e-pure-runtime-deps: INSTALL_OPTIONS += -f ./make/config/istio-csr-pure-runtime-values.yaml
 test-e2e-pure-runtime-deps: e2e-setup-cert-manager
 test-e2e-pure-runtime-deps: e2e-create-cert-manager-istio-resources

@@ -57,7 +57,7 @@ type DynamicIstiodCertProvisioner struct {
 
 	issuerRefMutex sync.Mutex
 
-	issuerChangeChan <-chan *cmmeta.ObjectReference
+	issuerChangeSubscription *certmanager.IssuerChangeSubscription
 
 	reconcileChan chan event.GenericEvent
 
@@ -83,7 +83,7 @@ func New(log logr.Logger, restConfig *rest.Config, opts Options, issuerChangeNot
 
 		issuerRefMutex: sync.Mutex{},
 
-		issuerChangeChan: issuerChangeNotifier.SubscribeIssuerChange(),
+		issuerChangeSubscription: issuerChangeNotifier.SubscribeIssuerChange(),
 
 		reconcileChan: make(chan event.GenericEvent),
 
@@ -101,7 +101,7 @@ func (dicp *DynamicIstiodCertProvisioner) Start(ctx context.Context) error {
 			dicp.log.Info("Received context cancellation, shutting down dynamic istiod cert provisioner")
 			return nil
 
-		case newIssuer := <-dicp.issuerChangeChan:
+		case newIssuer := <-dicp.issuerChangeSubscription.C:
 			dicp.handleNewIssuer(newIssuer)
 		}
 	}

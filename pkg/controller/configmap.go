@@ -172,7 +172,12 @@ func (c *configmap) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resul
 		return ctrl.Result{}, nil
 	}
 
-	rootCAsPEM := string(c.tls.RootCAs().PEM)
+	rootCAs := c.tls.RootCAs(ctx)
+	if rootCAs == nil {
+		return ctrl.Result{}, fmt.Errorf("could not get root certificates: %w", ctx.Err())
+	}
+
+	rootCAsPEM := string(rootCAs.PEM)
 
 	// Check ConfigMap exists, and has the correct data.
 	var configMap corev1.ConfigMap

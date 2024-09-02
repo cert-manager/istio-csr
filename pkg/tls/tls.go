@@ -29,7 +29,6 @@ import (
 	"time"
 
 	cmapi "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
-	cmmeta "github.com/cert-manager/cert-manager/pkg/apis/meta/v1"
 	"github.com/cert-manager/cert-manager/pkg/util/pki"
 	"github.com/go-logr/logr"
 	"github.com/lestrrat-go/backoff/v2"
@@ -66,7 +65,7 @@ type Interface interface {
 	// RootCAs returns the root CA PEM bundle as well as an *x509.CertPool
 	// containing the decoded CA certificates.
 	// This func blocks until the CA certificates are available.
-	RootCAs() rootca.RootCAs
+	RootCAs(ctx context.Context) *rootca.RootCAs
 
 	// Config provides a tls.Config that is updated with updated serving
 	// certificates and root CAs.
@@ -122,7 +121,6 @@ type Provider struct {
 	subscriptions []chan<- event.GenericEvent
 
 	issuerChangeNotifier certmanager.IssuerChangeNotifier
-	issuerChangeChan     <-chan *cmmeta.ObjectReference
 }
 
 // NewProvider will return a new provider where a TLS config is ready to be fetched.
@@ -133,7 +131,6 @@ func NewProvider(log logr.Logger, cm certmanager.Signer, opts Options, issuerCha
 		cm:   cm,
 
 		issuerChangeNotifier: issuerChangeNotifier,
-		issuerChangeChan:     issuerChangeNotifier.SubscribeIssuerChange(),
 	}, nil
 }
 
@@ -186,7 +183,7 @@ func (p *Provider) Start(ctx context.Context) error {
 		// the issuer the ConfigMap refers to doesn't yet exist, even though the issuer config exists
 
 		if !p.issuerChangeNotifier.HasIssuerConfig() {
-			p.waitForInitialIssuer(ctx)
+			p.issuerChangeNotifier.WaitForIssuerConfig(ctx)
 		}
 
 		// We have an issuerRef now (after waitForInitialIssuer) but we don't know that it's valid
@@ -250,29 +247,6 @@ func (p *Provider) Start(ctx context.Context) error {
 		p.log.Info("renewing serving certificate")
 		notAfter = p.mustFetchCertificate(ctx)
 		p.log.Info("fetched new serving certificate", "expiry-time", notAfter)
-	}
-}
-
-// waitForInitialIssuer blocks until there's an issuer provided for creating the initial serving cert.
-func (p *Provider) waitForInitialIssuer(ctx context.Context) {
-	for {
-		timer := time.NewTimer(5 * time.Second)
-
-		select {
-		case <-ctx.Done():
-			p.log.Info("abandoning trying to fetch initial serving certificate due to context cancellation")
-
-		case newIssuerRef := <-p.issuerChangeChan:
-			if newIssuerRef != nil {
-				// we're done waiting and there's an issuer configured
-				p.log.Info("saw issuerRef configuration; issuing initial serving certificate")
-				return
-			}
-
-		case <-timer.C:
-			p.log.Info("still waiting for runtime configuration of issuerRef for initial serving certificate")
-		}
-
 	}
 }
 
@@ -345,18 +319,24 @@ func (p *Provider) getConfigForClient(_ *tls.ClientHelloInfo) (*tls.Config, erro
 
 // RootCAs returns the configured CA certificate. This function blocks until
 // the root CA has been populated.
-func (p *Provider) RootCAs() rootca.RootCAs {
+func (p *Provider) RootCAs(ctx context.Context) *rootca.RootCAs {
+	timer := time.NewTimer(time.Second)
 	for {
-		p.lock.RLock()
-		rootCAs := p.rootCAs
-		p.lock.RUnlock()
+		select {
+		case <-ctx.Done():
+			return nil
+		case <-timer.C:
+			p.lock.RLock()
+			rootCAs := p.rootCAs
+			p.lock.RUnlock()
 
-		if len(rootCAs.PEM) == 0 || rootCAs.CertPool == nil {
-			time.Sleep(time.Second)
-			continue
+			if len(rootCAs.PEM) == 0 || rootCAs.CertPool == nil {
+				timer.Reset(time.Second)
+				continue
+			}
+
+			return &rootCAs
 		}
-
-		return rootCAs
 	}
 }
 

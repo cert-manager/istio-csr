@@ -218,7 +218,7 @@ func (s *Server) CreateCertificate(ctx context.Context, icr *securityapi.IstioCe
 		return nil, status.Error(codes.Internal, "failed to sign certificate request")
 	}
 
-	certChain, err := s.parseCertificateBundle(bundle)
+	certChain, err := s.parseCertificateBundle(ctx, bundle)
 	if err != nil {
 		log.Error(err, "failed to parse and verify signed certificate chain from issuer")
 		return nil, status.Error(codes.Internal, "failed to parse and verify signed certificate from issuer")
@@ -257,7 +257,7 @@ func (s *Server) Check(_ *http.Request) error {
 // bundle.
 // This function will ensure the chain is a flat linked list, and is valid for
 // at least one of the root CAs.
-func (s *Server) parseCertificateBundle(bundle certmanager.Bundle) ([]string, error) {
+func (s *Server) parseCertificateBundle(ctx context.Context, bundle certmanager.Bundle) ([]string, error) {
 	// Parse returned signed certificate chain. Append root CA validate it is a
 	// flat chain.
 	respBundle, err := pki.ParseSingleCertificateChainPEM(bundle.Certificate)
@@ -276,7 +276,11 @@ func (s *Server) parseCertificateBundle(bundle certmanager.Bundle) ([]string, er
 		intermediatePool.AddCert(intermediate)
 	}
 
-	rootCAs := s.tls.RootCAs()
+	rootCAs := s.tls.RootCAs(ctx)
+	if rootCAs == nil {
+		return nil, ctx.Err()
+	}
+
 	opts := x509.VerifyOptions{
 		Intermediates: intermediatePool,
 		Roots:         rootCAs.CertPool,

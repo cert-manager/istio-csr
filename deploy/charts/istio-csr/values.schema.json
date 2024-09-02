@@ -128,6 +128,9 @@
     "helm-values.app.certmanager.issuer": {
       "additionalProperties": false,
       "properties": {
+        "enabled": {
+          "$ref": "#/$defs/helm-values.app.certmanager.issuer.enabled"
+        },
         "group": {
           "$ref": "#/$defs/helm-values.app.certmanager.issuer.group"
         },
@@ -139,6 +142,11 @@
         }
       },
       "type": "object"
+    },
+    "helm-values.app.certmanager.issuer.enabled": {
+      "default": true,
+      "description": "Enable the default issuer, this is the issuer used when no runtime configuration is provided.\n\nWhen enabled the istio-csr Pod will not be \"Ready\" until the issuer has been used to issue the istio-csr GRPC certificate.\n\nFor istio-csr to function either this or runtime configuration must be enabled.",
+      "type": "boolean"
     },
     "helm-values.app.certmanager.issuer.group": {
       "default": "cert-manager.io",

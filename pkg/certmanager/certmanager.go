@@ -50,6 +50,9 @@ type Options struct {
 	// Namespace is the namespace that CertificateRequests will be created in.
 	Namespace string
 
+	// DefaultIssuerEnabled indicates the default issuer is enabled
+	DefaultIssuerEnabled bool
+
 	// IssuerRef is used as the issuerRef on created CertificateRequests.
 	IssuerRef cmmeta.ObjectReference
 
@@ -75,12 +78,45 @@ type Signer interface {
 	Sign(ctx context.Context, identities string, csrPEM []byte, duration time.Duration, usages []cmapi.KeyUsage) (Bundle, error)
 }
 
+// IssuerChangeSubscription is a subscription that can be used to get changes
+// to issuer config
+type IssuerChangeSubscription struct {
+	C <-chan *cmmeta.ObjectReference
+
+	// The same channel as above is mirrored in sendChannel, but without the "<-"
+	// restriction. This allows the channel to be written to by this package.
+	sendChannel chan *cmmeta.ObjectReference
+
+	lock   sync.Mutex
+	closed bool
+}
+
+// Close will prevent the subscription from receiving any further updates, it
+// will not close the channel however as this could lead to incorrect behavior
+// from anything waiting on the channel.
+func (s *IssuerChangeSubscription) Close() {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	s.closed = true
+}
+
+// Closed returns true if the subscription has been closed.
+func (s *IssuerChangeSubscription) Closed() bool {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	return s.closed
+}
+
 // IssuerChangeNotifier allows subscription to a channel providing updates on when an
 // issuer changes.
 type IssuerChangeNotifier interface {
+	// WaitForIssuerConfig provides a function that blocks until issuer config
+	// is available
+	WaitForIssuerConfig(ctx context.Context)
+
 	// SubscribeIssuerChange provides a channel which will update with new issuerRefs
 	// as updates happen.
-	SubscribeIssuerChange() <-chan *cmmeta.ObjectReference
+	SubscribeIssuerChange() *IssuerChangeSubscription
 
 	// HasIssuerConfig returns true if there's a configured active issuer ref.
 	// (i.e. a static issuerRef was configured at startup / runtime issuance config has been successfully acquired)
@@ -117,7 +153,7 @@ type manager struct {
 	// ConfigMap for runtime configuration is deleted.
 	originalIssuerRef *cmmeta.ObjectReference
 
-	issuerChangeSubscriptions      []chan *cmmeta.ObjectReference
+	issuerChangeSubscriptions      []*IssuerChangeSubscription
 	issuerChangeSubscriptionsMutex sync.Mutex
 }
 
@@ -146,7 +182,7 @@ func New(log logr.Logger, restConfig *rest.Config, opts Options) (*manager, erro
 
 	activeIssuerRef := originalIssuerRef
 
-	if err == errNoOriginalIssuer {
+	if err == errNoOriginalIssuer || !opts.DefaultIssuerEnabled {
 		if !opts.HasRuntimeConfiguration() {
 			return nil, fmt.Errorf("runtime configuration parameters for name and namespace are required if no issuerRef is provided on startup")
 		}
@@ -463,18 +499,57 @@ func (m *manager) RuntimeConfigurationWatcher(ctx context.Context) ctrlmgr.Runna
 	}
 }
 
-func (m *manager) SubscribeIssuerChange() <-chan *cmmeta.ObjectReference {
+func (m *manager) SubscribeIssuerChange() *IssuerChangeSubscription {
 	m.issuerChangeSubscriptionsMutex.Lock()
 	defer m.issuerChangeSubscriptionsMutex.Unlock()
 
 	ch := make(chan *cmmeta.ObjectReference)
+	sub := &IssuerChangeSubscription{
+		C:           ch,
+		sendChannel: ch,
+	}
 
-	m.issuerChangeSubscriptions = append(m.issuerChangeSubscriptions, ch)
+	m.issuerChangeSubscriptions = append(m.issuerChangeSubscriptions, sub)
 
-	return ch
+	return sub
+}
+
+func (m *manager) WaitForIssuerConfig(ctx context.Context) {
+	// If there is issuer config we can return fast
+	if m.HasIssuerConfig() {
+		return
+	}
+
+	// Create subscription to runtime config, closing it out once this function
+	// returns
+	subscription := m.SubscribeIssuerChange()
+	defer subscription.Close()
+
+	// Wait for runtime issuer config
+	for {
+		timer := time.NewTimer(5 * time.Second)
+
+		select {
+		case <-ctx.Done():
+			m.log.Error(ctx.Err(), "abandoning trying to fetch runtime configuration")
+			return
+
+		case newIssuerRef := <-subscription.C:
+			if newIssuerRef != nil {
+				m.log.Info("runtime issuerRef configuration available")
+				return
+			}
+
+		case <-timer.C:
+			m.log.Info("still waiting for runtime configuration of issuerRef")
+		}
+	}
 }
 
 func (m *manager) HasIssuerConfig() bool {
+	m.activeIssuerRefMutex.Lock()
+	defer m.activeIssuerRefMutex.Unlock()
+
 	return m.activeIssuerRef != nil
 }
 
@@ -486,9 +561,22 @@ func (m *manager) notifyIssuerChange(issuerRef *cmmeta.ObjectReference) {
 	m.issuerChangeSubscriptionsMutex.Lock()
 	defer m.issuerChangeSubscriptionsMutex.Unlock()
 
-	for i := range m.issuerChangeSubscriptions {
-		go func(i int) { m.issuerChangeSubscriptions[i] <- issuerRef }(i)
+	filteredSubscriptions := make([]*IssuerChangeSubscription, 0, len(m.issuerChangeSubscriptions))
+	for i, sub := range m.issuerChangeSubscriptions {
+		// Skip closed subscriptions
+		if sub.Closed() {
+			continue
+		}
+
+		// Add the filtered list, this is how we drop closed subscriptions from
+		// future events
+		filteredSubscriptions = append(filteredSubscriptions, sub)
+
+		// Send the event to the subscriber
+		go func(i int) { m.issuerChangeSubscriptions[i].sendChannel <- issuerRef }(i)
 	}
+
+	m.issuerChangeSubscriptions = filteredSubscriptions
 }
 
 var errNoOriginalIssuer = fmt.Errorf("no original issuer was provided")
