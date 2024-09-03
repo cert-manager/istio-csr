@@ -12,6 +12,12 @@
         "commonLabels": {
           "$ref": "#/$defs/helm-values.commonLabels"
         },
+        "deploymentAnnotations": {
+          "$ref": "#/$defs/helm-values.deploymentAnnotations"
+        },
+        "deploymentLabels": {
+          "$ref": "#/$defs/helm-values.deploymentLabels"
+        },
         "extraObjects": {
           "$ref": "#/$defs/helm-values.extraObjects"
         },
@@ -29,6 +35,12 @@
         },
         "nodeSelector": {
           "$ref": "#/$defs/helm-values.nodeSelector"
+        },
+        "podAnnotations": {
+          "$ref": "#/$defs/helm-values.podAnnotations"
+        },
+        "podLabels": {
+          "$ref": "#/$defs/helm-values.podLabels"
         },
         "replicaCount": {
           "$ref": "#/$defs/helm-values.replicaCount"
@@ -590,6 +602,16 @@
       "description": "Labels to apply to all resources",
       "type": "object"
     },
+    "helm-values.deploymentAnnotations": {
+      "default": {},
+      "description": "Optional extra annotations for deployment.",
+      "type": "object"
+    },
+    "helm-values.deploymentLabels": {
+      "default": {},
+      "description": "Optional extra labels for deployment.",
+      "type": "object"
+    },
     "helm-values.extraObjects": {
       "default": [],
       "description": "Create resources alongside installing istio-csr, via Helm values. Can accept an array of YAML-formatted resources. Each array entry can include multiple YAML documents, separated by '---'\n\nFor example:\nextraObjects:\n  - |\n    apiVersion: v1\n    kind: ConfigMap\n    metadata:\n      name: '{{ template \"cert-manager-istio-csr.fullname\" . }}-extra-configmap'",
@@ -657,6 +679,16 @@
         "kubernetes.io/os": "linux"
       },
       "description": "Kubernetes node selector: node labels for pod assignment.",
+      "type": "object"
+    },
+    "helm-values.podAnnotations": {
+      "default": {},
+      "description": "Optional extra annotations for pod.",
+      "type": "object"
+    },
+    "helm-values.podLabels": {
+      "default": {},
+      "description": "Optional extra labels for pod.",
       "type": "object"
     },
     "helm-values.replicaCount": {

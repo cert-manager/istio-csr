@@ -423,6 +423,34 @@ Example: maistra.io/member-of=istio-system
 Allows you to disable the default Kubernetes client rate limiter if istio-csr is exceeding the default QPS (5) and Burst (10) limits. For example in large clusters with many Istio workloads, restarting the Pods may cause istio-csr to send bursts Kubernetes API requests that exceed the limits of the default Kubernetes client rate limiter and istio-csr will become slow to issue certificates for your workloads. Only disable client rate limiting if the Kubernetes API server supports  
 [API Priority and Fairness](https://kubernetes.io/docs/concepts/cluster-administration/flow-control/),  
 to avoid overloading the server.
+#### **deploymentLabels** ~ `object`
+> Default value:
+> ```yaml
+> {}
+> ```
+
+Optional extra labels for deployment.
+#### **deploymentAnnotations** ~ `object`
+> Default value:
+> ```yaml
+> {}
+> ```
+
+Optional extra annotations for deployment.
+#### **podLabels** ~ `object`
+> Default value:
+> ```yaml
+> {}
+> ```
+
+Optional extra labels for pod.
+#### **podAnnotations** ~ `object`
+> Default value:
+> ```yaml
+> {}
+> ```
+
+Optional extra annotations for pod.
 #### **volumes** ~ `array`
 > Default value:
 > ```yaml
