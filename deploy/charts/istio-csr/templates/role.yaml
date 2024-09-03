@@ -26,16 +26,3 @@ rules:
   verbs: ["get", "list", "watch"]
   resourceNames: [{{ . | quote }}]
 {{- end }}
-{{- if eq (toString .Values.app.tls.istiodCertificateEnable) "dynamic" }}
-- apiGroups:
-  - "cert-manager.io"
-  resources:
-  - "certificates"
-  verbs:
-  - "get"
-  - "create"
-  - "update"
-  - "delete"
-  - "watch"
-  - "list"
-{{- end }}
