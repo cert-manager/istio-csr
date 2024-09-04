@@ -95,6 +95,10 @@ func New(log logr.Logger, restConfig *rest.Config, opts Options, issuerChangeNot
 // It waits for a notification of an issuer change, and when it gets one it
 // triggers reconciliation of the dynamic istiod cert.
 func (dicp *DynamicIstiodCertProvisioner) Start(ctx context.Context) error {
+	if dicp.initialIssuerRef != nil {
+		dicp.handleNewIssuer(dicp.initialIssuerRef)
+	}
+
 	for {
 		select {
 		case <-ctx.Done():
