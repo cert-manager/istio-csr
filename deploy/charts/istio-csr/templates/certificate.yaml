@@ -35,7 +35,7 @@ spec:
   {{- end }}
   {{- if .Values.app.tls.istiodAdditionalDNSNames }}
   {{- range .Values.app.tls.istiodAdditionalDNSNames }}
-  - {{ . }}
+  - {{ . | quote }}
   {{- end }}
   {{- end }}
   uris:
