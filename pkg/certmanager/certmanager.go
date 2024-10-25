@@ -283,14 +283,14 @@ func (m *manager) waitForCertificateRequest(ctx context.Context, log logr.Logger
 		FieldSelector: fields.OneTermEqualSelector(metav1.ObjectNameField, cr.Name).String(),
 	})
 	if err != nil {
-		return cr, fmt.Errorf("failed to build watcher for CertificateRequest: %w", err)
+		return nil, fmt.Errorf("failed to build watcher for CertificateRequest: %w", err)
 	}
 	defer watcher.Stop()
 
 	// Get the request in-case it has already reached a terminal state.
 	cr, err = m.certManagerClient.Get(ctx, cr.Name, metav1.GetOptions{})
 	if err != nil {
-		return cr, fmt.Errorf("failed to get CertificateRequest: %w", err)
+		return nil, fmt.Errorf("failed to get CertificateRequest: %w", err)
 	}
 
 	for {
