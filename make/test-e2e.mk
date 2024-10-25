@@ -92,6 +92,7 @@ INSTALL_OPTIONS += -f ./make/config/istio-csr-values.yaml
 
 test-e2e-deps: e2e-setup-cert-manager
 test-e2e-deps: e2e-create-cert-manager-istio-resources
+test-e2e-deps: ISTIO_INSTALL_OPTIONS :=
 
 test-e2e-deps-sidecars: test-e2e-deps
 test-e2e-deps-sidecars: install
@@ -100,7 +101,6 @@ test-e2e-deps-sidecars: e2e-setup-istio
 test-e2e-deps-ambient: test-e2e-deps
 test-e2e-deps-ambient: INSTALL_OPTIONS += --set app.server.caTrustedNodeAccounts="istio-system/ztunnel"
 test-e2e-deps-ambient: install
-test-e2e-deps-ambient: ISTIO_INSTALL_OPTIONS :=
 test-e2e-deps-ambient: ISTIO_INSTALL_OPTIONS += --set profile=ambient
 test-e2e-deps-ambient: e2e-setup-istio
 
