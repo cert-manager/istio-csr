@@ -13,6 +13,7 @@
 # limitations under the License.
 
 ISTIO_VERSION ?= 1.22.2
+ISTIO_CONFIG_FILE ?= ./make/config/istio/istio-config-default.yaml
 
 $(bin_dir)/scratch/istioctl-$(ISTIO_VERSION): | $(bin_dir)/scratch/
 	curl -L https://istio.io/downloadIstio | ISTIO_VERSION=$(ISTIO_VERSION) sh -
@@ -72,7 +73,7 @@ endif
 
 .PHONY: e2e-setup-istio
 e2e-setup-istio: | kind-cluster install $(NEEDS_KUBECTL) $(bin_dir)/scratch/istioctl-$(ISTIO_VERSION)
-	$(bin_dir)/scratch/istioctl-$(ISTIO_VERSION) install -y -f ./make/config/istio/istio-config-$(ISTIO_VERSION).yaml $(ISTIO_INSTALL_OPTIONS)
+	$(bin_dir)/scratch/istioctl-$(ISTIO_VERSION) install -y -f $(ISTIO_CONFIG_FILE) $(ISTIO_INSTALL_OPTIONS)
 	$(KUBECTL) -n istio-system apply --server-side -f ./make/config/peer-authentication.yaml
 
 E2E_RUNTIME_CONFIG_MAP_NAME ?= runtime-config-map
