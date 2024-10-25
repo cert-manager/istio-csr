@@ -427,8 +427,11 @@ func (p *Provider) fetchCertificate(ctx context.Context) (time.Time, error) {
 	p.tlsConfig = &tls.Config{
 		MinVersion:   tls.VersionTLS12,
 		Certificates: []tls.Certificate{tlsCert},
-		ClientAuth:   tls.VerifyClientCertIfGiven,
-		ClientCAs:    peerCertVerifier.GetGeneralCertPool(),
+		// Advertise ALPN, required in modern gRPC versions
+		// Typically gRPC sets this for us, but since this tls.Config ultimately gets returned in GetConfigForClient it doesn't.
+		NextProtos: []string{"h2"},
+		ClientAuth: tls.VerifyClientCertIfGiven,
+		ClientCAs:  peerCertVerifier.GetGeneralCertPool(),
 		VerifyPeerCertificate: func(rawCerts [][]byte, verifiedChains [][]*x509.Certificate) error {
 			err := peerCertVerifier.VerifyPeerCert(rawCerts, verifiedChains)
 			if err != nil {
