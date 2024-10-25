@@ -12,8 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ISTIO_VERSION ?= 1.22.2
+ISTIO_VERSION ?= 1.23.2
 ISTIO_CONFIG_FILE ?= ./make/config/istio/istio-config-default.yaml
+
+.PHONY: print-latest-istio-version
+print-latest-istio-version:
+	@curl -sSL --show-error -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" https://api.github.com/repos/istio/istio/releases | jq -r '.[].tag_name' | sort -rV | head -n1
 
 $(bin_dir)/scratch/istioctl-$(ISTIO_VERSION): | $(bin_dir)/scratch/
 	curl -L https://istio.io/downloadIstio | ISTIO_VERSION=$(ISTIO_VERSION) sh -
@@ -88,6 +92,7 @@ INSTALL_OPTIONS += -f ./make/config/istio-csr-values.yaml
 
 test-e2e-deps: e2e-setup-cert-manager
 test-e2e-deps: e2e-create-cert-manager-istio-resources
+test-e2e-deps: ISTIO_INSTALL_OPTIONS :=
 
 test-e2e-deps-sidecars: test-e2e-deps
 test-e2e-deps-sidecars: install
@@ -96,7 +101,6 @@ test-e2e-deps-sidecars: e2e-setup-istio
 test-e2e-deps-ambient: test-e2e-deps
 test-e2e-deps-ambient: INSTALL_OPTIONS += --set app.server.caTrustedNodeAccounts="istio-system/ztunnel"
 test-e2e-deps-ambient: install
-test-e2e-deps-ambient: ISTIO_INSTALL_OPTIONS :=
 test-e2e-deps-ambient: ISTIO_INSTALL_OPTIONS += --set profile=ambient
 test-e2e-deps-ambient: e2e-setup-istio
 
