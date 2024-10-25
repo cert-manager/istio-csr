@@ -15,6 +15,10 @@
 ISTIO_VERSION ?= 1.23.2
 ISTIO_CONFIG_FILE ?= ./make/config/istio/istio-config-default.yaml
 
+.PHONY: print-latest-istio-version
+print-latest-istio-version:
+	@curl -sSL --show-error -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" https://api.github.com/repos/istio/istio/releases | jq -r '.[].tag_name' | sort -rV | head -n1
+
 $(bin_dir)/scratch/istioctl-$(ISTIO_VERSION): | $(bin_dir)/scratch/
 	curl -L https://istio.io/downloadIstio | ISTIO_VERSION=$(ISTIO_VERSION) sh -
 	mv istio-$(ISTIO_VERSION)/bin/istioctl $(bin_dir)/scratch/istioctl-$(ISTIO_VERSION)
