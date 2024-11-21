@@ -6,7 +6,7 @@ go 1.23.0
 replace github.com/imdario/mergo => github.com/imdario/mergo v0.3.16
 
 require (
-	github.com/cert-manager/cert-manager v1.16.1
+	github.com/cert-manager/cert-manager v1.16.2
 	github.com/fsnotify/fsnotify v1.8.0
 	github.com/go-logr/logr v1.4.2
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
@@ -18,7 +18,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.9.0
 	google.golang.org/grpc v1.68.0
-	google.golang.org/protobuf v1.35.1
+	google.golang.org/protobuf v1.35.2
 	istio.io/api v1.24.0
 	istio.io/istio v0.0.0-20241025034248-4fa5b430d9b2
 	k8s.io/api v0.31.2
