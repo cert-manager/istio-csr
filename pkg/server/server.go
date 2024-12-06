@@ -64,6 +64,10 @@ type Options struct {
 	// this value, this value will be used instead.
 	MaximumClientCertificateDuration time.Duration
 
+	EnableCustomClientCertificateDuration bool
+
+	CustomClientCertificateDuration time.Duration
+
 	// Authenticators configures authenticators to use for incoming CSR requests.
 	Authenticators AuthenticatorOptions
 
@@ -211,6 +215,15 @@ func (s *Server) CreateCertificate(ctx context.Context, icr *securityapi.IstioCe
 	if duration > s.opts.MaximumClientCertificateDuration {
 		duration = s.opts.MaximumClientCertificateDuration
 	}
+
+	// If custom duration is specified, override with the
+	// custom value.
+
+	if s.opts.EnableCustomClientCertificateDuration {
+		duration = s.opts.CustomClientCertificateDuration
+	}
+
+	log.V(2).Info("Setting certificate duration", "duration", duration)
 
 	bundle, err := s.cm.Sign(ctx, identities, []byte(icr.GetCsr()), duration, []cmapi.KeyUsage{cmapi.UsageClientAuth, cmapi.UsageServerAuth})
 	if err != nil {
