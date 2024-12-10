@@ -57,11 +57,8 @@ var _ = framework.CasesDescribe("Request Authentication", func() {
 		cm, err := f.KubeClientSet.CoreV1().ConfigMaps("istio-system").Get(context.TODO(), "istio-ca-root-cert", metav1.GetOptions{})
 		Expect(err).NotTo(HaveOccurred())
 
-		var ok bool
-		rootCA, ok = cm.Data["root-cert.pem"]
-		if !ok {
-			Expect(cm, "expected CA root cert not present").NotTo(HaveOccurred())
-		}
+		rootCA = cm.Data["root-cert.pem"]
+		Expect(rootCA).NotTo(BeEmpty(), "expected CA root cert not present")
 
 		ns, err := f.KubeClientSet.CoreV1().Namespaces().Create(context.TODO(), &corev1.Namespace{
 			ObjectMeta: metav1.ObjectMeta{
@@ -215,16 +212,11 @@ var _ = framework.CasesDescribe("Request Authentication", func() {
 
 		roots := x509.NewCertPool()
 		ok := roots.AppendCertsFromPEM([]byte(rootCA))
-		if !ok {
-			Expect("failed to append root certificate").NotTo(HaveOccurred())
-		}
+		Expect(ok).To(BeTrue(), "failed to append root certificate")
 
 		for i, certPEM := range certs {
 			block, _ := pem.Decode([]byte(certPEM))
-			if block == nil {
-				Expect("failed to parse certificate PEM").NotTo(HaveOccurred())
-				return
-			}
+			Expect(block).NotTo(BeNil(), "failed to parse certificate PEM")
 
 			cert, err := x509.ParseCertificate(block.Bytes)
 			if err != nil {
