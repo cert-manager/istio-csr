@@ -69,11 +69,8 @@ var _ = framework.CasesDescribe("CA Root Controller", func() {
 		certSecret, err := f.KubeClientSet.CoreV1().Secrets(cmNamespace).Get(ctx, testName, metav1.GetOptions{})
 		Expect(err).NotTo(HaveOccurred())
 
-		var ok bool
-		rootCA, ok = certSecret.Data[cmmeta.TLSCAKey]
-		if !ok || len(rootCA) == 0 {
-			Expect(certSecret, "failed to find root CA key in test certificate secret").NotTo(HaveOccurred())
-		}
+		rootCA = certSecret.Data[cmmeta.TLSCAKey]
+		Expect(rootCA).NotTo(BeEmpty(), "failed to find root CA key in test certificate secret")
 	})
 
 	JustAfterEach(func() {
@@ -149,7 +146,7 @@ var _ = framework.CasesDescribe("CA Root Controller", func() {
 
 			cm, err = f.KubeClientSet.CoreV1().ConfigMaps(ns.Name).Update(ctx, cm, metav1.UpdateOptions{})
 			return err
-		}).Should(BeNil())
+		}).Should(Succeed())
 
 		Expect(expectRootCAExists(ctx, f, ns.Name, rootCA)).NotTo(HaveOccurred())
 	})
