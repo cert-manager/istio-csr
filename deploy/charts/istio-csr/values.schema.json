@@ -71,7 +71,7 @@
     },
     "helm-values.affinity": {
       "default": {},
-      "description": "Expects input structure as per specification https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#affinity-v1-core\n\nFor example:\naffinity:\n  nodeAffinity:\n   requiredDuringSchedulingIgnoredDuringExecution:\n     nodeSelectorTerms:\n     - matchExpressions:\n       - key: foo.bar.com/role\n         operator: In\n         values:\n         - master",
+      "description": "Expects input structure as per [specification](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#affinity-v1-core).\n\nFor example:\naffinity:\n  nodeAffinity:\n   requiredDuringSchedulingIgnoredDuringExecution:\n     nodeSelectorTerms:\n     - matchExpressions:\n       - key: foo.bar.com/role\n         operator: In\n         values:\n         - master",
       "type": "object"
     },
     "helm-values.app": {
@@ -325,7 +325,7 @@
     },
     "helm-values.app.metrics.service.servicemonitor.prometheusInstance": {
       "default": "default",
-      "description": "The value for the \"prometheus\" label on the ServiceMonitor. This allows for multiple Prometheus instances selecting difference ServiceMonitors using label selectors.",
+      "description": "The value for the \"prometheus\" label on the ServiceMonitor. This allows for multiple Prometheus instances selecting different ServiceMonitors using label selectors.",
       "type": "string"
     },
     "helm-values.app.metrics.service.servicemonitor.scrapeTimeout": {
@@ -377,7 +377,7 @@
     },
     "helm-values.app.runtimeConfiguration.create": {
       "default": false,
-      "description": "Create the runtime-configuration ConfigMap",
+      "description": "Create the runtime-configuration ConfigMap.",
       "type": "boolean"
     },
     "helm-values.app.runtimeConfiguration.issuer": {
@@ -457,7 +457,7 @@
     },
     "helm-values.app.server.caTrustedNodeAccounts": {
       "default": "",
-      "description": "A comma-separated list of service accounts that are allowed to use node authentication for CSRs, eg. \"istio-system/ztunnel\"",
+      "description": "A comma-separated list of service accounts that are allowed to use node authentication for CSRs, eg. \"istio-system/ztunnel\".",
       "type": "string"
     },
     "helm-values.app.server.clusterID": {
@@ -467,7 +467,7 @@
     },
     "helm-values.app.server.maxCertificateDuration": {
       "default": "1h",
-      "description": "Maximum validity duration that can be requested for a certificate. istio-csr will request a duration of the smaller of this value, and that of the incoming gRPC CSR.\nBased on NIST 800-204A recommendations (SM-DR13).\nhttps://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf",
+      "description": "Maximum validity duration that can be requested for a certificate. istio-csr will request a duration of the smaller of this value, and that of the incoming gRPC CSR. Based on [NIST 800-204A recommendations (SM-DR13)](https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf).",
       "type": "string"
     },
     "helm-values.app.server.serving": {
@@ -556,7 +556,7 @@
     },
     "helm-values.app.tls.certificateDuration": {
       "default": "1h",
-      "description": "Requested duration of gRPC serving certificate. Will be automatically renewed.\nBased on NIST 800-204A recommendations (SM-DR13).\nhttps://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf",
+      "description": "Requested duration of gRPC serving certificate. Will be automatically renewed. Based on [NIST 800-204A recommendations (SM-DR13)](https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf).",
       "type": "string"
     },
     "helm-values.app.tls.istiodAdditionalDNSNames": {
@@ -567,7 +567,7 @@
     },
     "helm-values.app.tls.istiodCertificateDuration": {
       "default": "1h",
-      "description": "Requested duration of istio's Certificate. Will be automatically renewed. Default is based on NIST 800-204A recommendations (SM-DR13). https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf. Warning: cert-manager does not allow a duration on Certificates less than 1 hour.",
+      "description": "Requested duration of istio's Certificate. Will be automatically renewed. Default is based on [NIST 800-204A recommendations (SM-DR13)](https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf). Warning: cert-manager does not allow a duration on Certificates less than 1 hour.",
       "type": "string"
     },
     "helm-values.app.tls.istiodCertificateEnable": {
@@ -599,7 +599,7 @@
     },
     "helm-values.commonLabels": {
       "default": {},
-      "description": "Labels to apply to all resources",
+      "description": "Labels to apply to all resources.",
       "type": "object"
     },
     "helm-values.deploymentAnnotations": {
@@ -614,7 +614,7 @@
     },
     "helm-values.extraObjects": {
       "default": [],
-      "description": "Create resources alongside installing istio-csr, via Helm values. Can accept an array of YAML-formatted resources. Each array entry can include multiple YAML documents, separated by '---'\n\nFor example:\nextraObjects:\n  - |\n    apiVersion: v1\n    kind: ConfigMap\n    metadata:\n      name: '{{ template \"cert-manager-istio-csr.fullname\" . }}-extra-configmap'",
+      "description": "Create resources alongside installing istio-csr, via Helm values. Can accept an array of YAML-formatted resources. Each array entry can include multiple YAML documents, separated by '---'.\n\nFor example:\nextraObjects:\n  - |\n    apiVersion: v1\n    kind: ConfigMap\n    metadata:\n      name: '{{ template \"cert-manager-istio-csr.fullname\" . }}-extra-configmap'",
       "items": {},
       "type": "array"
     },
@@ -698,7 +698,7 @@
     },
     "helm-values.resources": {
       "default": {},
-      "description": "Kubernetes pod resources\nref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/\n\nFor example:\nresources:\n  limits:\n    cpu: 100m\n    memory: 128Mi\n  requests:\n    cpu: 100m\n    memory: 128Mi",
+      "description": "Kubernetes [pod resources](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/).\n\nFor example:\nresources:\n  limits:\n    cpu: 100m\n    memory: 128Mi\n  requests:\n    cpu: 100m\n    memory: 128Mi",
       "type": "object"
     },
     "helm-values.securityContext": {
@@ -781,7 +781,7 @@
     },
     "helm-values.tolerations": {
       "default": [],
-      "description": "Expects input structure as per specification https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#toleration-v1-core\n\nFor example:\ntolerations:\n- key: foo.bar.com/role\n  operator: Equal\n  value: master\n  effect: NoSchedule",
+      "description": "Expects input structure as per [specification](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#toleration-v1-core).\n\nFor example:\ntolerations:\n- key: foo.bar.com/role\n  operator: Equal\n  value: master\n  effect: NoSchedule",
       "items": {},
       "type": "array"
     },
@@ -793,13 +793,13 @@
     },
     "helm-values.volumeMounts": {
       "default": [],
-      "description": "Optional extra volume mounts. Useful for mounting custom root CAs\n\nFor example:\nvolumeMounts:\n- name: root-ca\n  mountPath: /etc/tls",
+      "description": "Optional extra volume mounts. Useful for mounting custom root CAs.\n\nFor example:\nvolumeMounts:\n- name: root-ca\n  mountPath: /etc/tls",
       "items": {},
       "type": "array"
     },
     "helm-values.volumes": {
       "default": [],
-      "description": "Optional extra volumes. Useful for mounting custom root CAs\n\nFor example:\nvolumes:\n- name: root-ca\n  secret:\n    secretName: root-cert",
+      "description": "Optional extra volumes. Useful for mounting custom root CAs.\n\nFor example:\nvolumes:\n- name: root-ca\n  secret:\n    secretName: root-cert",
       "items": {},
       "type": "array"
     }
