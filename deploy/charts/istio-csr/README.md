@@ -121,14 +121,14 @@ Service type to expose metrics.
 > false
 > ```
 
-Create Prometheus ServiceMonitor resource for approver-policy.
+Create a Prometheus ServiceMonitor resource.
 #### **app.metrics.service.servicemonitor.prometheusInstance** ~ `string`
 > Default value:
 > ```yaml
 > default
 > ```
 
-The value for the "prometheus" label on the ServiceMonitor. This allows for multiple Prometheus instances selecting difference ServiceMonitors using label selectors.
+The value for the "prometheus" label on the ServiceMonitor. This allows for multiple Prometheus instances selecting different ServiceMonitors using label selectors.
 #### **app.metrics.service.servicemonitor.interval** ~ `string`
 > Default value:
 > ```yaml
@@ -156,7 +156,7 @@ Additional labels to give the ServiceMonitor resource.
 > false
 > ```
 
-Create the runtime-configuration ConfigMap
+Create the runtime-configuration ConfigMap.
 #### **app.runtimeConfiguration.name** ~ `string`
 > Default value:
 > ```yaml
@@ -286,9 +286,7 @@ An optional file location to a PEM encoded root CA that the root CA. ConfigMap i
 > 1h
 > ```
 
-Requested duration of gRPC serving certificate. Will be automatically renewed.  
-Based on NIST 800-204A recommendations (SM-DR13).  
-https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf
+Requested duration of gRPC serving certificate. Will be automatically renewed. Based on [NIST 800-204A recommendations (SM-DR13)](https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf).
 #### **app.tls.istiodCertificateEnable** ~ `boolean,string,null`
 > Default value:
 > ```yaml
@@ -303,7 +301,7 @@ If true, create the istiod certificate using a cert-manager certificate as part 
 > 1h
 > ```
 
-Requested duration of istio's Certificate. Will be automatically renewed. Default is based on NIST 800-204A recommendations (SM-DR13). https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf. Warning: cert-manager does not allow a duration on Certificates less than 1 hour.
+Requested duration of istio's Certificate. Will be automatically renewed. Default is based on [NIST 800-204A recommendations (SM-DR13)](https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf). Warning: cert-manager does not allow a duration on Certificates less than 1 hour.
 #### **app.tls.istiodCertificateRenewBefore** ~ `string`
 > Default value:
 > ```yaml
@@ -353,9 +351,7 @@ The istio cluster ID to verify incoming CSRs.
 > 1h
 > ```
 
-Maximum validity duration that can be requested for a certificate. istio-csr will request a duration of the smaller of this value, and that of the incoming gRPC CSR.  
-Based on NIST 800-204A recommendations (SM-DR13).  
-https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf
+Maximum validity duration that can be requested for a certificate. istio-csr will request a duration of the smaller of this value, and that of the incoming gRPC CSR. Based on [NIST 800-204A recommendations (SM-DR13)](https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf).
 #### **app.server.serving.address** ~ `string`
 > Default value:
 > ```yaml
@@ -390,7 +386,7 @@ The type of private key to generate for the serving certificate. Only RSA (defau
 > ""
 > ```
 
-A comma-separated list of service accounts that are allowed to use node authentication for CSRs, eg. "istio-system/ztunnel"
+A comma-separated list of service accounts that are allowed to use node authentication for CSRs, eg. "istio-system/ztunnel".
 #### **app.istio.revisions[0]** ~ `string`
 > Default value:
 > ```yaml
@@ -457,7 +453,7 @@ Optional extra annotations for pod.
 > []
 > ```
 
-Optional extra volumes. Useful for mounting custom root CAs  
+Optional extra volumes. Useful for mounting custom root CAs.  
   
 For example:
 
@@ -473,7 +469,7 @@ volumes:
 > []
 > ```
 
-Optional extra volume mounts. Useful for mounting custom root CAs  
+Optional extra volume mounts. Useful for mounting custom root CAs.  
   
 For example:
 
@@ -488,8 +484,7 @@ volumeMounts:
 > {}
 > ```
 
-Kubernetes pod resources  
-ref: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/  
+Kubernetes [pod resources](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/).  
   
 For example:
 
@@ -528,7 +523,7 @@ resources:
 > {}
 > ```
 
-Expects input structure as per specification https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#affinity-v1-core  
+Expects input structure as per [specification](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#affinity-v1-core).  
   
 For example:
 
@@ -549,7 +544,7 @@ affinity:
 > []
 > ```
 
-Expects input structure as per specification https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#toleration-v1-core  
+Expects input structure as per [specification](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#toleration-v1-core).  
   
 For example:
 
@@ -593,14 +588,14 @@ Kubernetes node selector: node labels for pod assignment.
 > {}
 > ```
 
-Labels to apply to all resources
+Labels to apply to all resources.
 #### **extraObjects** ~ `array`
 > Default value:
 > ```yaml
 > []
 > ```
 
-Create resources alongside installing istio-csr, via Helm values. Can accept an array of YAML-formatted resources. Each array entry can include multiple YAML documents, separated by '---'  
+Create resources alongside installing istio-csr, via Helm values. Can accept an array of YAML-formatted resources. Each array entry can include multiple YAML documents, separated by '---'.  
   
 For example:
 
