@@ -121,7 +121,7 @@ Service type to expose metrics.
 > false
 > ```
 
-Create Prometheus ServiceMonitor resource for approver-policy.
+Create a Prometheus ServiceMonitor resource.
 #### **app.metrics.service.servicemonitor.prometheusInstance** ~ `string`
 > Default value:
 > ```yaml

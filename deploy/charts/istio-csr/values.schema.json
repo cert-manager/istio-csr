@@ -310,7 +310,7 @@
     },
     "helm-values.app.metrics.service.servicemonitor.enabled": {
       "default": false,
-      "description": "Create Prometheus ServiceMonitor resource for approver-policy.",
+      "description": "Create a Prometheus ServiceMonitor resource.",
       "type": "boolean"
     },
     "helm-values.app.metrics.service.servicemonitor.interval": {

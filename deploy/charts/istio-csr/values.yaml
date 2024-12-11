@@ -1,7 +1,7 @@
 # nameOverride replaces the name of the chart in the Chart.yaml file, when this
 # is used to construct Kubernetes object names.
 # +docs:property
-# nameOverride: approver-policy
+# nameOverride: istio-csr
 
 # Number of replicas of istio-csr to run.
 replicaCount: 1
@@ -62,7 +62,7 @@ app:
       type: ClusterIP
       # The ServiceMonitor resource for this Service.
       servicemonitor:
-        # Create Prometheus ServiceMonitor resource for approver-policy.
+        # Create a Prometheus ServiceMonitor resource.
         enabled: false
         # The value for the "prometheus" label on the ServiceMonitor. This allows
         # for multiple Prometheus instances selecting difference ServiceMonitors
@@ -133,7 +133,7 @@ app:
     #      value: istio-csr
     additionalAnnotations: []
     issuer:
-      # Enable the default issuer, this is the issuer used when no runtime 
+      # Enable the default issuer, this is the issuer used when no runtime
       # configuration is provided.
       #
       # When enabled the istio-csr Pod will not be "Ready" until the issuer
