@@ -8,7 +8,7 @@
 
 #### **nameOverride** ~ `string`
 
-nameOverride replaces the name of the chart in the Chart.yaml file, when this is used to construct Kubernetes object names.
+nameOverride replaces the name of the chart in the Chart.yaml file when this is used to construct Kubernetes object names.
 
 #### **replicaCount** ~ `number`
 > Default value:
@@ -16,7 +16,7 @@ nameOverride replaces the name of the chart in the Chart.yaml file, when this is
 > 1
 > ```
 
-Number of replicas of istio-csr to run.
+The number of replicas of istio-csr to run.
 #### **image.registry** ~ `string`
 
 Target image registry. This value is prepended to the target image repository, if set.  
@@ -67,17 +67,17 @@ Optional secrets used for pulling the istio-csr container image.
 > ClusterIP
 > ```
 
-Service type to expose istio-csr gRPC service.
+Service type to expose the istio-csr gRPC service.
 #### **service.port** ~ `number`
 > Default value:
 > ```yaml
 > 443
 > ```
 
-Service port to expose istio-csr gRPC service.
+Service port to expose the istio-csr gRPC service.
 #### **service.nodePort** ~ `number`
 
-Service nodePort to expose istio-csr gRPC service.
+Service nodePort to expose the istio-csr gRPC service.
 
 
 #### **app.logLevel** ~ `number`
@@ -107,7 +107,7 @@ Port for exposing Prometheus metrics on 0.0.0.0 on path '/metrics'.
 > true
 > ```
 
-Create a Service resource to expose metrics endpoint.
+Create a Service resource to expose the metrics endpoint.
 #### **app.metrics.service.type** ~ `string`
 > Default value:
 > ```yaml
@@ -135,7 +135,7 @@ The value for the "prometheus" label on the ServiceMonitor. This allows for mult
 > 10s
 > ```
 
-The interval that the Prometheus will scrape for metrics.
+The interval at which Prometheus will scrape for metrics.
 #### **app.metrics.service.servicemonitor.scrapeTimeout** ~ `string`
 > Default value:
 > ```yaml
@@ -165,7 +165,7 @@ Create the runtime-configuration ConfigMap.
 
 Name of a ConfigMap in the installation namespace to watch, providing runtime configuration of an issuer to use.  
   
-If create is set to true then this name is used to create the ConfigMap, otherwise the ConfigMap must exist and the "issuer-name", "issuer-kind" and "issuer-group" keys must be present in it.
+If create is set to true, then this name is used to create the ConfigMap, otherwise the ConfigMap must exist, and the "issuer-name", "issuer-kind" and "issuer-group" keys must be present in it.
 #### **app.runtimeConfiguration.issuer.name** ~ `string`
 > Default value:
 > ```yaml
@@ -193,14 +193,14 @@ Issuer group name set on created CertificateRequests for both istio-csr's servin
 > 6060
 > ```
 
-Container port to expose istio-csr HTTP readiness probe on default network interface.
+Container port to expose the istio-csr HTTP readiness probe on the default network interface.
 #### **app.readinessProbe.path** ~ `string`
 > Default value:
 > ```yaml
 > /readyz
 > ```
 
-Path to expose istio-csr HTTP readiness probe on default network interface.
+Path to expose the istio-csr HTTP readiness probe on the default network interface.
 #### **app.certmanager.namespace** ~ `string`
 > Default value:
 > ```yaml
@@ -214,7 +214,7 @@ Namespace to create CertificateRequests for both istio-csr's serving certificate
 > false
 > ```
 
-Don't delete created CertificateRequests once they have been signed. WARNING: do not enable this option in production, or environments with any non-trivial number of workloads for an extended period of time. Doing so will balloon the resource consumption of both ETCD and the API server, leading to errors and slow down. This option is intended for debugging purposes only, for limited periods of time.
+Don't delete created CertificateRequests once they have been signed. WARNING: Do not enable this option in production, or environments with any non-trivial number of workloads for an extended period of time. Doing so will balloon the resource consumption of both ETCD and the API server, leading to errors and slow down. This option is intended for debugging purposes only, for limited periods of time.
 #### **app.certmanager.additionalAnnotations** ~ `array`
 > Default value:
 > ```yaml
@@ -237,9 +237,9 @@ additionalAnnotations:
 
 Enable the default issuer, this is the issuer used when no runtime configuration is provided.  
   
-When enabled the istio-csr Pod will not be "Ready" until the issuer has been used to issue the istio-csr GRPC certificate.  
+When enabled, the istio-csr Pod will not be "Ready" until the issuer has been used to issue the istio-csr GRPC certificate.  
   
-For istio-csr to function either this or runtime configuration must be enabled.
+For istio-csr to function, either this or runtime configuration must be enabled.
 #### **app.certmanager.issuer.name** ~ `string`
 > Default value:
 > ```yaml
@@ -286,7 +286,7 @@ An optional file location to a PEM encoded root CA that the root CA. ConfigMap i
 > 1h
 > ```
 
-Requested duration of gRPC serving certificate. Will be automatically renewed. Based on [NIST 800-204A recommendations (SM-DR13)](https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf).
+Requested duration of the gRPC serving certificate. Will be automatically renewed. Based on [NIST 800-204A recommendations (SM-DR13)](https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf).
 #### **app.tls.istiodCertificateEnable** ~ `boolean,string,null`
 > Default value:
 > ```yaml
@@ -323,7 +323,7 @@ Private key algorithm to use. For backwards compatibility, defaults to the same 
 > 2048
 > ```
 
-Parameter for istiod certificate key. For RSA, must be a number of bits >= 2048. For ECDSA, can only be 256 or 384, corresponding to P-256 and P-384 respectively.
+Parameter for the istiod certificate key. For RSA, must be a number of bits >= 2048. For ECDSA, can only be 256 or 384, corresponding to P-256 and P-384 respectively.
 #### **app.tls.istiodAdditionalDNSNames** ~ `array`
 > Default value:
 > ```yaml
@@ -358,21 +358,21 @@ Maximum validity duration that can be requested for a certificate. istio-csr wil
 > 0.0.0.0
 > ```
 
-Container address to serve istio-csr gRPC service.
+Container address to serve the istio-csr gRPC service.
 #### **app.server.serving.port** ~ `number`
 > Default value:
 > ```yaml
 > 6443
 > ```
 
-Container port to serve istio-csr gRPC service.
+Container port to serve the istio-csr gRPC service.
 #### **app.server.serving.certificateKeySize** ~ `number`
 > Default value:
 > ```yaml
 > 2048
 > ```
 
-Parameter for serving certificate key. For RSA, must be a number of bits >= 2048. For ECDSA, can only be 256 or 384, corresponding to P-256 and P-384 respectively.
+Parameter for the serving certificate key. For RSA, must be a number of bits >= 2048. For ECDSA, can only be 256 or 384, corresponding to P-256 and P-384 respectively.
 #### **app.server.serving.signatureAlgorithm** ~ `string`
 > Default value:
 > ```yaml
@@ -386,7 +386,7 @@ The type of private key to generate for the serving certificate. Only RSA (defau
 > ""
 > ```
 
-A comma-separated list of service accounts that are allowed to use node authentication for CSRs, eg. "istio-system/ztunnel".
+A comma-separated list of service accounts that are allowed to use node authentication for CSRs, e.g. "istio-system/ztunnel".
 #### **app.istio.revisions[0]** ~ `string`
 > Default value:
 > ```yaml
@@ -406,7 +406,7 @@ The namespace where the istio control-plane is running.
 > ```
 #### **app.controller.configmapNamespaceSelector** ~ `string`
 
-If set, limit where istio-csr creates configmaps with root ca certificates. If unset, configmap created in ALL namespaces.  
+If set, limit where istio-csr creates configmaps with root CA certificates. If unset, configmap created in ALL namespaces.  
 Example: maistra.io/member-of=istio-system
 
 
@@ -416,7 +416,7 @@ Example: maistra.io/member-of=istio-system
 > false
 > ```
 
-Allows you to disable the default Kubernetes client rate limiter if istio-csr is exceeding the default QPS (5) and Burst (10) limits. For example in large clusters with many Istio workloads, restarting the Pods may cause istio-csr to send bursts Kubernetes API requests that exceed the limits of the default Kubernetes client rate limiter and istio-csr will become slow to issue certificates for your workloads. Only disable client rate limiting if the Kubernetes API server supports  
+Allows you to disable the default Kubernetes client rate limiter if istio-csr is exceeding the default QPS (5) and Burst (10) limits. For example, in large clusters with many Istio workloads, restarting the Pods may cause istio-csr to send bursts of Kubernetes API requests that exceed the limits of the default Kubernetes client rate limiter, and istio-csr will become slow to issue certificates for your workloads. Only disable client rate limiting if the Kubernetes API server supports  
 [API Priority and Fairness](https://kubernetes.io/docs/concepts/cluster-administration/flow-control/),  
 to avoid overloading the server.
 #### **deploymentLabels** ~ `object`
