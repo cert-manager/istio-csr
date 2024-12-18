@@ -299,13 +299,9 @@ func (o *Options) addServerFlags(fs *pflag.FlagSet) {
 		"Maximum duration a client certificate can be requested and valid for. Will "+
 			"override with this value if the requested duration is larger")
 
-	fs.BoolVar(&o.Server.EnableCustomClientCertificateDuration,
-		"enable-custom-client-cert-duration", false,
-		"Overwrites the client certificate duration with custom value.")
-
-	fs.DurationVarP(&o.Server.CustomClientCertificateDuration,
-		"custom-client-cert-duration", "r", time.Hour * 48,
-		"Specify the custom maximum duration for client certificates. "+
+	fs.DurationVarP(&o.Server.ClientCertificateDuration,
+		"client-cert-duration", "r", 0,
+		"Specify the custom duration for client certificates. "+
 			"Overrides the requested duration.")
 
 	fs.StringVar(&o.Server.ClusterID, "cluster-id", "Kubernetes",
