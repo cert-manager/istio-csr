@@ -475,7 +475,7 @@
     },
     "helm-values.app.server.certificateDuration": {
       "default": "0",
-      "description": "Custom validity duration for a certificate. istio-csr will overwrite a duration of the incoming gRPC CSR.",
+      "description": "Custom validity duration for a certificate. istio-csr will override a duration of the incoming gRPC CSR.",
       "type": "number"
     },
     "helm-values.app.server.serving": {
