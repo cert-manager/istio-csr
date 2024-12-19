@@ -204,6 +204,10 @@ app:
     # Based on NIST 800-204A recommendations (SM-DR13).
     # https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf
     maxCertificateDuration: 1h
+    # Custom validity duration for a certificate.
+    # istio-csr will override a duration of the incoming gRPC CSR.
+    # Set to 0 to disable overriding (default behavior).
+    certificateDuration: 0
     serving:
       # Container address to serve istio-csr gRPC service.
       address: 0.0.0.0

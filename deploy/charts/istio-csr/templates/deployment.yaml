@@ -100,6 +100,7 @@ spec:
           # server
           - "--cluster-id={{.Values.app.server.clusterID}}"
           - "--max-client-certificate-duration={{.Values.app.server.maxCertificateDuration}}"
+          - "--client-certificate-duration={{.Values.app.server.certificateDuration}}"
           - "--serving-address={{.Values.app.server.serving.address}}:{{.Values.app.server.serving.port}}"
           - "--serving-certificate-key-size={{.Values.app.server.serving.certificateKeySize}}"
           - "--serving-signature-algorithm={{ .Values.app.server.serving.signatureAlgorithm }}"

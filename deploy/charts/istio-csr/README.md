@@ -353,9 +353,16 @@ The istio cluster ID to verify incoming CSRs.
 > 1h
 > ```
 
-Maximum validity duration that can be requested for a certificate. istio-csr will request a duration of the smaller of this value, and that of the incoming gRPC CSR.  
-Based on NIST 800-204A recommendations (SM-DR13).  
+Maximum validity duration that can be requested for a certificate. istio-csr will request a duration of the smaller of this value, and that of the incoming gRPC CSR.
+Based on NIST 800-204A recommendations (SM-DR13).
 https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf
+#### **app.server.certificateDuration** ~ `number`
+> Default value:
+> ```yaml
+> 0
+> ```
+
+Custom validity duration for a certificate. istio-csr will overwrite a duration of the incoming gRPC CSR.
 #### **app.server.serving.address** ~ `string`
 > Default value:
 > ```yaml

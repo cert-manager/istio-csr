@@ -300,7 +300,7 @@ func (o *Options) addServerFlags(fs *pflag.FlagSet) {
 			"override with this value if the requested duration is larger")
 
 	fs.DurationVarP(&o.Server.ClientCertificateDuration,
-		"client-cert-duration", "r", 0,
+		"client-certificate-duration", "r", 0,
 		"Specify the custom duration for client certificates. "+
 			"Overrides the requested duration.")
 

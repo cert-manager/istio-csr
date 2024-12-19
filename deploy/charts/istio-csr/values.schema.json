@@ -435,6 +435,9 @@
         "maxCertificateDuration": {
           "$ref": "#/$defs/helm-values.app.server.maxCertificateDuration"
         },
+        "certificateDuration": {
+          "$ref": "#/$defs/helm-values.app.server.certificateDuration"
+        },
         "serving": {
           "$ref": "#/$defs/helm-values.app.server.serving"
         }
@@ -469,6 +472,11 @@
       "default": "1h",
       "description": "Maximum validity duration that can be requested for a certificate. istio-csr will request a duration of the smaller of this value, and that of the incoming gRPC CSR.\nBased on NIST 800-204A recommendations (SM-DR13).\nhttps://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf",
       "type": "string"
+    },
+    "helm-values.app.server.certificateDuration": {
+      "default": "0",
+      "description": "Custom validity duration for a certificate. istio-csr will overwrite a duration of the incoming gRPC CSR.",
+      "type": "number"
     },
     "helm-values.app.server.serving": {
       "additionalProperties": false,
