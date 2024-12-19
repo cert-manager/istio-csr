@@ -358,7 +358,7 @@ Maximum validity duration that can be requested for a certificate. istio-csr wil
 > 0
 > ```
 
-Custom validity duration for a certificate.
+Custom validity duration for a certificate.  
 istio-csr will override a duration of the incoming gRPC CSR. Set to 0 to disable overriding (default behavior).
 #### **app.server.serving.address** ~ `string`
 > Default value:
