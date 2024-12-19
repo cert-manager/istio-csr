@@ -429,14 +429,14 @@
         "caTrustedNodeAccounts": {
           "$ref": "#/$defs/helm-values.app.server.caTrustedNodeAccounts"
         },
+        "certificateDuration": {
+          "$ref": "#/$defs/helm-values.app.server.certificateDuration"
+        },
         "clusterID": {
           "$ref": "#/$defs/helm-values.app.server.clusterID"
         },
         "maxCertificateDuration": {
           "$ref": "#/$defs/helm-values.app.server.maxCertificateDuration"
-        },
-        "certificateDuration": {
-          "$ref": "#/$defs/helm-values.app.server.certificateDuration"
         },
         "serving": {
           "$ref": "#/$defs/helm-values.app.server.serving"
@@ -463,6 +463,11 @@
       "description": "A comma-separated list of service accounts that are allowed to use node authentication for CSRs, e.g. \"istio-system/ztunnel\".",
       "type": "string"
     },
+    "helm-values.app.server.certificateDuration": {
+      "default": 0,
+      "description": "Custom validity duration for a certificate.\nistio-csr will override a duration of the incoming gRPC CSR. Set to 0 to disable overriding (default behavior).",
+      "type": "number"
+    },
     "helm-values.app.server.clusterID": {
       "default": "Kubernetes",
       "description": "The istio cluster ID to verify incoming CSRs.",
@@ -472,11 +477,6 @@
       "default": "1h",
       "description": "Maximum validity duration that can be requested for a certificate. istio-csr will request a duration of the smaller of this value, and that of the incoming gRPC CSR. Based on [NIST 800-204A recommendations (SM-DR13)](https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf).",
       "type": "string"
-    },
-    "helm-values.app.server.certificateDuration": {
-      "default": "0",
-      "description": "Custom validity duration for a certificate. istio-csr will override a duration of the incoming gRPC CSR.",
-      "type": "number"
     },
     "helm-values.app.server.serving": {
       "additionalProperties": false,
