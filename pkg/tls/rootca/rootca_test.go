@@ -28,6 +28,7 @@ import (
 
 	"github.com/cert-manager/cert-manager/pkg/util/pki"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"k8s.io/klog/v2/ktesting"
 )
 
@@ -138,6 +139,33 @@ func Test_loadRootCAsFile(t *testing.T) {
 			}
 		})
 	}
+}
+
+// TestLoadRootCAsFile_SystemCertPool demonstrates that loadRootCAsFile is
+// capable of loading a typical Linux cert pool file.
+//
+// This test loads the CA cert pool from /etc/ssl/certs/ca-certificates.crt
+// which is the standard path on Debian and Ubuntu platforms.
+// See https://github.com/golang/go/blob/master/src/crypto/x509/root_linux.go
+func TestLoadRootCAsFile_SystemCertPool(t *testing.T) {
+	const systemCertPoolPath = "/etc/ssl/certs/ca-certificates.crt"
+	if _, err := os.Open(systemCertPoolPath); err != nil {
+		if os.IsNotExist(err) {
+			t.Log(err)
+			t.Skipf("Only runs on platforms such as Debian or Ubuntu where the system CA certificate pool is at: %s", systemCertPoolPath)
+		} else {
+			require.NoError(t, err, "unexpected error while checking for supported platform")
+		}
+	}
+
+	w := &watcher{
+		log:      ktesting.NewLogger(t, ktesting.DefaultConfig),
+		filepath: systemCertPoolPath,
+	}
+
+	updated, _, err := w.loadRootCAsFile()
+	assert.NoError(t, err, "Should have loaded the system CA certificate pool")
+	assert.True(t, updated)
 }
 
 func genRootCAs(t *testing.T) RootCAs {
