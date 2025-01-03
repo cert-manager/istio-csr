@@ -23,7 +23,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/cert-manager/cert-manager/pkg/util/pki"
 	"github.com/fsnotify/fsnotify"
 	"github.com/go-logr/logr"
 )
@@ -152,14 +151,9 @@ func (w *watcher) loadRootCAsFile() (bool, RootCAs, error) {
 
 	w.log.Info("updating root CAs from file")
 
-	rootCAsCerts, err := pki.DecodeX509CertificateChainBytes(rootCAsPEM)
-	if err != nil {
-		return false, RootCAs{}, fmt.Errorf("failed to decode root CAs in certificate file %q: %w", w.filepath, err)
-	}
-
 	rootCAsPool := x509.NewCertPool()
-	for _, rootCert := range rootCAsCerts {
-		rootCAsPool.AddCert(rootCert)
+	if !rootCAsPool.AppendCertsFromPEM(rootCAsPEM) {
+		return false, RootCAs{}, fmt.Errorf("failed to decode root CAs in certificate file %q", w.filepath)
 	}
 
 	return true, RootCAs{rootCAsPEM, rootCAsPool}, nil
