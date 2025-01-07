@@ -285,6 +285,9 @@ func istioctlGetCert(f *framework.Framework, podName string, namespaceName strin
 			return nil, err
 		}
 
+		// We decode using DecodeX509CertificateSetBytes rather than a more specialized function
+		// to ensure that we pick up everything that might appear in the output
+		// Using a less-strict function is fine since this is a test.
 		return cmutil.DecodeX509CertificateSetBytes(chainBytes)
 	}
 

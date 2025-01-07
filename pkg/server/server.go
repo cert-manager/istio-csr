@@ -258,8 +258,7 @@ func (s *Server) Check(_ *http.Request) error {
 // This function will ensure the chain is a flat linked list, and is valid for
 // at least one of the root CAs.
 func (s *Server) parseCertificateBundle(ctx context.Context, bundle certmanager.Bundle) ([]string, error) {
-	// Parse returned signed certificate chain. Append root CA validate it is a
-	// flat chain.
+	// Parse returned signed certificate chain. Append root CA and validate it is a flat chain.
 	respBundle, err := pki.ParseSingleCertificateChainPEM(bundle.Certificate)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse and verify chain returned from issuer: %w", err)
