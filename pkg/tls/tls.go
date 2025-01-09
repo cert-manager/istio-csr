@@ -492,7 +492,7 @@ func (p *Provider) loadCAsRoot(rootCAsPEM []byte) error {
 		return nil
 	}
 
-	rootCAsCerts, err := pki.DecodeX509CertificateChainBytes(rootCAsPEM)
+	rootCAsCerts, err := pki.DecodeX509CertificateSetBytes(rootCAsPEM)
 	if err != nil {
 		return fmt.Errorf("failed to decode bundle CA returned from issuer: %w", err)
 	}

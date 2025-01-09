@@ -152,7 +152,7 @@ func (w *watcher) loadRootCAsFile() (bool, RootCAs, error) {
 
 	w.log.Info("updating root CAs from file")
 
-	rootCAsCerts, err := pki.DecodeX509CertificateChainBytes(rootCAsPEM)
+	rootCAsCerts, err := pki.DecodeX509CertificateSetBytes(rootCAsPEM)
 	if err != nil {
 		return false, RootCAs{}, fmt.Errorf("failed to decode root CAs in certificate file %q: %w", w.filepath, err)
 	}
