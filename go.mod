@@ -6,7 +6,7 @@ go 1.23.0
 replace github.com/imdario/mergo => github.com/imdario/mergo v0.3.16
 
 require (
-	github.com/cert-manager/cert-manager v1.16.0-beta.0.0.20250107112437-c422d5944196
+	github.com/cert-manager/cert-manager v1.17.0-alpha.0
 	github.com/fsnotify/fsnotify v1.8.0
 	github.com/go-logr/logr v1.4.2
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
