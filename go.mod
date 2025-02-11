@@ -6,7 +6,7 @@ go 1.23.0
 replace github.com/imdario/mergo => github.com/imdario/mergo v0.3.16
 
 require (
-	github.com/cert-manager/cert-manager v1.17.0-alpha.0
+	github.com/cert-manager/cert-manager v1.17.0
 	github.com/fsnotify/fsnotify v1.8.0
 	github.com/go-logr/logr v1.4.2
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
@@ -15,11 +15,11 @@ require (
 	github.com/onsi/gomega v1.36.2
 	github.com/prometheus/client_golang v1.20.5
 	github.com/spf13/cobra v1.8.1
-	github.com/spf13/pflag v1.0.5
+	github.com/spf13/pflag v1.0.6
 	github.com/stretchr/testify v1.10.0
-	google.golang.org/grpc v1.69.4
-	google.golang.org/protobuf v1.36.3
-	istio.io/api v1.24.2
+	google.golang.org/grpc v1.70.0
+	google.golang.org/protobuf v1.36.5
+	istio.io/api v1.24.3
 	istio.io/istio v0.0.0-20241025034248-4fa5b430d9b2
 	k8s.io/api v0.32.1
 	k8s.io/apimachinery v0.32.1
@@ -28,7 +28,7 @@ require (
 	k8s.io/component-base v0.32.1
 	k8s.io/klog/v2 v2.130.1
 	k8s.io/utils v0.0.0-20241210054802-24370beab758
-	sigs.k8s.io/controller-runtime v0.20.0
+	sigs.k8s.io/controller-runtime v0.20.1
 )
 
 require (
@@ -121,7 +121,7 @@ require (
 	go.opentelemetry.io/otel/exporters/prometheus v0.53.0 // indirect
 	go.opentelemetry.io/otel/metric v1.33.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.33.0 // indirect
-	go.opentelemetry.io/otel/sdk/metric v1.31.0 // indirect
+	go.opentelemetry.io/otel/sdk/metric v1.32.0 // indirect
 	go.opentelemetry.io/otel/trace v1.33.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.4.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
