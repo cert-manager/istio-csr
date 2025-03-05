@@ -39,6 +39,7 @@ import (
 	securityapi "istio.io/api/security/v1alpha1"
 	"istio.io/istio/pkg/cluster"
 	"istio.io/istio/pkg/config/mesh"
+	"istio.io/istio/pkg/config/mesh/meshwatcher"
 	"istio.io/istio/pkg/kube"
 	"istio.io/istio/pkg/security"
 	"istio.io/istio/pkg/util/sets"
@@ -107,7 +108,7 @@ func New(log logr.Logger, restConfig *rest.Config, cm certmanager.Signer, tls tl
 		authenticators = append(authenticators, &authenticate.ClientCertAuthenticator{})
 	}
 	authenticators = append(authenticators, kubeauth.NewKubeJWTAuthenticator(
-		mesh.NewFixedWatcher(meshcnf),
+		meshwatcher.NewTestWatcher(meshcnf),
 		client.Kube(),
 		cluster.ID(opts.ClusterID),
 		nil,
