@@ -292,10 +292,13 @@ resources: {}
 # Kubernetes [security context](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/).
 #
 # See the default values for an example.
+# +docs:property
 securityContext:
   allowPrivilegeEscalation: false
   readOnlyRootFilesystem: true
   runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
   capabilities:
     drop:
     - ALL
@@ -337,7 +340,7 @@ tolerations: []
 topologySpreadConstraints: []
 
 # Kubernetes node selector: node labels for pod assignment.
-# +docs:property=nodeSelector
+# +docs:property
 nodeSelector:
   kubernetes.io/os: linux
 

@@ -702,53 +702,21 @@
       "type": "object"
     },
     "helm-values.securityContext": {
-      "additionalProperties": false,
-      "properties": {
-        "allowPrivilegeEscalation": {
-          "$ref": "#/$defs/helm-values.securityContext.allowPrivilegeEscalation"
-        },
+      "default": {
+        "allowPrivilegeEscalation": false,
         "capabilities": {
-          "$ref": "#/$defs/helm-values.securityContext.capabilities"
+          "drop": [
+            "ALL"
+          ]
         },
-        "readOnlyRootFilesystem": {
-          "$ref": "#/$defs/helm-values.securityContext.readOnlyRootFilesystem"
-        },
-        "runAsNonRoot": {
-          "$ref": "#/$defs/helm-values.securityContext.runAsNonRoot"
+        "readOnlyRootFilesystem": true,
+        "runAsNonRoot": true,
+        "seccompProfile": {
+          "type": "RuntimeDefault"
         }
       },
+      "description": "Kubernetes [security context](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/).\n\nSee the default values for an example.",
       "type": "object"
-    },
-    "helm-values.securityContext.allowPrivilegeEscalation": {
-      "default": false,
-      "type": "boolean"
-    },
-    "helm-values.securityContext.capabilities": {
-      "additionalProperties": false,
-      "properties": {
-        "drop": {
-          "$ref": "#/$defs/helm-values.securityContext.capabilities.drop"
-        }
-      },
-      "type": "object"
-    },
-    "helm-values.securityContext.capabilities.drop": {
-      "items": {
-        "$ref": "#/$defs/helm-values.securityContext.capabilities.drop[0]"
-      },
-      "type": "array"
-    },
-    "helm-values.securityContext.capabilities.drop[0]": {
-      "default": "ALL",
-      "type": "string"
-    },
-    "helm-values.securityContext.readOnlyRootFilesystem": {
-      "default": true,
-      "type": "boolean"
-    },
-    "helm-values.securityContext.runAsNonRoot": {
-      "default": true,
-      "type": "boolean"
     },
     "helm-values.service": {
       "additionalProperties": false,

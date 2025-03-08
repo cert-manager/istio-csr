@@ -497,26 +497,23 @@ resources:
     cpu: 100m
     memory: 128Mi
 ```
-#### **securityContext.allowPrivilegeEscalation** ~ `bool`
+#### **securityContext** ~ `object`
 > Default value:
 > ```yaml
-> false
+> allowPrivilegeEscalation: false
+> capabilities:
+>   drop:
+>     - ALL
+> readOnlyRootFilesystem: true
+> runAsNonRoot: true
+> seccompProfile:
+>   type: RuntimeDefault
 > ```
-#### **securityContext.readOnlyRootFilesystem** ~ `bool`
-> Default value:
-> ```yaml
-> true
-> ```
-#### **securityContext.runAsNonRoot** ~ `bool`
-> Default value:
-> ```yaml
-> true
-> ```
-#### **securityContext.capabilities.drop[0]** ~ `string`
-> Default value:
-> ```yaml
-> ALL
-> ```
+
+Kubernetes [security context](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/).  
+  
+See the default values for an example.
+
 #### **affinity** ~ `object`
 > Default value:
 > ```yaml
