@@ -292,6 +292,7 @@ resources: {}
 # Kubernetes [security context](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/).
 #
 # See the default values for an example.
+# +docs:property
 securityContext:
   allowPrivilegeEscalation: false
   readOnlyRootFilesystem: true
@@ -299,6 +300,8 @@ securityContext:
   capabilities:
     drop:
     - ALL
+  seccompProfile:
+    type: RuntimeDefault
 
 # Expects input structure as per [specification](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.11/#affinity-v1-core).
 #
