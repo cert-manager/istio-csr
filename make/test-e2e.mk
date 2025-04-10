@@ -121,9 +121,9 @@ test-e2e: test-e2e-deps-sidecars | kind-cluster $(NEEDS_GINKGO) $(NEEDS_KUBECTL)
 		--output-dir=$(ARTIFACTS) \
 		--focus="$(E2E_FOCUS)" \
 		--junit-report=junit-go-e2e.xml \
+		--ldflags="$(go_manager_ldflags)" \
 		$(EXTRA_GINKGO_FLAGS) \
 		./test/e2e/ \
-		-ldflags $(go_manager_ldflags) \
 		-- \
 		--istioctl-path $(CURDIR)/$(bin_dir)/scratch/istioctl-$(ISTIO_VERSION) \
 		--kubeconfig-path $(CURDIR)/$(kind_kubeconfig) \
@@ -148,9 +148,9 @@ test-e2e-pure-runtime: test-e2e-pure-runtime-deps | kind-cluster $(NEEDS_GINKGO)
 		--output-dir=$(ARTIFACTS) \
 		--focus="$(E2E_FOCUS)" \
 		--junit-report=junit-go-e2e.xml \
+		--ldflags="$(go_manager_ldflags)" \
 		$(EXTRA_GINKGO_FLAGS) \
 		./test/e2e-pure-runtime/ \
-		-ldflags $(go_manager_ldflags) \
 		-- \
 		--istioctl-path $(CURDIR)/$(bin_dir)/scratch/istioctl-$(ISTIO_VERSION) \
 		--kubeconfig-path $(CURDIR)/$(kind_kubeconfig) \
@@ -165,9 +165,9 @@ test-e2e-ambient: test-e2e-deps-ambient | kind-cluster $(NEEDS_GINKGO) $(NEEDS_K
 		--output-dir=$(ARTIFACTS) \
 		--focus="$(E2E_FOCUS)" \
 		--junit-report=junit-go-e2e.xml \
+		--ldflags="$(go_manager_ldflags)" \
 		$(EXTRA_GINKGO_FLAGS) \
 		./test/e2e/ \
-		-ldflags $(go_manager_ldflags) \
 		-- \
 		--istioctl-path $(CURDIR)/$(bin_dir)/scratch/istioctl-$(ISTIO_VERSION) \
 		--kubeconfig-path $(CURDIR)/$(kind_kubeconfig) \
