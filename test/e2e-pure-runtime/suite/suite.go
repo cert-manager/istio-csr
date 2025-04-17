@@ -27,8 +27,7 @@ import (
 	"time"
 
 	apiutil "github.com/cert-manager/cert-manager/pkg/api/util"
-	cmapi "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
-	v1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
+	cmapiv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	cmmeta "github.com/cert-manager/cert-manager/pkg/apis/meta/v1"
 	cmutil "github.com/cert-manager/cert-manager/pkg/util/pki"
 	corev1 "k8s.io/api/core/v1"
@@ -110,7 +109,7 @@ var _ = framework.CasesDescribe("runtime configuration", func() {
 		timeout := 1 * time.Minute
 		pollImmediate := true
 
-		var certificate *v1.Certificate
+		var certificate *cmapiv1.Certificate
 
 		pollErr := wait.PollUntilContextTimeout(ctx, interval, timeout, pollImmediate, func(ctx context.Context) (bool, error) {
 			var err error
@@ -120,8 +119,8 @@ var _ = framework.CasesDescribe("runtime configuration", func() {
 				return false, fmt.Errorf("error getting Certificate %v: %v", istiodCertName, err)
 			}
 
-			return apiutil.CertificateHasCondition(certificate, cmapi.CertificateCondition{
-				Type:   cmapi.CertificateConditionReady,
+			return apiutil.CertificateHasCondition(certificate, cmapiv1.CertificateCondition{
+				Type:   cmapiv1.CertificateConditionReady,
 				Status: cmmeta.ConditionTrue,
 			}), nil
 		})

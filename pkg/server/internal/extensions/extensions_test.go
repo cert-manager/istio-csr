@@ -327,7 +327,7 @@ func powerset(set []interface{}) (subsets [][]interface{}) {
 	for subsetBits := 1; subsetBits < (1 << length); subsetBits++ {
 		var subset []interface{}
 
-		for object := uint(0); object < length; object++ {
+		for object := range length {
 			// checks if object is contained in subset
 			// by checking if bit 'object' is set in subsetBits
 			if (subsetBits>>object)&1 == 1 {
@@ -383,7 +383,7 @@ func asn1BitLength(bitString []byte) int {
 	for i := range bitString {
 		b := bitString[len(bitString)-i-1]
 
-		for bit := uint(0); bit < 8; bit++ {
+		for bit := range uint(8) {
 			if (b>>bit)&1 == 1 {
 				return bitLen
 			}
