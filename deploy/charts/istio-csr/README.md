@@ -228,6 +228,9 @@ Takes key/value pairs in the format:
 additionalAnnotations:
   - name: custom.cert-manager.io/policy-name
     value: istio-csr
+  - name: venafi.cert-manager.io/custom-fields
+    value: |
+      [{ "Name": "field1", "Value": "value1" },{ "Name": "field2", "Value": "value2" }]
 ```
 #### **app.certmanager.issuer.enabled** ~ `bool`
 > Default value:
