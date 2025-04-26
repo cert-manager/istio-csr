@@ -17,7 +17,6 @@ limitations under the License.
 package certmanager
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -231,7 +230,7 @@ func Test_Sign(t *testing.T) {
 				},
 			}
 
-			bundle, err := m.Sign(context.TODO(), "", nil, 0, nil)
+			bundle, err := m.Sign(t.Context(), "", nil, 0, nil)
 			if (err != nil) != test.expErr {
 				t.Errorf("unexpected error, exp=%t got=%v", test.expErr, err)
 			}
@@ -449,7 +448,7 @@ func Test_waitForCertificateRequest(t *testing.T) {
 			}
 
 			log := ktesting.NewLogger(t, ktesting.DefaultConfig)
-			cr, err := m.waitForCertificateRequest(context.TODO(), log, gen.CertificateRequest("test-cr"))
+			cr, err := m.waitForCertificateRequest(t.Context(), log, gen.CertificateRequest("test-cr"))
 			if (err != nil) != test.expErr {
 				t.Errorf("unexpected error, exp=%t got=%v", test.expErr, err)
 			}
