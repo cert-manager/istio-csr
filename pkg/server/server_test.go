@@ -231,7 +231,7 @@ func Test_CreateCertificate(t *testing.T) {
 				tls: test.tls,
 			}
 
-			resp, err := s.CreateCertificate(context.TODO(), test.icr(t))
+			resp, err := s.CreateCertificate(t.Context(), test.icr(t))
 			errS, _ := status.FromError(err)
 			expErrS, _ := status.FromError(test.expErr)
 
@@ -362,7 +362,7 @@ func Test_CreateCertificateE2EUsingClientCertAuthenticator(t *testing.T) {
 				tls: tlsfake.New().WithRootCAs(rootCertPEM, rootPool),
 			}
 
-			ctx := peer.NewContext(context.TODO(), &peer.Peer{
+			ctx := peer.NewContext(t.Context(), &peer.Peer{
 				AuthInfo: credentials.TLSInfo{
 					State: tls.ConnectionState{
 						VerifiedChains: test.certChain(t),
@@ -539,7 +539,7 @@ func Test_CreateCertificateWithImpersonateIdentity(t *testing.T) {
 				ValidityDuration: 60 * 30,
 			}
 
-			resp, err := s.CreateCertificate(context.TODO(), icr)
+			resp, err := s.CreateCertificate(t.Context(), icr)
 			errS, _ := status.FromError(err)
 			expErrS, _ := status.FromError(test.expErr)
 
@@ -689,7 +689,7 @@ func Test_parseCertificateBundle(t *testing.T) {
 				tls: tlsfake.New().WithRootCAs(rootCAsPEM, rootCAsPool),
 			}
 
-			chain, err := s.parseCertificateBundle(context.Background(), test.bundle)
+			chain, err := s.parseCertificateBundle(t.Context(), test.bundle)
 			assert.Equalf(t, test.expErr, err != nil, "%v", err)
 			assert.Equal(t, test.expChain, chain)
 		})
