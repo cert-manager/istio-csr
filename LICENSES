@@ -8,7 +8,7 @@ github.com/alecholmes/xfccparser,https://github.com/alecholmes/xfccparser/blob/v
 github.com/alecthomas/participle/v2,https://github.com/alecthomas/participle/blob/v2.1.1/COPYING,MIT
 github.com/antlr4-go/antlr/v4,https://github.com/antlr4-go/antlr/blob/v4.13.1/LICENSE,BSD-3-Clause
 github.com/beorn7/perks/quantile,https://github.com/beorn7/perks/blob/v1.0.1/LICENSE,MIT
-github.com/blang/semver/v4,https://github.com/blang/semver/blob/v4.0.0/v4/LICENSE,MIT
+github.com/blang/semver/v4,https://github.com/blang/semver/blob/v4.0.0/LICENSE,MIT
 github.com/cenkalti/backoff/v4,https://github.com/cenkalti/backoff/blob/v4.3.0/LICENSE,MIT
 github.com/cert-manager/cert-manager,https://github.com/cert-manager/cert-manager/blob/v1.17.2/LICENSE,Apache-2.0
 github.com/cert-manager/istio-csr,https://github.com/cert-manager/istio-csr/blob/HEAD/LICENSE,Apache-2.0
@@ -20,7 +20,7 @@ github.com/emicklei/go-restful/v3,https://github.com/emicklei/go-restful/blob/v3
 github.com/envoyproxy/go-control-plane/contrib/envoy/extensions,https://github.com/envoyproxy/go-control-plane/blob/63a55395d7a3/contrib/LICENSE,Apache-2.0
 github.com/envoyproxy/go-control-plane/envoy,https://github.com/envoyproxy/go-control-plane/blob/63a55395d7a3/envoy/LICENSE,Apache-2.0
 github.com/envoyproxy/protoc-gen-validate/validate,https://github.com/envoyproxy/protoc-gen-validate/blob/v1.2.1/LICENSE,Apache-2.0
-github.com/evanphx/json-patch/v5,https://github.com/evanphx/json-patch/blob/v5.9.11/v5/LICENSE,BSD-3-Clause
+github.com/evanphx/json-patch/v5,https://github.com/evanphx/json-patch/blob/v5.9.11/LICENSE,BSD-3-Clause
 github.com/fsnotify/fsnotify,https://github.com/fsnotify/fsnotify/blob/v1.9.0/LICENSE,BSD-3-Clause
 github.com/fxamacker/cbor/v2,https://github.com/fxamacker/cbor/blob/v2.7.0/LICENSE,MIT
 github.com/go-asn1-ber/asn1-ber,https://github.com/go-asn1-ber/asn1-ber/blob/v1.5.7/LICENSE,MIT
@@ -105,7 +105,7 @@ golang.org/x/sys/unix,https://cs.opensource.google/go/x/sys/+/v0.32.0:LICENSE,BS
 golang.org/x/term,https://cs.opensource.google/go/x/term/+/v0.30.0:LICENSE,BSD-3-Clause
 golang.org/x/text,https://cs.opensource.google/go/x/text/+/v0.23.0:LICENSE,BSD-3-Clause
 golang.org/x/time/rate,https://cs.opensource.google/go/x/time/+/v0.9.0:LICENSE,BSD-3-Clause
-gomodules.xyz/jsonpatch/v2,https://github.com/gomodules/jsonpatch/blob/v2.4.0/v2/LICENSE,Apache-2.0
+gomodules.xyz/jsonpatch/v2,https://github.com/gomodules/jsonpatch/blob/v2.4.0/LICENSE,Apache-2.0
 google.golang.org/genproto/googleapis/api,https://github.com/googleapis/go-genproto/blob/56aae31c358a/googleapis/api/LICENSE,Apache-2.0
 google.golang.org/genproto/googleapis/rpc/status,https://github.com/googleapis/go-genproto/blob/56aae31c358a/googleapis/rpc/LICENSE,Apache-2.0
 google.golang.org/grpc,https://github.com/grpc/grpc-go/blob/v1.72.0/LICENSE,Apache-2.0
