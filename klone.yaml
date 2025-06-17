@@ -43,9 +43,9 @@ targets:
       repo_hash: b7b26d582f37b3108de74d487ee52dbdd4232b91
       repo_path: modules/help
     - folder_name: kind
-      repo_url: https://github.com/cert-manager/makefile-modules.git
-      repo_ref: main
-      repo_hash: b7b26d582f37b3108de74d487ee52dbdd4232b91
+      repo_url: https://github.com/wallrj/makefile-modules.git
+      repo_ref: kind-0.29.0
+      repo_hash: fdc858d5ea7636a2bb61b66dd867c06d1dd74ee5
       repo_path: modules/kind
     - folder_name: klone
       repo_url: https://github.com/cert-manager/makefile-modules.git
