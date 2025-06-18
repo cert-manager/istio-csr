@@ -3,7 +3,7 @@ module github.com/cert-manager/istio-csr
 go 1.24.0
 
 require (
-	github.com/cert-manager/cert-manager v1.18.0
+	github.com/cert-manager/cert-manager v1.18.1
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/go-logr/logr v1.4.3
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
@@ -16,7 +16,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	google.golang.org/grpc v1.73.0
 	google.golang.org/protobuf v1.36.6
-	istio.io/api v1.25.3
+	istio.io/api v1.26.1
 	istio.io/istio v0.0.0-20250305154201-4f772dda6a4e
 	k8s.io/api v0.33.1
 	k8s.io/apimachinery v0.33.1
