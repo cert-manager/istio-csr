@@ -17,6 +17,9 @@ limitations under the License.
 package framework
 
 import (
+	"context"
+	"time"
+
 	cmversioned "github.com/cert-manager/cert-manager/pkg/client/clientset/versioned"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/kubernetes"
@@ -36,6 +39,9 @@ type Framework struct {
 
 	config *config.Config
 	helper *helper.Helper
+
+	ctx    context.Context
+	cancel func()
 }
 
 func NewDefaultFramework(baseName string) *Framework {
@@ -49,11 +55,14 @@ func NewFramework(baseName string, config *config.Config) *Framework {
 	}
 
 	JustBeforeEach(f.BeforeEach)
+	AfterEach(f.AfterEach)
 
 	return f
 }
 
 func (f *Framework) BeforeEach() {
+	f.ctx, f.cancel = context.WithTimeout(context.Background(), time.Second*600)
+
 	By("Creating a kubernetes client")
 	clientConfigFlags := genericclioptions.NewConfigFlags(true)
 	clientConfigFlags.KubeConfig = &f.config.KubeConfigPath
@@ -70,12 +79,20 @@ func (f *Framework) BeforeEach() {
 	f.helper = helper.NewHelper(f.CMClientSet, f.KubeClientSet)
 }
 
+func (f *Framework) AfterEach() {
+	f.cancel()
+}
+
 func (f *Framework) Helper() *helper.Helper {
 	return f.helper
 }
 
 func (f *Framework) Config() *config.Config {
 	return f.config
+}
+
+func (f *Framework) Context() context.Context {
+	return f.ctx
 }
 
 func CasesDescribe(text string, body func()) bool {
