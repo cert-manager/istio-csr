@@ -4,3 +4,6 @@
 /_artifacts
 
 test/e2e/e2e.test
+
+*.iml
+.idea
