@@ -112,6 +112,7 @@ func New(log logr.Logger, restConfig *rest.Config, cm certmanager.Signer, tls tl
 		client.Kube(),
 		cluster.ID(opts.ClusterID),
 		nil,
+		nil,
 	))
 
 	var nodeAuthorizer *ClusterNodeAuthorizer
