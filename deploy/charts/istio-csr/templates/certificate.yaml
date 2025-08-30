@@ -16,7 +16,8 @@ metadata:
 {{- if .Values.app.certmanager.additionalAnnotations }}
   annotations:
     {{- range $annotation := .Values.app.certmanager.additionalAnnotations }}
-    {{ $annotation.name }}: {{ $annotation.value }}
+    {{ $annotation.name }}: |
+{{ $annotation.value | indent 6 }}
     {{- end }}
 {{- end }}
 spec:
