@@ -4,7 +4,8 @@
 {
   $schema: 'https://docs.renovatebot.com/renovate-schema.json',
   enabled: true,
-  gitAuthor: 'cert-manager-bot <cert-manager-bot@users.noreply.github.com>',
+  gitAuthor: 'Renovate Bot <renovate-bot@users.noreply.github.com>',
+  recreateWhen: 'always', // TODO: Remove; temporary fix to force Renovate to ignore "foreign" commits
   enabledManagers: [
     'gomod',
   ],
@@ -35,9 +36,6 @@
       groupName: 'Misc Go deps',
       matchManagers: [
         'gomod',
-      ],
-      matchPackageNames: [
-        '*',
       ],
     },
     {
@@ -104,12 +102,22 @@
       ],
     },
     {
-      description: 'Disable Go pseudo-version updates',
+      matchManagers: [
+        'gomod',
+      ],
+      matchUpdateTypes: [
+        'major',
+        'digest',
+      ],
+      dependencyDashboardApproval: true
+    },
+    {
+      description: 'Disable (internal) cert-manager pseudo-version updates',
       matchManagers: [
         'gomod',
       ],
       matchPackageNames: [
-        '*',
+        'github.com/cert-manager/**',
       ],
       matchCurrentValue: 'v0.0.0*',
       enabled: false,
