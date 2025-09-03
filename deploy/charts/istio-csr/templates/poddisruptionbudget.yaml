@@ -1,4 +1,4 @@
-{{- if .Values.podDisruptionBudget }}
+{{- if .Values.podDisruptionBudget.enabled }}
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
@@ -10,7 +10,10 @@ spec:
   selector:
     matchLabels:
       app: {{ include "cert-manager-istio-csr.name" . }}
-  {{- with .Values.podDisruptionBudget }}
-    {{- toYaml . | nindent 2 }}
+  {{- with .Values.podDisruptionBudget.minAvailable }}
+  minAvailable: {{ . }}
+  {{- end }}
+  {{- with .Values.podDisruptionBudget.maxUnavailable }}
+  maxUnavailable: {{ . }}
   {{- end }}
 {{- end }}
