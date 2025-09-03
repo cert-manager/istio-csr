@@ -691,22 +691,7 @@
     },
     "helm-values.podDisruptionBudget": {
       "default": {},
-      "description": "PodDisruptionBudget configuration.",
-      "properties": {
-        "minAvailable": {
-          "description": "Minimum number of pods that must still be available after the eviction, even in the presence of a PodDisruptionBudget.",
-          "type": ["number", "string"]
-        },
-        "maxUnavailable": {
-          "description": "Maximum number of pods that can be unavailable during the eviction, even in the presence of a PodDisruptionBudget.",
-          "type": ["number", "string"]
-        },
-        "unhealthyPodEvictionPolicy": {
-          "description": "Policy for unhealthy pods. IfHealthyBudget will only evict pods if the budget is healthy. AlwaysAllow will always allow evictions.",
-          "type": "string",
-          "enum": ["", "IfHealthyBudget", "AlwaysAllow"]
-        }
-      },
+      "description": "Configures a disruption budget for istio-csr.",
       "type": "object"
     },
     "helm-values.podLabels": {
