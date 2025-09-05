@@ -611,13 +611,13 @@ extraObjects:
 > ```
 
 Enable or disable the PodDisruptionBudget resource for istio-csr.
-#### **podDisruptionBudget.minAvailable** ~ `unknown`
+#### **podDisruptionBudget.minAvailable** ~ `string,integer`
 
 This configures the minimum available pods for disruptions. It can either be set to an integer (e.g., 1) or a percentage value (e.g., 25%).  
 It cannot be used if `maxUnavailable` is set.
 
 
-#### **podDisruptionBudget.maxUnavailable** ~ `unknown`
+#### **podDisruptionBudget.maxUnavailable** ~ `string,integer`
 > Default value:
 > ```yaml
 > 1
