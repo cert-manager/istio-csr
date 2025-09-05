@@ -39,6 +39,9 @@
         "podAnnotations": {
           "$ref": "#/$defs/helm-values.podAnnotations"
         },
+        "podDisruptionBudget": {
+          "$ref": "#/$defs/helm-values.podDisruptionBudget"
+        },
         "podLabels": {
           "$ref": "#/$defs/helm-values.podLabels"
         },
@@ -685,6 +688,33 @@
       "default": {},
       "description": "Optional extra annotations for pod.",
       "type": "object"
+    },
+    "helm-values.podDisruptionBudget": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "$ref": "#/$defs/helm-values.podDisruptionBudget.enabled"
+        },
+        "maxUnavailable": {
+          "$ref": "#/$defs/helm-values.podDisruptionBudget.maxUnavailable"
+        },
+        "minAvailable": {
+          "$ref": "#/$defs/helm-values.podDisruptionBudget.minAvailable"
+        }
+      },
+      "type": "object"
+    },
+    "helm-values.podDisruptionBudget.enabled": {
+      "default": false,
+      "description": "Enable or disable the PodDisruptionBudget resource for istio-csr.",
+      "type": "boolean"
+    },
+    "helm-values.podDisruptionBudget.maxUnavailable": {
+      "default": 1,
+      "description": "This configures the maximum unavailable pods for disruptions. It can either be set to an integer (e.g., 1) or a percentage value (e.g., 25%). it cannot be used if `minAvailable` is set."
+    },
+    "helm-values.podDisruptionBudget.minAvailable": {
+      "description": "This configures the minimum available pods for disruptions. It can either be set to an integer (e.g., 1) or a percentage value (e.g., 25%).\nIt cannot be used if `maxUnavailable` is set."
     },
     "helm-values.podLabels": {
       "default": {},

@@ -604,5 +604,27 @@ extraObjects:
     metadata:
       name: '{{ template "cert-manager-istio-csr.fullname" . }}-extra-configmap'
 ```
+#### **podDisruptionBudget.enabled** ~ `bool`
+> Default value:
+> ```yaml
+> false
+> ```
+
+Enable or disable the PodDisruptionBudget resource for istio-csr.
+#### **podDisruptionBudget.minAvailable** ~ `string,integer`
+
+This configures the minimum available pods for disruptions. It can either be set to an integer (e.g., 1) or a percentage value (e.g., 25%).  
+It cannot be used if `maxUnavailable` is set.
+
+
+#### **podDisruptionBudget.maxUnavailable** ~ `string,integer`
+> Default value:
+> ```yaml
+> 1
+> ```
+
+This configures the maximum unavailable pods for disruptions. It can either be set to an integer (e.g., 1) or a percentage value (e.g., 25%). it cannot be used if `minAvailable` is set.
+
+
 
 <!-- /AUTO-GENERATED -->
