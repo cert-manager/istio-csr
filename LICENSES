@@ -156,7 +156,6 @@ google.golang.org/protobuf,BSD-3-Clause
 gopkg.in/evanphx/json-patch.v4,BSD-3-Clause
 gopkg.in/inf.v0,BSD-3-Clause
 gopkg.in/natefinch/lumberjack.v2,MIT
-gopkg.in/yaml.v2,Apache-2.0
 gopkg.in/yaml.v3,MIT
 istio.io/api,Apache-2.0
 istio.io/client-go/pkg,Apache-2.0
