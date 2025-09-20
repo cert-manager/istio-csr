@@ -17,7 +17,7 @@ require (
 	google.golang.org/grpc v1.75.1
 	google.golang.org/protobuf v1.36.9
 	istio.io/api v1.27.1
-	istio.io/istio v0.0.0-20250917160244-124886fd886f
+	istio.io/istio v0.0.0-20250920013229-70458b554a2e
 	k8s.io/api v0.33.4
 	k8s.io/apimachinery v0.33.4
 	k8s.io/cli-runtime v0.33.4
@@ -143,7 +143,7 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	istio.io/client-go v1.26.0-alpha.0.0.20250915143641-ab215523e250 // indirect
+	istio.io/client-go v1.26.0-alpha.0.0.20250919111229-a58b03784aa6 // indirect
 	k8s.io/apiextensions-apiserver v0.33.4 // indirect
 	k8s.io/apiserver v0.33.4 // indirect
 	k8s.io/kube-openapi v0.0.0-20250318190949-c8a335a9a2ff // indirect
