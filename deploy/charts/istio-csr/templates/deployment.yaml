@@ -86,7 +86,7 @@ spec:
               {{- $x := list $annotation.name $annotation.value | join "=" }}
               {{- $annotations = append $annotations $x }}
             {{- end }}
-          - "--certificate-request-additional-annotations={{ join "," $annotations }}"
+          - {{ printf "%s=%s" "--certificate-request-additional-annotations" ( join "," $annotations ) | quote -}}
           {{- end }}
 
             # tls
@@ -135,7 +135,7 @@ spec:
           {{- range $annotation := .Values.app.certmanager.additionalAnnotations }}
           {{ $annotationList = append $annotationList (printf "%s=%s" $annotation.name $annotation.value) }}
           {{- end }}
-          - "--istiod-cert-additional-annotations={{ join "," $annotationList }}"
+          - {{ printf "%s=%s" "--istiod-cert-additional-annotations" ( join "," $annotationList ) | quote -}}
           {{- end }}
           - "--istiod-cert-istio-revisions={{ join "," .Values.app.istio.revisions }}"
         {{- if .Values.volumeMounts }}
