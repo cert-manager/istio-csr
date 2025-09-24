@@ -1,4 +1,4 @@
-# Copyright 2023 The cert-manager Authors.
+# Copyright 2024 The cert-manager Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,20 +12,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-license_base_dir := $(dir $(lastword $(MAKEFILE_LIST)))/base/
-
-.PHONY: verify-boilerplate
-## Verify that all files have the correct boilerplate.
-## @category [shared] Generate/ Verify
-verify-boilerplate: | $(NEEDS_BOILERSUITE)
-	$(BOILERSUITE) .
-
-shared_verify_targets += verify-boilerplate
-
-.PHONY: generate-license
-## Generate LICENSE file in the repository
-## @category [shared] Generate/ Verify
-generate-license:
-	cp -r $(license_base_dir)/. ./
-
-shared_generate_targets += generate-base
+# Define default config for generating licenses
+license_ignore ?=

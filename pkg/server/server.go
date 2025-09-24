@@ -112,6 +112,7 @@ func New(log logr.Logger, restConfig *rest.Config, cm certmanager.Signer, tls tl
 		client.Kube(),
 		cluster.ID(opts.ClusterID),
 		nil,
+		nil,
 	))
 
 	var nodeAuthorizer *ClusterNodeAuthorizer
@@ -164,7 +165,8 @@ func (s *Server) Start(ctx context.Context) error {
 	}
 
 	// listen on the configured address
-	listener, err := net.Listen("tcp", s.opts.ServingAddress)
+	lc := net.ListenConfig{}
+	listener, err := lc.Listen(ctx, "tcp", s.opts.ServingAddress)
 	if err != nil {
 		return fmt.Errorf("failed to listen %s: %v", s.opts.ServingAddress, err)
 	}

@@ -41,7 +41,7 @@ func Test_Watch(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	ctx, cancel := context.WithCancel(context.TODO())
+	ctx, cancel := context.WithCancel(t.Context())
 	defer cancel()
 
 	t.Log("starting watcher")

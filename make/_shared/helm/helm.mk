@@ -16,10 +16,6 @@ ifndef bin_dir
 $(error bin_dir is not set)
 endif
 
-ifndef repo_name
-$(error repo_name is not set)
-endif
-
 ifndef helm_chart_source_dir
 $(error helm_chart_source_dir is not set)
 endif
@@ -32,7 +28,7 @@ ifndef helm_chart_version
 $(error helm_chart_version is not set)
 endif
 ifneq ($(helm_chart_version:v%=v),v)
-$(error helm_chart_version "$(helm_chart_version)" should start with a "v")
+$(error helm_chart_version "$(helm_chart_version)" should start with a "v" - did you forget to pull tags from the remote repository?)
 endif
 
 ifndef helm_values_mutation_function
@@ -178,3 +174,16 @@ verify-helm-lint: $(helm_chart_archive) | $(NEEDS_HELM)
 	$(HELM) lint $(helm_chart_archive)
 
 shared_verify_targets_dirty += verify-helm-lint
+
+.PHONY: verify-helm-kubeconform
+## Verify that the Helm chart passes a strict check using kubeconform
+## @category [shared] Generate/ Verify
+verify-helm-kubeconform: $(helm_chart_archive) | $(NEEDS_KUBECONFORM)
+	@$(HELM) template $(helm_chart_archive) $(INSTALL_OPTIONS) \
+	| $(KUBECONFORM) \
+		-schema-location default \
+		-schema-location "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/{{.NormalizedKubernetesVersion}}/{{.ResourceKind}}.json" \
+		-schema-location "https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json" \
+		-strict
+
+shared_verify_targets_dirty += verify-helm-kubeconform

@@ -159,7 +159,7 @@ func kubectlWithOutput(f *framework.Framework, args ...string) (string, error) {
 	buf := &bytes.Buffer{}
 
 	// #nosec G204
-	cmd := exec.Command(f.Config().KubectlPath, args...)
+	cmd := exec.CommandContext(f.Context(), f.Config().KubectlPath, args...)
 
 	cmd.Stdout = buf
 	cmd.Stderr = GinkgoWriter
@@ -183,7 +183,7 @@ func istioctlGetCert(f *framework.Framework, podName string, namespaceName strin
 	buf := &bytes.Buffer{}
 
 	// #nosec G204
-	cmd := exec.Command(f.Config().IstioctlPath, "proxy-config", "secrets", "-n", namespaceName, podName, "-ojson")
+	cmd := exec.CommandContext(f.Context(), f.Config().IstioctlPath, "proxy-config", "secrets", "-n", namespaceName, podName, "-ojson")
 
 	cmd.Stdout = buf
 	cmd.Stderr = GinkgoWriter

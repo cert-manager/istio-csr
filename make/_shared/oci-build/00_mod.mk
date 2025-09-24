@@ -16,11 +16,11 @@ oci_platforms ?= linux/amd64,linux/arm/v7,linux/arm64,linux/ppc64le
 
 # Use distroless as minimal base image to package the manager binary
 # To get latest SHA run "crane digest quay.io/jetstack/base-static:latest"
-base_image_static := quay.io/jetstack/base-static@sha256:16a5a64b918592f5c38fa73721a87f8585a3a501d261087e7b953f8b59279cd0
+base_image_static := quay.io/jetstack/base-static@sha256:3644c30edf618b9e84ed98af7f529b1e9e3d67a54fcd557083f91fc991a0031c
 
 # Use custom apko-built image as minimal base image to package the manager binary
 # To get latest SHA run "crane digest quay.io/jetstack/base-static-csi:latest"
-base_image_csi-static := quay.io/jetstack/base-static-csi@sha256:fb97fc098aabdfb5b9b01475d3531b688a9c2219f4bbc143816d3e47a267be6d
+base_image_csi-static := quay.io/jetstack/base-static-csi@sha256:6adec8e50b746da4a707af588936b02c09126aa1c73035d6e0fb293643479e6d
 
 # Utility functions
 fatal_if_undefined = $(if $(findstring undefined,$(origin $1)),$(error $1 is not set))
@@ -128,7 +128,7 @@ ko_config_targets := $(build_names:%=ko-config-%)
 # - oci_digest_path_$(build_name) = path to the file that will contain the digests
 # - ko_config_path_$(build_name) = path to the ko config file
 # - docker_tarball_path_$(build_name) = path that the docker tarball that the docker-tarball-$(build_name) will produce
-$(foreach build_name,$(build_names),$(eval oci_layout_path_$(build_name) := $(bin_dir)/scratch/image/oci-layout-$(build_name).$(oci_$(build_name)_image_tag)))
+$(foreach build_name,$(build_names),$(eval oci_layout_path_$(build_name) := $(bin_dir)/scratch/image/oci-layout-$(build_name)))
 $(foreach build_name,$(build_names),$(eval oci_digest_path_$(build_name) := $(CURDIR)/$(oci_layout_path_$(build_name)).digests))
 $(foreach build_name,$(build_names),$(eval ko_config_path_$(build_name) := $(CURDIR)/$(oci_layout_path_$(build_name)).ko_config.yaml))
 $(foreach build_name,$(build_names),$(eval docker_tarball_path_$(build_name) := $(CURDIR)/$(oci_layout_path_$(build_name)).docker.tar))

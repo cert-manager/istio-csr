@@ -17,7 +17,6 @@ limitations under the License.
 package server
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -260,7 +259,7 @@ func TestAuthRequestImpersonation(t *testing.T) {
 				ValidityDuration: 60 * 30,
 			}
 
-			identities, authed := s.authRequest(context.TODO(), icr)
+			identities, authed := s.authRequest(t.Context(), icr)
 			if identities != test.expIdenties {
 				t.Errorf("unexpected identities response, exp=%s got=%s",
 					test.expIdenties, identities)
@@ -447,7 +446,7 @@ func TestAuthRequest(t *testing.T) {
 				authenticators: test.authns,
 			}
 
-			identities, authed := s.authRequest(context.TODO(), test.icr(t))
+			identities, authed := s.authRequest(t.Context(), test.icr(t))
 			if identities != test.expIdenties {
 				t.Errorf("unexpected identities response, exp=%s got=%s",
 					test.expIdenties, identities)
