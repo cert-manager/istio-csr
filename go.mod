@@ -17,7 +17,7 @@ require (
 	google.golang.org/grpc v1.75.1
 	google.golang.org/protobuf v1.36.9
 	istio.io/api v1.27.1
-	istio.io/istio v0.0.0-20250917160244-124886fd886f
+	istio.io/istio v0.0.0-20250926174200-079d5012cbc4
 	k8s.io/api v0.33.4
 	k8s.io/apimachinery v0.33.4
 	k8s.io/cli-runtime v0.33.4
@@ -49,7 +49,7 @@ require (
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0 // indirect
 	github.com/emicklei/go-restful/v3 v3.12.2 // indirect
 	github.com/envoyproxy/go-control-plane/contrib v1.32.5-0.20250627145903-197b96a9c7f8 // indirect
-	github.com/envoyproxy/go-control-plane/envoy v1.32.5-0.20250627145903-197b96a9c7f8 // indirect
+	github.com/envoyproxy/go-control-plane/envoy v1.32.5-0.20250921184633-9a6a6e1d1741 // indirect
 	github.com/envoyproxy/protoc-gen-validate v1.2.1 // indirect
 	github.com/evanphx/json-patch/v5 v5.9.11 // indirect
 	github.com/fxamacker/cbor/v2 v2.8.0 // indirect
@@ -143,7 +143,7 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	istio.io/client-go v1.26.0-alpha.0.0.20250915143641-ab215523e250 // indirect
+	istio.io/client-go v1.26.0-alpha.0.0.20250923205629-fe2d99063ffd // indirect
 	k8s.io/apiextensions-apiserver v0.33.4 // indirect
 	k8s.io/apiserver v0.33.4 // indirect
 	k8s.io/kube-openapi v0.0.0-20250318190949-c8a335a9a2ff // indirect
