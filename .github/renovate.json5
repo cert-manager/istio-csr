@@ -3,4 +3,13 @@
   extends: [
     'github>cert-manager/renovate-config:default.json5',
   ],
+  packageRules: [
+    {
+      // FIXME: Ungroup istio.io/api for now, since we currently depend on a pseudo-version that Renovate doesn't understand.
+      groupName: null,
+      matchPackageNames: [
+        'istio.io/api',
+      ],
+    }
+  ],
 }
