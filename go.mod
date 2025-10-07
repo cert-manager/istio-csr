@@ -14,7 +14,7 @@ require (
 	github.com/spf13/cobra v1.10.1
 	github.com/spf13/pflag v1.0.10
 	github.com/stretchr/testify v1.11.1
-	google.golang.org/grpc v1.75.1
+	google.golang.org/grpc v1.76.0
 	google.golang.org/protobuf v1.36.10
 	istio.io/api v1.26.0-alpha.0.0.20251002142010-859b66f07fad
 	istio.io/istio v0.0.0-20251001232005-da174ad42119
