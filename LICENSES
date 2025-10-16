@@ -84,8 +84,8 @@ github.com/google/uuid,BSD-3-Clause
 github.com/gorilla/websocket,BSD-2-Clause
 github.com/grafana/regexp,BSD-3-Clause
 github.com/gregjones/httpcache,MIT
+github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus,Apache-2.0
 github.com/grpc-ecosystem/go-grpc-middleware/v2,Apache-2.0
-github.com/grpc-ecosystem/go-grpc-prometheus,Apache-2.0
 github.com/hashicorp/errwrap,MPL-2.0
 github.com/hashicorp/go-multierror,MPL-2.0
 github.com/huandu/xstrings,MIT
