@@ -20,6 +20,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"maps"
 	"sync"
 	"time"
 
@@ -230,9 +231,7 @@ func (m *manager) Sign(ctx context.Context, identities string, csrPEM []byte, du
 		},
 	}
 
-	for k, v := range m.opts.AdditionalAnnotations {
-		cr.ObjectMeta.Annotations[k] = v
-	}
+	maps.Copy(cr.ObjectMeta.Annotations, m.opts.AdditionalAnnotations)
 	// Create CertificateRequest and wait for it to be successfully signed.
 	cr, err := m.certManagerClient.Create(ctx, cr, metav1.CreateOptions{})
 	if err != nil {

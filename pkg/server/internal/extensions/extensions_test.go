@@ -28,7 +28,7 @@ import (
 )
 
 var (
-	disallowedX509KeyUsages = []interface{}{
+	disallowedX509KeyUsages = []any{
 		x509.KeyUsageContentCommitment,
 		x509.KeyUsageDataEncipherment,
 		x509.KeyUsageKeyAgreement,
@@ -38,12 +38,12 @@ var (
 		x509.KeyUsageDecipherOnly,
 	}
 
-	allowedX509KeyUsages = []interface{}{
+	allowedX509KeyUsages = []any{
 		x509.KeyUsageDigitalSignature,
 		x509.KeyUsageKeyEncipherment,
 	}
 
-	disallowedX509ExtKeyUsages = []interface{}{
+	disallowedX509ExtKeyUsages = []any{
 		x509.ExtKeyUsageAny,
 		x509.ExtKeyUsageCodeSigning,
 		x509.ExtKeyUsageEmailProtection,
@@ -58,7 +58,7 @@ var (
 		x509.ExtKeyUsageMicrosoftKernelCodeSigning,
 	}
 
-	allowedX509ExtKeyUsages = []interface{}{
+	allowedX509ExtKeyUsages = []any{
 		x509.ExtKeyUsageServerAuth,
 		x509.ExtKeyUsageClientAuth,
 	}
@@ -319,13 +319,13 @@ func TestValidateKeyUsageExtension(t *testing.T) {
 }
 
 // Adapted from https://github.com/mxschmitt/golang-combinations
-func powerset(set []interface{}) (subsets [][]interface{}) {
+func powerset(set []any) (subsets [][]any) {
 	length := uint(len(set))
 
 	// Go through all possible combinations of objects
 	// from 1 (only first object in subset) to 2^length (all objects in subset)
 	for subsetBits := 1; subsetBits < (1 << length); subsetBits++ {
-		var subset []interface{}
+		var subset []any
 
 		for object := range length {
 			// checks if object is contained in subset

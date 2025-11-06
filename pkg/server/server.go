@@ -211,10 +211,7 @@ func (s *Server) CreateCertificate(ctx context.Context, icr *securityapi.IstioCe
 
 	// If requested duration is larger than the maximum value, override with the
 	// maxiumum value.
-	duration := time.Duration(icr.GetValidityDuration()) * time.Second
-	if duration > s.opts.MaximumClientCertificateDuration {
-		duration = s.opts.MaximumClientCertificateDuration
-	}
+	duration := min(time.Duration(icr.GetValidityDuration())*time.Second, s.opts.MaximumClientCertificateDuration)
 
 	bundle, err := s.cm.Sign(ctx, identities, []byte(icr.GetCsr()), duration, []cmapi.KeyUsage{cmapi.UsageClientAuth, cmapi.UsageServerAuth})
 	if err != nil {
