@@ -16,8 +16,8 @@ require (
 	github.com/stretchr/testify v1.11.1
 	google.golang.org/grpc v1.76.0
 	google.golang.org/protobuf v1.36.10
-	istio.io/api v1.28.0-beta.1
-	istio.io/istio v0.0.0-20251102170007-166562a05528
+	istio.io/api v1.28.0
+	istio.io/istio v0.0.0-20251016002806-ea6e9d9d3b70
 	k8s.io/api v0.34.2
 	k8s.io/apimachinery v0.34.2
 	k8s.io/cli-runtime v0.34.2
@@ -143,7 +143,7 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	istio.io/client-go v1.28.0-alpha.0.0.20251031212006-e74b0c38bbba // indirect
+	istio.io/client-go v1.28.0-alpha.0.0.20251105023620-edbe3ac2c7bf // indirect
 	k8s.io/apiextensions-apiserver v0.34.1 // indirect
 	k8s.io/apiserver v0.34.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20250910181357-589584f1c912 // indirect
