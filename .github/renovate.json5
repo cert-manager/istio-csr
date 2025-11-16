@@ -3,15 +3,4 @@
   extends: [
     'github>cert-manager/renovate-config:default.json5',
   ],
-  packageRules: [
-    {
-      groupName: 'Istio deps',
-      matchManagers: [
-        'gomod',
-      ],
-      matchPackageNames: [
-        'istio.io/**',
-      ],
-    },
-  ],
 }
