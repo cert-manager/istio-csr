@@ -17,7 +17,7 @@ require (
 	google.golang.org/grpc v1.76.0
 	google.golang.org/protobuf v1.36.10
 	istio.io/api v1.28.0
-	istio.io/istio v0.0.0-20251016002806-ea6e9d9d3b70
+	istio.io/istio v0.0.0-20251115154359-c79743a7588d
 	k8s.io/api v0.34.2
 	k8s.io/apimachinery v0.34.2
 	k8s.io/cli-runtime v0.34.2
