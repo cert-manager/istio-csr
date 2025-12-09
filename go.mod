@@ -3,7 +3,7 @@ module github.com/cert-manager/istio-csr
 go 1.25.0
 
 require (
-	github.com/cert-manager/cert-manager v1.19.1
+	github.com/cert-manager/cert-manager v1.19.2
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/go-logr/logr v1.4.3
 	github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus v1.1.0
