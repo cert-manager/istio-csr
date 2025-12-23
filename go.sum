@@ -393,8 +393,8 @@ gopkg.in/natefinch/lumberjack.v2 v2.2.1/go.mod h1:YD8tP3GAjkrDg1eZH7EGmyESg/lsYs
 gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
 gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=
 gopkg.in/yaml.v3 v3.0.1/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
-istio.io/api v1.28.1 h1:A1DzBrL6PUmDDT8uvs43wxmlg6FvdKNiZvZC1PdA50M=
-istio.io/api v1.28.1/go.mod h1:BD3qv/ekm16kvSgvSpuiDawgKhEwG97wx849CednJSg=
+istio.io/api v1.28.2 h1:1DWf3M4+glutseG0WqwDuAqE99l+ce8zyqseBX5vK7k=
+istio.io/api v1.28.2/go.mod h1:BD3qv/ekm16kvSgvSpuiDawgKhEwG97wx849CednJSg=
 istio.io/client-go v1.28.0-alpha.0.0.20251105023620-edbe3ac2c7bf h1:g71/kt94rahhL15h0LBaF5LfsQpq2WKBbRIsVcpXTeA=
 istio.io/client-go v1.28.0-alpha.0.0.20251105023620-edbe3ac2c7bf/go.mod h1:LF/LxUpZ7EBvI+B6U8izO+Ajv3hQW9DHsfAyGMTIjMo=
 istio.io/istio v0.0.0-20251016002806-ea6e9d9d3b70 h1:wXVM0vFBa6SV0RuYT5G6bV9/H+jb18Fqh5n6fPMWNXY=
