@@ -32,6 +32,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	clientfeatures "k8s.io/client-go/features"
+	clienttesting "k8s.io/client-go/features/testing"
 	"k8s.io/klog/v2/ktesting"
 
 	"github.com/cert-manager/istio-csr/test/gen"
@@ -243,6 +245,8 @@ func TestAuthRequestImpersonation(t *testing.T) {
 				})
 			}
 			c := kube.NewFakeClient(pods...)
+			// FIXME: It seems like we need to disable the WatchListClient feature gate until our istio/istio dependency is bumped to K8s 1.35
+			clienttesting.SetFeatureDuringTest(t, clientfeatures.WatchListClient, false)
 			na := NewClusterNodeAuthorizer(c, test.trustedNodeAccounts)
 			c.RunAndWait(testUtil.NewStop(t))
 			kube.WaitForCacheSync("test", testUtil.NewStop(t), na.pods.HasSynced)
