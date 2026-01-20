@@ -401,12 +401,12 @@ istio.io/istio v0.0.0-20251016002806-ea6e9d9d3b70 h1:wXVM0vFBa6SV0RuYT5G6bV9/H+j
 istio.io/istio v0.0.0-20251016002806-ea6e9d9d3b70/go.mod h1:pNHy5S4hn2wKEsO/6j1jxq2yEoqSXZzGC4LNT13bJD4=
 k8s.io/api v0.35.0 h1:iBAU5LTyBI9vw3L5glmat1njFK34srdLmktWwLTprlY=
 k8s.io/api v0.35.0/go.mod h1:AQ0SNTzm4ZAczM03QH42c7l3bih1TbAXYo0DkF8ktnA=
-k8s.io/apiextensions-apiserver v0.34.1 h1:NNPBva8FNAPt1iSVwIE0FsdrVriRXMsaWFMqJbII2CI=
-k8s.io/apiextensions-apiserver v0.34.1/go.mod h1:hP9Rld3zF5Ay2Of3BeEpLAToP+l4s5UlxiHfqRaRcMc=
+k8s.io/apiextensions-apiserver v0.35.0 h1:3xHk2rTOdWXXJM+RDQZJvdx0yEOgC0FgQ1PlJatA5T4=
+k8s.io/apiextensions-apiserver v0.35.0/go.mod h1:E1Ahk9SADaLQ4qtzYFkwUqusXTcaV2uw3l14aqpL2LU=
 k8s.io/apimachinery v0.35.0 h1:Z2L3IHvPVv/MJ7xRxHEtk6GoJElaAqDCCU0S6ncYok8=
 k8s.io/apimachinery v0.35.0/go.mod h1:jQCgFZFR1F4Ik7hvr2g84RTJSZegBc8yHgFWKn//hns=
-k8s.io/apiserver v0.34.1 h1:U3JBGdgANK3dfFcyknWde1G6X1F4bg7PXuvlqt8lITA=
-k8s.io/apiserver v0.34.1/go.mod h1:eOOc9nrVqlBI1AFCvVzsob0OxtPZUCPiUJL45JOTBG0=
+k8s.io/apiserver v0.35.0 h1:CUGo5o+7hW9GcAEF3x3usT3fX4f9r8xmgQeCBDaOgX4=
+k8s.io/apiserver v0.35.0/go.mod h1:QUy1U4+PrzbJaM3XGu2tQ7U9A4udRRo5cyxkFX0GEds=
 k8s.io/cli-runtime v0.35.0 h1:PEJtYS/Zr4p20PfZSLCbY6YvaoLrfByd6THQzPworUE=
 k8s.io/cli-runtime v0.35.0/go.mod h1:VBRvHzosVAoVdP3XwUQn1Oqkvaa8facnokNkD7jOTMY=
 k8s.io/client-go v0.35.0 h1:IAW0ifFbfQQwQmga0UdoH0yvdqrbwMdq9vIFEhRpxBE=
@@ -421,8 +421,8 @@ k8s.io/utils v0.0.0-20251222233032-718f0e51e6d2 h1:OfgiEo21hGiwx1oJUU5MpEaeOEg6c
 k8s.io/utils v0.0.0-20251222233032-718f0e51e6d2/go.mod h1:xDxuJ0whA3d0I4mf/C4ppKHxXynQ+fxnkmQH0vTHnuk=
 sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.33.0 h1:qPrZsv1cwQiFeieFlRqT627fVZ+tyfou/+S5S0H5ua0=
 sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.33.0/go.mod h1:Ve9uj1L+deCXFrPOk1LpFXqTg7LCFzFso6PA48q/XZw=
-sigs.k8s.io/controller-runtime v0.22.4 h1:GEjV7KV3TY8e+tJ2LCTxUTanW4z/FmNB7l327UfMq9A=
-sigs.k8s.io/controller-runtime v0.22.4/go.mod h1:+QX1XUpTXN4mLoblf4tqr5CQcyHPAki2HLXqQMY6vh8=
+sigs.k8s.io/controller-runtime v0.23.0 h1:Ubi7klJWiwEWqDY+odSVZiFA0aDSevOCXpa38yCSYu8=
+sigs.k8s.io/controller-runtime v0.23.0/go.mod h1:DBOIr9NsprUqCZ1ZhsuJ0wAnQSIxY/C6VjZbmLgw0j0=
 sigs.k8s.io/gateway-api v1.4.0 h1:ZwlNM6zOHq0h3WUX2gfByPs2yAEsy/EenYJB78jpQfQ=
 sigs.k8s.io/gateway-api v1.4.0/go.mod h1:AR5RSqciWP98OPckEjOjh2XJhAe2Na4LHyXD2FUY7Qk=
 sigs.k8s.io/gateway-api-inference-extension v0.0.0-20250930181416-bfd979d7576a h1:XG3bz0c382wENXcy/iemthm45CNtVkS4CSSGca5ERKo=

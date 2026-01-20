@@ -25,7 +25,7 @@ require (
 	k8s.io/component-base v0.35.0
 	k8s.io/klog/v2 v2.130.1
 	k8s.io/utils v0.0.0-20251222233032-718f0e51e6d2
-	sigs.k8s.io/controller-runtime v0.22.4
+	sigs.k8s.io/controller-runtime v0.23.0
 )
 
 require (
@@ -144,8 +144,8 @@ require (
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	istio.io/client-go v1.28.0-alpha.0.0.20251105023620-edbe3ac2c7bf // indirect
-	k8s.io/apiextensions-apiserver v0.34.1 // indirect
-	k8s.io/apiserver v0.34.1 // indirect
+	k8s.io/apiextensions-apiserver v0.35.0 // indirect
+	k8s.io/apiserver v0.35.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20250910181357-589584f1c912 // indirect
 	sigs.k8s.io/gateway-api v1.4.0 // indirect
 	sigs.k8s.io/gateway-api-inference-extension v0.0.0-20250930181416-bfd979d7576a // indirect
