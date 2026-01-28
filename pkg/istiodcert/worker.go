@@ -40,6 +40,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -151,7 +152,10 @@ func (dicp *DynamicIstiodCertProvisioner) handleNewIssuer(issuerRef *cmmeta.Obje
 // 1. Handle provisioning and updating the dynamic istiod cert
 // 2. Handle listening for updates to the active issuer ref and re-issuing
 func (dicp *DynamicIstiodCertProvisioner) AddControllersToManager(mgr manager.Manager) error {
-	b := ctrl.NewControllerManagedBy(mgr)
+	b := ctrl.NewControllerManagedBy(mgr).
+		WithOptions(controller.Options{
+			MaxConcurrentReconciles: dicp.opts.MaxConcurrentReconciles,
+		})
 
 	b.For(
 		new(cmapi.Certificate), builder.WithPredicates(predicate.NewPredicateFuncs(func(obj client.Object) bool {
