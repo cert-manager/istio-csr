@@ -72,8 +72,17 @@ github.com/go-logr/zapr,Apache-2.0
 github.com/go-openapi/jsonpointer,Apache-2.0
 github.com/go-openapi/jsonreference,Apache-2.0
 github.com/go-openapi/swag,Apache-2.0
+github.com/go-openapi/swag/cmdutils,Apache-2.0
+github.com/go-openapi/swag/conv,Apache-2.0
+github.com/go-openapi/swag/fileutils,Apache-2.0
 github.com/go-openapi/swag/jsonname,Apache-2.0
-github.com/gogo/protobuf,BSD-3-Clause
+github.com/go-openapi/swag/jsonutils,Apache-2.0
+github.com/go-openapi/swag/loading,Apache-2.0
+github.com/go-openapi/swag/mangling,Apache-2.0
+github.com/go-openapi/swag/netutils,Apache-2.0
+github.com/go-openapi/swag/stringutils,Apache-2.0
+github.com/go-openapi/swag/typeutils,Apache-2.0
+github.com/go-openapi/swag/yamlutils,Apache-2.0
 github.com/golang/protobuf,BSD-3-Clause
 github.com/google/btree,Apache-2.0
 github.com/google/cel-go,Apache-2.0
@@ -89,7 +98,6 @@ github.com/grpc-ecosystem/go-grpc-middleware/v2,Apache-2.0
 github.com/hashicorp/errwrap,MPL-2.0
 github.com/hashicorp/go-multierror,MPL-2.0
 github.com/huandu/xstrings,MIT
-github.com/josharian/intern,MIT
 github.com/json-iterator/go,MIT
 github.com/lestrrat-go/backoff/v2,MIT
 github.com/lestrrat-go/blackmagic,MIT
@@ -98,7 +106,6 @@ github.com/lestrrat-go/iter,MIT
 github.com/lestrrat-go/jwx,MIT
 github.com/lestrrat-go/option,MIT
 github.com/liggitt/tabwriter,BSD-3-Clause
-github.com/mailru/easyjson,MIT
 github.com/mitchellh/copystructure,MIT
 github.com/mitchellh/reflectwalk,MIT
 github.com/moby/spdystream,Apache-2.0
@@ -164,7 +171,6 @@ google.golang.org/protobuf,BSD-3-Clause
 gopkg.in/evanphx/json-patch.v4,BSD-3-Clause
 gopkg.in/inf.v0,BSD-3-Clause
 gopkg.in/natefinch/lumberjack.v2,MIT
-gopkg.in/yaml.v3,MIT
 istio.io/api,Apache-2.0
 istio.io/client-go/pkg,Apache-2.0
 istio.io/istio,Apache-2.0
