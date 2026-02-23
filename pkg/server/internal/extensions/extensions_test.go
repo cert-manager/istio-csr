@@ -356,8 +356,8 @@ func buildASN1KeyUsageRequest(usage x509.KeyUsage) (pkix.Extension, error) {
 		Id: oidExtensionKeyUsage,
 	}
 	var a [2]byte
-	a[0] = reverseBitsInAByte(byte(usage))
-	a[1] = reverseBitsInAByte(byte(usage >> 8))
+	a[0] = reverseBitsInAByte(byte(usage & 0xff))
+	a[1] = reverseBitsInAByte(byte((usage >> 8) & 0xff))
 
 	l := 1
 	if a[1] != 0 {

@@ -206,7 +206,7 @@ func (dicp *DynamicIstiodCertProvisioner) Reconcile(ctx context.Context, req ctr
 		CommonName:  commonName,
 		DNSNames:    dnsNames,
 		URIs:        []string{spiffeID},
-		SecretName:  "istiod-tls",
+		SecretName:  "istiod-tls", // #nosec G101 -- not a credential, Kubernetes Secret resource name
 		Duration:    &metav1.Duration{Duration: dicp.opts.Duration},
 		RenewBefore: &metav1.Duration{Duration: dicp.opts.RenewBefore},
 		PrivateKey: &cmapi.CertificatePrivateKey{
