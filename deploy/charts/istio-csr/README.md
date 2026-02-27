@@ -17,6 +17,25 @@ nameOverride replaces the name of the chart in the Chart.yaml file when this is 
 > ```
 
 The number of replicas of istio-csr to run.
+#### **imageRegistry** ~ `string`
+> Default value:
+> ```yaml
+> quay.io
+> ```
+
+The container registry used for istio-csr images by default. This can include path prefixes (e.g. "artifactory.example.com/docker").
+
+#### **imageNamespace** ~ `string`
+> Default value:
+> ```yaml
+> jetstack
+> ```
+
+The repository namespace used for istio-csr images by default.  
+Examples:  
+- jetstack  
+- cert-manager
+
 #### **image.registry** ~ `string`
 
 Target image registry. This value is prepended to the target image repository, if set.  
@@ -27,13 +46,33 @@ registry: quay.io
 repository: jetstack/cert-manager-istio-csr
 ```
 
+Deprecated: per-component registry prefix.  
+  
+If set, this value is *prepended* to the image repository that the chart would otherwise render. This applies both when `image.repository` is set and when the repository is computed from  
+`imageRegistry` + `imageNamespace` + `image.name`.  
+  
+This can produce "double registry" style references such as  
+`legacy.example.io/quay.io/jetstack/...`. Prefer using the global  
+`imageRegistry`/`imageNamespace` values.
+
 #### **image.repository** ~ `string`
 > Default value:
 > ```yaml
-> quay.io/jetstack/cert-manager-istio-csr
+> ""
 > ```
 
-Target image repository.
+Full repository override (takes precedence over `imageRegistry`, `imageNamespace`, and `image.name`).  
+Example: quay.io/jetstack/cert-manager-istio-csr
+
+#### **image.name** ~ `string`
+> Default value:
+> ```yaml
+> cert-manager-istio-csr
+> ```
+
+The image name for istio-csr.  
+This is used (together with `imageRegistry` and `imageNamespace`) to construct the full image reference.
+
 #### **image.tag** ~ `string`
 
 Override the image tag to deploy by setting this variable. If no value is set, the chart's appVersion is used.
