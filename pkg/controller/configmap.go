@@ -30,6 +30,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
@@ -54,6 +55,9 @@ type Options struct {
 
 	// NamespaceSelector filters the namespace to creates the istio-ca-root-cert ConfigMap
 	ConfigMapNamespaceSelector string
+
+	// MaxConcurrentReconciles is the maximum number of concurrent reconciles.
+	MaxConcurrentReconciles int
 }
 
 // configmap is the controller that is responsible for ensuring that all
@@ -108,6 +112,9 @@ func AddConfigMapController(ctx context.Context, log logr.Logger, opts Options) 
 	}
 
 	return ctrl.NewControllerManagedBy(opts.Manager).
+		WithOptions(controller.Options{
+			MaxConcurrentReconciles: opts.MaxConcurrentReconciles,
+		}).
 		// Reconcile ConfigMaps but only cache metadata
 		For(new(corev1.ConfigMap), builder.OnlyMetadata, builder.WithPredicates(predicate.NewPredicateFuncs(func(obj client.Object) bool {
 			// Only process ConfigMaps with the istio configmap name

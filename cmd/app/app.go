@@ -168,6 +168,7 @@ func NewCommand(ctx context.Context) *cobra.Command {
 				TLS:                        tls,
 				Manager:                    mgr,
 				ConfigMapNamespaceSelector: opts.Controller.ConfigMapNamespaceSelector,
+				MaxConcurrentReconciles:    opts.Controller.MaxConcurrentReconciles,
 			}); err != nil {
 				return fmt.Errorf("failed to add CA root controller: %w", err)
 			}
