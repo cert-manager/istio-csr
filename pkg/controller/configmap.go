@@ -108,11 +108,17 @@ func AddConfigMapController(ctx context.Context, log logr.Logger, opts Options) 
 	}
 
 	return ctrl.NewControllerManagedBy(opts.Manager).
-		// Reconcile ConfigMaps but only cache metadata
-		For(new(corev1.ConfigMap), builder.OnlyMetadata, builder.WithPredicates(predicate.NewPredicateFuncs(func(obj client.Object) bool {
-			// Only process ConfigMaps with the istio configmap name
-			return obj.GetName() == configMapNameIstioRoot
-		}))).
+		// Reconcile ConfigMaps but only cache metadata.
+		// Use WithLowPriorityWhenUnchanged to deprioritize events from initial list sync and resyncs.
+		Watches(
+			&corev1.ConfigMap{},
+			handler.WithLowPriorityWhenUnchanged(&handler.EnqueueRequestForObject{}),
+			builder.OnlyMetadata,
+			builder.WithPredicates(predicate.NewPredicateFuncs(func(obj client.Object) bool {
+				// Only process ConfigMaps with the istio configmap name
+				return obj.GetName() == configMapNameIstioRoot
+			})),
+		).
 
 		// Watch all Namespaces. Cache whole Namespace to include Phase Status.
 		Watches(&corev1.Namespace{}, handler.EnqueueRequestsFromMapFunc(
