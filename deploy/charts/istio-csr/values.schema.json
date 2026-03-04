@@ -205,6 +205,9 @@
         },
         "leaderElectionNamespace": {
           "$ref": "#/$defs/helm-values.app.controller.leaderElectionNamespace"
+        },
+        "maxConcurrentReconciles": {
+          "$ref": "#/$defs/helm-values.app.controller.maxConcurrentReconciles"
         }
       },
       "type": "object"
@@ -221,6 +224,10 @@
     "helm-values.app.controller.leaderElectionNamespace": {
       "default": "istio-system",
       "type": "string"
+    },
+    "helm-values.app.controller.maxConcurrentReconciles": {
+      "description": "Maximum number of concurrent reconciles that the controller executes with. Defaults to 1.\nExample: 4",
+      "type": "number"
     },
     "helm-values.app.istio": {
       "additionalProperties": false,
