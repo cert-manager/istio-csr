@@ -277,6 +277,12 @@ app:
     # to avoid overloading the server.
     disableKubernetesClientRateLimiter: false
 
+    # Maximum number of concurrent reconciles that the controller executes with. Defaults to 1.
+    # Example: 4
+    # +docs:type=number
+    # +docs:property
+    # maxConcurrentReconciles:
+
 # Optional extra labels for deployment.
 deploymentLabels: {}
 
