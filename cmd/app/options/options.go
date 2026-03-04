@@ -82,6 +82,11 @@ type OptionsController struct {
 	// if the Kubernetes API server supports
 	// [API Priority and Fairness](https://kubernetes.io/docs/concepts/cluster-administration/flow-control/).
 	DisableKubernetesClientRateLimiter bool
+
+	// MaxConcurrentReconciles is the maximum number of concurrent reconciles
+	// that can be run for the controllers.
+	// The higher the number, the more goroutines get scheduled to handle queued reconciliations
+	MaxConcurrentReconciles int
 }
 
 func New() *Options {
@@ -156,6 +161,12 @@ func (o *Options) Complete() error {
 	if o.CertManager.PreserveCertificateRequests {
 		log.Info("WARNING: --preserve-certificate-requests is enabled. Do not enable this option in production, or environments with any non-trivial number of workloads for an extended period of time. Doing so will balloon the resource consumption of ETCD, the API server, and istio-csr, leading to errors and slowdown. This option is intended for debugging purposes only, for limited periods of time.")
 	}
+
+	if o.Controller.MaxConcurrentReconciles < 1 {
+		return fmt.Errorf("max-concurrent-reconciles must be at least 1, got %d", o.Controller.MaxConcurrentReconciles)
+	}
+
+	o.IstiodCert.MaxConcurrentReconciles = o.Controller.MaxConcurrentReconciles
 
 	err = o.IstiodCert.Validate()
 	if err != nil {
@@ -329,4 +340,8 @@ func (o *Options) addControllerFlags(fs *pflag.FlagSet) {
 		"disable-kubernetes-client-rate-limiter", false,
 		"Allows the default client-go rate limiter to be disabled if the Kubernetes API server supports "+
 			"[API Priority and Fairness](https://kubernetes.io/docs/concepts/cluster-administration/flow-control/)")
+
+	fs.IntVar(&o.Controller.MaxConcurrentReconciles,
+		"max-concurrent-reconciles", 1,
+		"Maximum number of concurrent reconciles for controllers.")
 }
