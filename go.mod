@@ -3,7 +3,7 @@ module github.com/cert-manager/istio-csr
 go 1.25.7
 
 require (
-	github.com/cert-manager/cert-manager v1.19.4
+	github.com/cert-manager/cert-manager v1.20.1
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/go-logr/logr v1.4.3
 	github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus v1.1.0
@@ -16,7 +16,7 @@ require (
 	github.com/stretchr/testify v1.11.1
 	google.golang.org/grpc v1.79.3
 	google.golang.org/protobuf v1.36.11
-	istio.io/api v1.29.0
+	istio.io/api v1.29.1
 	istio.io/istio v0.0.0-20260327152851-d9ada8aa419e
 	k8s.io/api v0.35.3
 	k8s.io/apimachinery v0.35.3
@@ -152,7 +152,7 @@ require (
 	istio.io/client-go v1.29.0-alpha.0.0.20260315093321-a99807642da7 // indirect
 	k8s.io/apiextensions-apiserver v0.35.3 // indirect
 	k8s.io/apiserver v0.35.3 // indirect
-	k8s.io/kube-openapi v0.0.0-20251125145642-4e65d59e963e // indirect
+	k8s.io/kube-openapi v0.0.0-20260127142750-a19766b6e2d4 // indirect
 	sigs.k8s.io/gateway-api v1.5.1 // indirect
 	sigs.k8s.io/gateway-api-inference-extension v0.0.0-20250930181416-bfd979d7576a // indirect
 	sigs.k8s.io/json v0.0.0-20250730193827-2d320260d730 // indirect
