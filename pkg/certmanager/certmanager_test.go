@@ -43,7 +43,7 @@ func Test_Sign(t *testing.T) {
 	}{
 		"preserveCRs=true if request is denied, return error": {
 			client: func() *fake.Clientset {
-				client := fake.NewSimpleClientset(
+				client := fake.NewClientset(
 					gen.CertificateRequest("test-cr"),
 				)
 				client.PrependWatchReactor("*", func(coretesting.Action) (bool, watch.Interface, error) {
@@ -70,7 +70,7 @@ func Test_Sign(t *testing.T) {
 
 		"preserveCRs=false if request is denied, return error and delete object": {
 			client: func() *fake.Clientset {
-				client := fake.NewSimpleClientset(
+				client := fake.NewClientset(
 					gen.CertificateRequest("test-cr"),
 				)
 				client.PrependWatchReactor("*", func(coretesting.Action) (bool, watch.Interface, error) {
@@ -97,7 +97,7 @@ func Test_Sign(t *testing.T) {
 
 		"preserveCRs=true if request is failed, return error": {
 			client: func() *fake.Clientset {
-				client := fake.NewSimpleClientset(
+				client := fake.NewClientset(
 					gen.CertificateRequest("test-cr"),
 				)
 				client.PrependWatchReactor("*", func(coretesting.Action) (bool, watch.Interface, error) {
@@ -125,7 +125,7 @@ func Test_Sign(t *testing.T) {
 
 		"preserveCRs=false if request is failed, return error and delete object": {
 			client: func() *fake.Clientset {
-				client := fake.NewSimpleClientset(
+				client := fake.NewClientset(
 					gen.CertificateRequest("test-cr"),
 				)
 				client.PrependWatchReactor("*", func(coretesting.Action) (bool, watch.Interface, error) {
@@ -153,7 +153,7 @@ func Test_Sign(t *testing.T) {
 
 		"preserveCRs=true if request is signed, return bundle": {
 			client: func() *fake.Clientset {
-				client := fake.NewSimpleClientset(
+				client := fake.NewClientset(
 					gen.CertificateRequest("test-cr"),
 				)
 				client.PrependWatchReactor("*", func(coretesting.Action) (bool, watch.Interface, error) {
@@ -181,7 +181,7 @@ func Test_Sign(t *testing.T) {
 
 		"preserveCRs=false if request is signed, return bundle and delete object": {
 			client: func() *fake.Clientset {
-				client := fake.NewSimpleClientset(
+				client := fake.NewClientset(
 					gen.CertificateRequest("test-cr"),
 				)
 				client.PrependWatchReactor("*", func(coretesting.Action) (bool, watch.Interface, error) {
@@ -212,7 +212,7 @@ func Test_Sign(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			client := test.client()
 
-			dummyIssuerRef := cmmeta.ObjectReference{
+			dummyIssuerRef := cmmeta.IssuerReference{
 				Name:  "dummy",
 				Kind:  "Issuer",
 				Group: "cert-manager.io",
@@ -270,7 +270,7 @@ func Test_waitForCertificateRequest(t *testing.T) {
 	}{
 		"if the request does not exist, should return with error": {
 			client: func() cmclient.CertificateRequestInterface {
-				return fake.NewSimpleClientset().CertmanagerV1().CertificateRequests(gen.DefaultTestNamespace)
+				return fake.NewClientset().CertmanagerV1().CertificateRequests(gen.DefaultTestNamespace)
 			},
 
 			expResult: nil,
@@ -278,7 +278,7 @@ func Test_waitForCertificateRequest(t *testing.T) {
 		},
 		"if the request is denied, should return with error": {
 			client: func() cmclient.CertificateRequestInterface {
-				return fake.NewSimpleClientset(
+				return fake.NewClientset(
 					gen.CertificateRequest("test-cr",
 						gen.AddCertificateRequestStatusCondition(cmapi.CertificateRequestCondition{
 							Type:   cmapi.CertificateRequestConditionDenied,
@@ -297,7 +297,7 @@ func Test_waitForCertificateRequest(t *testing.T) {
 
 		"if the request has failed, should return with error": {
 			client: func() cmclient.CertificateRequestInterface {
-				return fake.NewSimpleClientset(
+				return fake.NewClientset(
 					gen.CertificateRequest("test-cr",
 						gen.AddCertificateRequestStatusCondition(cmapi.CertificateRequestCondition{
 							Type:   cmapi.CertificateRequestConditionReady,
@@ -318,7 +318,7 @@ func Test_waitForCertificateRequest(t *testing.T) {
 
 		"if the request has been signed, should return with no error": {
 			client: func() cmclient.CertificateRequestInterface {
-				return fake.NewSimpleClientset(
+				return fake.NewClientset(
 					gen.CertificateRequest("test-cr",
 						gen.SetCertificateRequestCertificate([]byte("signed-cert")),
 					),
@@ -333,7 +333,7 @@ func Test_waitForCertificateRequest(t *testing.T) {
 
 		"if the request is not signed then receives denied update, should return with error": {
 			client: func() cmclient.CertificateRequestInterface {
-				client := fake.NewSimpleClientset(
+				client := fake.NewClientset(
 					gen.CertificateRequest("test-cr"),
 				)
 				client.PrependWatchReactor("*", func(coretesting.Action) (bool, watch.Interface, error) {
@@ -362,7 +362,7 @@ func Test_waitForCertificateRequest(t *testing.T) {
 		},
 		"if the request is not signed then receives failed update, should return with error": {
 			client: func() cmclient.CertificateRequestInterface {
-				client := fake.NewSimpleClientset(
+				client := fake.NewClientset(
 					gen.CertificateRequest("test-cr"),
 				)
 				client.PrependWatchReactor("*", func(coretesting.Action) (bool, watch.Interface, error) {
@@ -393,7 +393,7 @@ func Test_waitForCertificateRequest(t *testing.T) {
 		},
 		"if the request is not signed then receives signed update, should return with no error": {
 			client: func() cmclient.CertificateRequestInterface {
-				client := fake.NewSimpleClientset(
+				client := fake.NewClientset(
 					gen.CertificateRequest("test-cr"),
 				)
 				client.PrependWatchReactor("*", func(coretesting.Action) (bool, watch.Interface, error) {
@@ -416,7 +416,7 @@ func Test_waitForCertificateRequest(t *testing.T) {
 		},
 		"if the request is not signed then gets deleted, should return with error": {
 			client: func() cmclient.CertificateRequestInterface {
-				client := fake.NewSimpleClientset(
+				client := fake.NewClientset(
 					gen.CertificateRequest("test-cr"),
 				)
 				client.PrependWatchReactor("*", func(coretesting.Action) (bool, watch.Interface, error) {

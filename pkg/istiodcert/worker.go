@@ -59,8 +59,8 @@ type DynamicIstiodCertProvisioner struct {
 	certManagerClient cmclient.CertificateInterface
 	opts              Options
 
-	initialIssuerRef *cmmeta.ObjectReference
-	issuerRef        *cmmeta.ObjectReference
+	initialIssuerRef *cmmeta.IssuerReference
+	issuerRef        *cmmeta.IssuerReference
 
 	issuerRefMutex sync.Mutex
 
@@ -124,7 +124,7 @@ func (dicp *DynamicIstiodCertProvisioner) NeedLeaderElection() bool {
 	return true
 }
 
-func (dicp *DynamicIstiodCertProvisioner) handleNewIssuer(issuerRef *cmmeta.ObjectReference) {
+func (dicp *DynamicIstiodCertProvisioner) handleNewIssuer(issuerRef *cmmeta.IssuerReference) {
 	dicp.issuerRefMutex.Lock()
 	defer dicp.issuerRefMutex.Unlock()
 
