@@ -432,6 +432,9 @@ func (p *Provider) fetchCertificate(ctx context.Context) (time.Time, error) {
 		NextProtos: []string{"h2"},
 		ClientAuth: tls.VerifyClientCertIfGiven,
 		ClientCAs:  peerCertVerifier.GetGeneralCertPool(),
+		// Disable session ticket resumption to ensure VerifyPeerCertificate is called for
+		// every connection, not just full TLS handshakes.
+		SessionTicketsDisabled: true,
 		VerifyPeerCertificate: func(rawCerts [][]byte, verifiedChains [][]*x509.Certificate) error {
 			err := peerCertVerifier.VerifyPeerCert(rawCerts, verifiedChains)
 			if err != nil {
