@@ -55,7 +55,7 @@ type Options struct {
 	DefaultIssuerEnabled bool
 
 	// IssuerRef is used as the issuerRef on created CertificateRequests.
-	IssuerRef cmmeta.ObjectReference
+	IssuerRef cmmeta.IssuerReference
 
 	// IssuanceConfigMapName is the name of a ConfigMap to watch for configuration options. The ConfigMap is expected to be in the same namespace as the csi-driver-spiffe pod.
 	IssuanceConfigMapName string
@@ -82,11 +82,11 @@ type Signer interface {
 // IssuerChangeSubscription is a subscription that can be used to get changes
 // to issuer config
 type IssuerChangeSubscription struct {
-	C <-chan *cmmeta.ObjectReference
+	C <-chan *cmmeta.IssuerReference
 
 	// The same channel as above is mirrored in sendChannel, but without the "<-"
 	// restriction. This allows the channel to be written to by this package.
-	sendChannel chan *cmmeta.ObjectReference
+	sendChannel chan *cmmeta.IssuerReference
 
 	lock   sync.Mutex
 	closed bool
@@ -127,7 +127,7 @@ type IssuerChangeNotifier interface {
 
 	// InitialIssuer returns the "static" issuer which was configured at startup. Will
 	// always return nil if no such issuer exists.
-	InitialIssuer() *cmmeta.ObjectReference
+	InitialIssuer() *cmmeta.IssuerReference
 }
 
 // manager is used for signing CSRs via cert-manager. manager will create
@@ -145,14 +145,14 @@ type manager struct {
 	// activeIssuerRef controls the issuerRef actually used when creating
 	// CertificateRequest objects. Can be empty, which will cause issuance to
 	// fail until runtime configuration is applied.
-	activeIssuerRef *cmmeta.ObjectReference
+	activeIssuerRef *cmmeta.IssuerReference
 
 	activeIssuerRefMutex sync.RWMutex
 
 	// originalIssuerRef is the issuerRef passed at startup. This will be used
 	// if no runtime configuration (ConfigMap configuration) is found, or if the
 	// ConfigMap for runtime configuration is deleted.
-	originalIssuerRef *cmmeta.ObjectReference
+	originalIssuerRef *cmmeta.IssuerReference
 
 	issuerChangeSubscriptions      []*IssuerChangeSubscription
 	issuerChangeSubscriptionsMutex sync.Mutex
@@ -345,7 +345,7 @@ func (m *manager) handleRuntimeConfigIssuerChange(logger logr.Logger, event watc
 		return fmt.Errorf("got unexpected type for runtime configuration source; this is likely a programming error")
 	}
 
-	issuerRef := &cmmeta.ObjectReference{}
+	issuerRef := &cmmeta.IssuerReference{}
 
 	var dataErrs []error
 	var exists bool
@@ -492,7 +492,7 @@ LOOP:
 	return nil
 }
 
-func (m *manager) RuntimeConfigurationWatcher(ctx context.Context) ctrlmgr.Runnable {
+func (m *manager) RuntimeConfigurationWatcher(_ context.Context) ctrlmgr.Runnable {
 	return &RuntimeConfigurationWatcher{
 		m: m,
 	}
@@ -502,7 +502,7 @@ func (m *manager) SubscribeIssuerChange() *IssuerChangeSubscription {
 	m.issuerChangeSubscriptionsMutex.Lock()
 	defer m.issuerChangeSubscriptionsMutex.Unlock()
 
-	ch := make(chan *cmmeta.ObjectReference)
+	ch := make(chan *cmmeta.IssuerReference)
 	sub := &IssuerChangeSubscription{
 		C:           ch,
 		sendChannel: ch,
@@ -552,11 +552,11 @@ func (m *manager) HasIssuerConfig() bool {
 	return m.activeIssuerRef != nil
 }
 
-func (m *manager) InitialIssuer() *cmmeta.ObjectReference {
+func (m *manager) InitialIssuer() *cmmeta.IssuerReference {
 	return m.originalIssuerRef
 }
 
-func (m *manager) notifyIssuerChange(issuerRef *cmmeta.ObjectReference) {
+func (m *manager) notifyIssuerChange(issuerRef *cmmeta.IssuerReference) {
 	m.issuerChangeSubscriptionsMutex.Lock()
 	defer m.issuerChangeSubscriptionsMutex.Unlock()
 
@@ -580,7 +580,7 @@ func (m *manager) notifyIssuerChange(issuerRef *cmmeta.ObjectReference) {
 
 var errNoOriginalIssuer = fmt.Errorf("no original issuer was provided")
 
-func handleOriginalIssuerRef(opts Options) (*cmmeta.ObjectReference, error) {
+func handleOriginalIssuerRef(opts Options) (*cmmeta.IssuerReference, error) {
 	if !opts.DefaultIssuerEnabled {
 		return nil, errNoOriginalIssuer
 	}

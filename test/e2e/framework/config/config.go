@@ -27,7 +27,7 @@ type Config struct {
 	KubeConfigPath string
 	KubectlPath    string
 
-	IssuerRef cmmeta.ObjectReference
+	IssuerRef cmmeta.IssuerReference
 
 	IssuanceConfigMapName      string
 	IssuanceConfigMapNamespace string
