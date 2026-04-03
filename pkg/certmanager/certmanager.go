@@ -546,8 +546,8 @@ func (m *manager) WaitForIssuerConfig(ctx context.Context) {
 }
 
 func (m *manager) HasIssuerConfig() bool {
-	m.activeIssuerRefMutex.Lock()
-	defer m.activeIssuerRefMutex.Unlock()
+	m.activeIssuerRefMutex.RLock()
+	defer m.activeIssuerRefMutex.RUnlock()
 
 	return m.activeIssuerRef != nil
 }
