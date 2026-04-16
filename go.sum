@@ -382,8 +382,8 @@ gopkg.in/natefinch/lumberjack.v2 v2.2.1/go.mod h1:YD8tP3GAjkrDg1eZH7EGmyESg/lsYs
 gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
 gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=
 gopkg.in/yaml.v3 v3.0.1/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
-istio.io/api v1.29.1 h1:dSure3CSur+mRZYvTYRUNgR/P+TYO5ItlPk1lUu4rU8=
-istio.io/api v1.29.1/go.mod h1:+brQWcBHoROuyA6fv8rbgg8Kfn0RCGuqoY0duCMuSLA=
+istio.io/api v1.29.2 h1:KPYyUHQdbRUfx21JDZQr906d7PyWA9R8cIR1WS0MTo4=
+istio.io/api v1.29.2/go.mod h1:+brQWcBHoROuyA6fv8rbgg8Kfn0RCGuqoY0duCMuSLA=
 istio.io/client-go v1.29.0-alpha.0.0.20260315093321-a99807642da7 h1:97bNUAf5WKMNahFEJNK7jEwGQtUTakX4mvfxvLdwUEs=
 istio.io/client-go v1.29.0-alpha.0.0.20260315093321-a99807642da7/go.mod h1:E0XopenAg4Tf1nmeayMOGG05Keu46Ag9orBFmNUuwd0=
 istio.io/istio v0.0.0-20260327152851-d9ada8aa419e h1:jAJ4wbtMg4fpC7LwwIcctjzbFyPmEe8dm9Sw/jBqR9Q=
