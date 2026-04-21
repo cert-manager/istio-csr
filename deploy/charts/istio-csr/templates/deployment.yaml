@@ -96,6 +96,15 @@ spec:
         {{- end  }}
           - "--serving-certificate-duration={{.Values.app.tls.certificateDuration}}"
           - "--trust-domain={{.Values.app.tls.trustDomain}}"
+          {{- if .Values.app.tls.servingTLSMinVersion }}
+          - "--serving-tls-min-version={{ .Values.app.tls.servingTLSMinVersion }}"
+          {{- end }}
+          {{- range .Values.app.tls.servingTLSCipherSuites }}
+          - "--serving-tls-cipher-suites={{ . }}"
+          {{- end }}
+          {{- range .Values.app.tls.servingTLSCurvePreferences }}
+          - "--serving-tls-curve-preferences={{ . }}"
+          {{- end }}
 
           # server
           - "--cluster-id={{.Values.app.server.clusterID}}"
