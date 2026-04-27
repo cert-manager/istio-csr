@@ -117,6 +117,9 @@ spec:
           - "--configmap-namespace-selector={{ .Values.app.controller.configmapNamespaceSelector }}"
           {{- end }}
           - "--disable-kubernetes-client-rate-limiter={{ .Values.app.controller.disableKubernetesClientRateLimiter }}"
+          {{- if gt (.Values.app.controller.maxConcurrentReconciles | int) 1 }}
+          - "--max-concurrent-reconciles={{ .Values.app.controller.maxConcurrentReconciles | int }}"
+          {{- end }}
 
           - "--runtime-issuance-config-map-name={{ include "cert-manager-istio-csr.runtimeConfigurationName" . }}"
           - "--runtime-issuance-config-map-namespace={{.Release.Namespace}}"

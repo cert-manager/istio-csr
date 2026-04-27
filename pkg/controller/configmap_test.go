@@ -217,6 +217,7 @@ func Test_Reconcile(t *testing.T) {
 				log:               ktesting.NewLogger(t, ktesting.DefaultConfig),
 				tls:               tlsfake.New().WithRootCAs([]byte(rootCAData), nil),
 				namespaceSelector: namespaceSelector,
+				rootCAsPEM:        rootCAData,
 			}
 
 			result, err := c.Reconcile(t.Context(), ctrl.Request{NamespacedName: types.NamespacedName{Namespace: "test-ns", Name: "istio-ca-root-cert"}})
