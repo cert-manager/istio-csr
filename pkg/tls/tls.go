@@ -149,6 +149,10 @@ func NewProvider(log logr.Logger, cm certmanager.Signer, opts Options, issuerCha
 	if err != nil {
 		return nil, fmt.Errorf("serving tls min version: %w", err)
 	}
+	// Enforce a hard security floor to avoid accidental downgrades to TLS 1.0/1.1.
+	if minVersion < tls.VersionTLS12 {
+		return nil, fmt.Errorf("serving tls min version must be VersionTLS12 or higher")
+	}
 	cipherSuites, err := cliflag.TLSCipherSuites(opts.ServingTLSCipherSuites)
 	if err != nil {
 		return nil, fmt.Errorf("serving tls cipher suites: %w", err)
@@ -332,8 +336,11 @@ func (p *Provider) Config(ctx context.Context) (*tls.Config, error) {
 		p.lock.RUnlock()
 
 		if conf != nil {
+			// Keep MinVersion enforcement local so static analyzers can prove we never
+			// build configs below TLS 1.2.
+			effectiveMinVersion := max(p.servingMinVersion, uint16(tls.VersionTLS12))
 			cfg := &tls.Config{
-				MinVersion:         p.servingMinVersion,
+				MinVersion:         effectiveMinVersion, // #nosec G402 -- value is clamped to TLS 1.2+ above.
 				GetConfigForClient: p.getConfigForClient,
 				ClientAuth:         tls.RequireAndVerifyClientCert,
 			}
@@ -470,8 +477,11 @@ func (p *Provider) fetchCertificate(ctx context.Context) (time.Time, error) {
 	// this provider. This config will serve using the just signed certificate
 	// and private key. Mutually authenticate incoming client requests based if a
 	// certificate is present.
+	// Keep MinVersion enforcement local so static analyzers can prove we never
+	// build configs below TLS 1.2.
+	effectiveMinVersion := max(p.servingMinVersion, uint16(tls.VersionTLS12))
 	inner := &tls.Config{
-		MinVersion:   p.servingMinVersion,
+		MinVersion:   effectiveMinVersion, // #nosec G402 -- value is clamped to TLS 1.2+ above.
 		Certificates: []tls.Certificate{tlsCert},
 		// Advertise ALPN, required in modern gRPC versions
 		// Typically gRPC sets this for us, but since this tls.Config ultimately gets returned in GetConfigForClient it doesn't.

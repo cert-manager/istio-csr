@@ -51,6 +51,11 @@ func TestNewProvider_InvalidServingTLS(t *testing.T) {
 		ServingTLSMinVersion: "VersionTLS0xBAD",
 	}, stubIssuerNotifier{})
 	require.Error(t, err)
+
+	_, err = NewProvider(logr.Discard(), cmfake.New(), Options{
+		ServingTLSMinVersion: "VersionTLS11",
+	}, stubIssuerNotifier{})
+	require.EqualError(t, err, "serving tls min version must be VersionTLS12 or higher")
 }
 
 func TestNewProvider_ValidServingTLSDefaults(t *testing.T) {
