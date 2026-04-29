@@ -31,12 +31,11 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 
 {{/*
 Util function for generating the image URL based on the provided options.
-IMPORTANT: This function is standarized across all charts in the cert-manager GH organization.
 IMPORTANT: This function is standardized across all charts in the cert-manager GH organization.
 Any changes to this function should also be made in cert-manager, trust-manager, approver-policy, ...
 See https://github.com/cert-manager/cert-manager/issues/6329 for a list of linked PRs.
 */}}
-{{- define "image" -}}
+{{- define "cert-manager-istio-csr.image" -}}
 {{- /*
 Calling convention:
 - (tuple <imageValues> <imageRegistry> <imageNamespace> <defaultReference>)
@@ -45,7 +44,7 @@ from `.Values` inside this helper, because `helm-tool lint` does not reliably tr
 usage through tuple/variable indirection.
 */ -}}
 {{- if ne (len .) 4 -}}
-    {{- fail (printf "ERROR: template \"image\" expects (tuple <imageValues> <imageRegistry> <imageNamespace> <defaultReference>), got %d arguments" (len .)) -}}
+    {{- fail (printf "ERROR: template \"cert-manager-istio-csr.image\" expects (tuple <imageValues> <imageRegistry> <imageNamespace> <defaultReference>), got %d arguments" (len .)) -}}
 {{- end -}}
 {{- $image := index . 0 -}}
 {{- $imageRegistry := index . 1 | default "" -}}
@@ -86,7 +85,7 @@ usage through tuple/variable indirection.
 {{- else -}}
     {{- printf "%s" $defaultReference -}}
 {{- end -}}
-{{- end }}
+{{- end -}}
 
 {{/*
 Runtime config name
