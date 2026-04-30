@@ -130,7 +130,6 @@ github.com/shopspring/decimal,MIT
 github.com/spf13/cast,MIT
 github.com/spf13/cobra,Apache-2.0
 github.com/spf13/pflag,BSD-3-Clause
-github.com/stoewer/go-strcase,MIT
 github.com/x448/float16,MIT
 github.com/xlab/treeprint,MIT
 go.opentelemetry.io/auto/sdk,Apache-2.0
