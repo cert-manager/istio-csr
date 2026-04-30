@@ -4,7 +4,7 @@ go 1.25.7
 
 require (
 	github.com/cert-manager/cert-manager v1.20.2
-	github.com/fsnotify/fsnotify v1.9.0
+	github.com/fsnotify/fsnotify v1.10.0
 	github.com/go-logr/logr v1.4.3
 	github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus v1.1.0
 	github.com/lestrrat-go/backoff/v2 v2.0.8
