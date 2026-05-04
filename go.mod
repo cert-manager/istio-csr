@@ -4,7 +4,7 @@ go 1.25.7
 
 require (
 	github.com/cert-manager/cert-manager v1.20.2
-	github.com/fsnotify/fsnotify v1.10.0
+	github.com/fsnotify/fsnotify v1.10.1
 	github.com/go-logr/logr v1.4.3
 	github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus v1.1.0
 	github.com/lestrrat-go/backoff/v2 v2.0.8
@@ -14,7 +14,7 @@ require (
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/pflag v1.0.10
 	github.com/stretchr/testify v1.11.1
-	google.golang.org/grpc v1.80.0
+	google.golang.org/grpc v1.81.0
 	google.golang.org/protobuf v1.36.11
 	istio.io/api v1.30.0-beta.0
 	istio.io/istio v0.0.0-20260430121513-9c526047be4b
