@@ -326,6 +326,27 @@ An optional file location to a PEM encoded root CA that the root CA. ConfigMap i
 > ```
 
 Requested duration of the gRPC serving certificate. Will be automatically renewed. Based on [NIST 800-204A recommendations (SM-DR13)](https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf).
+#### **app.tls.servingTLSMinVersion** ~ `string`
+
+Minimum TLS version for the gRPC serving listener (Kubernetes-style name, e.g. VersionTLS12).  
+If unset, TLS 1.2 is used.
+
+#### **app.tls.servingTLSCipherSuites** ~ `array`
+> Default value:
+> ```yaml
+> []
+> ```
+
+Cipher suites for the gRPC serving listener (TLS_CIPHER_SUITE names). If empty, Go defaults apply.
+
+#### **app.tls.servingTLSCurvePreferences** ~ `array`
+> Default value:
+> ```yaml
+> []
+> ```
+
+TLS key exchange curves for the gRPC listener (e.g. X25519, CurveP256, or decimal CurveID). If empty, Go defaults apply.
+
 #### **app.tls.istiodCertificateEnable** ~ `boolean,string,null`
 > Default value:
 > ```yaml
