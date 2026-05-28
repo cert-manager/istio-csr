@@ -34,14 +34,17 @@ sleep 5s
 echo ">> rotating httpbin pod so it picks up new CA"
 POD_NAME=$($KUBECTL_BIN get pod -n sandbox -l app=httpbin -o jsonpath='{.items[0].metadata.name}')
 echo ">> current mTLS certificate"
-$ISTIO_BIN pc s "$POD_NAME" -n sandbox -o json | $JQ_BIN -r '.dynamicActiveSecrets[0].secret.tlsCertificate.certificateChain.inlineBytes' | base64 -d | openssl x509 --noout --text | grep Issuer:
+# Use process substitution so openssl reads from a file. Piping a multi-cert
+# chain into `openssl x509` causes it to close stdin after parsing the first
+# cert, which gives the upstream `base64 -d` a SIGPIPE and trips `pipefail`.
+openssl x509 -in <($ISTIO_BIN pc s "$POD_NAME" -n sandbox -o json | $JQ_BIN -r '.dynamicActiveSecrets[0].secret.tlsCertificate.certificateChain.inlineBytes' | base64 -d) --noout --text | grep Issuer:
 
 $KUBECTL_BIN delete po -n sandbox "$POD_NAME" --wait --timeout=180s
 $KUBECTL_BIN wait -n sandbox --for=condition=ready pod -l app=httpbin --timeout=180s
 
 echo ">> new mTLS certificate"
 POD_NAME=$($KUBECTL_BIN get pod -n sandbox -l app=httpbin -o jsonpath='{.items[0].metadata.name}')
-$ISTIO_BIN pc s "$POD_NAME" -n sandbox -o json | $JQ_BIN -r '.dynamicActiveSecrets[0].secret.tlsCertificate.certificateChain.inlineBytes' | base64 -d | openssl x509 --noout --text | grep Issuer:
+openssl x509 -in <($ISTIO_BIN pc s "$POD_NAME" -n sandbox -o json | $JQ_BIN -r '.dynamicActiveSecrets[0].secret.tlsCertificate.certificateChain.inlineBytes' | base64 -d) --noout --text | grep Issuer:
 
 
 echo ">> testing mTLS connection between workloads"
