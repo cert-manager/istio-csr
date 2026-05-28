@@ -23,8 +23,8 @@ echo ">> cleaning up resources"
 
 rm -f "$TEST_DIR/ca.pem"
 
-echo ">> exporting kind loads"
-$KIND_BIN export logs "$ARTIFACTS" --name "$KIND_CLUSTER_NAME"
+echo ">> exporting kind logs (non-fatal)"
+$KIND_BIN export logs "$ARTIFACTS" --name "$KIND_CLUSTER_NAME" || true
 
 echo ">> deleting cluster..."
 $KIND_BIN delete cluster --name "$KIND_CLUSTER_NAME"
