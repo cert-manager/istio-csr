@@ -36,7 +36,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
-	"k8s.io/utils/ptr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -218,7 +217,7 @@ func (dicp *DynamicIstiodCertProvisioner) Reconcile(ctx context.Context, req ctr
 			Algorithm:      dicp.opts.CMKeyAlgorithm,
 			Size:           dicp.opts.KeySize,
 		},
-		RevisionHistoryLimit: ptr.To(int32(1)),
+		RevisionHistoryLimit: new(int32(1)),
 		IssuerRef:            *dicp.issuerRef,
 	}
 
