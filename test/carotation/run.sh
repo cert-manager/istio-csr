@@ -14,6 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+trap 'echo "EXIT at line $LINENO, code $?"' EXIT
+trap 'echo "PIPE at line $LINENO"' PIPE
+
 set -o nounset
 set -o errexit
 set -o pipefail
