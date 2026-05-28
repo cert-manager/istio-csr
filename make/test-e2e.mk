@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ISTIO_VERSION ?= 1.23.2
+ISTIO_VERSION ?= 1.29.3
 ISTIO_CONFIG_FILE ?= ./make/config/istio/istio-config-default.yaml
 
 .PHONY: print-latest-istio-version
