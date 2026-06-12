@@ -261,6 +261,24 @@ func (o *Options) addTLSFlags(fs *pflag.FlagSet) {
 		"serving-signature-algorithm", "RSA",
 		"The type of signature algorithm to use when generating private keys. "+
 			"Currently only RSA and ECDSA are supported. By default RSA is used.")
+
+	tlsCipherPossibleValues := cliflag.TLSCipherPossibleValues()
+	fs.StringSliceVar(&o.TLS.ServingTLSCipherSuites,
+		"serving-tls-cipher-suites", o.TLS.ServingTLSCipherSuites,
+		"Comma-separated list of cipher suites for the gRPC serving listener. "+
+			"If omitted, the default Go cipher suites are used. "+
+			"Possible values include: "+strings.Join(tlsCipherPossibleValues, ","))
+	tlsPossibleVersions := cliflag.TLSPossibleVersions()
+	fs.StringVar(&o.TLS.ServingTLSMinVersion,
+		"serving-tls-min-version", o.TLS.ServingTLSMinVersion,
+		"Minimum TLS version for the gRPC serving listener. "+
+			"If omitted, TLS 1.2 is used (matching the previous hard-coded default). "+
+			"Possible values: "+strings.Join(tlsPossibleVersions, ", "))
+	fs.StringSliceVar(&o.TLS.ServingTLSCurvePreferences,
+		"serving-tls-curve-preferences", o.TLS.ServingTLSCurvePreferences,
+		"Ordered list of TLS key exchange curves for the gRPC serving listener "+
+			"(for example X25519,CurveP256, or decimal tls.CurveID values supported by this Go toolchain). "+
+			"If omitted, Go defaults are used.")
 }
 
 func (o *Options) addCertManagerFlags(fs *pflag.FlagSet) {

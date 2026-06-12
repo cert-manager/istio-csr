@@ -35,6 +35,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"istio.io/istio/pkg/spiffe"
 	pkiutil "istio.io/istio/security/pkg/pki/util"
+	cliflag "k8s.io/component-base/cli/flag"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/metrics"
 
@@ -101,6 +102,19 @@ type Options struct {
 	// ServingSignatureAlgorithm is the type of key of serving signature algorithm
 	// used, RSA or ECDSA, The default is RSA.
 	ServingSignatureAlgorithm string
+
+	// ServingTLSMinVersion is the minimum TLS version for the gRPC listener,
+	// using Kubernetes-style version names (for example VersionTLS12). Empty
+	// selects TLS 1.2, matching the historical default.
+	ServingTLSMinVersion string
+
+	// ServingTLSCipherSuites restricts cipher suites for the gRPC listener.
+	// Empty means use Go defaults (same as leaving tls.Config.CipherSuites nil).
+	ServingTLSCipherSuites []string
+
+	// ServingTLSCurvePreferences sets tls.Config.CurvePreferences for the gRPC
+	// listener. Empty means use Go defaults.
+	ServingTLSCurvePreferences []string
 }
 
 // Provider is used to provide a tls config containing an automatically renewed
@@ -116,6 +130,12 @@ type Provider struct {
 
 	cm certmanager.Signer
 
+	servingMinVersion        uint16
+	servingCipherSuites      []uint16
+	servingCurvePreferences  []tls.CurveID
+	servingApplyCipherSuites bool
+	servingApplyCurvePrefs   bool
+
 	lock          sync.RWMutex
 	tlsConfig     *tls.Config
 	subscriptions []chan<- event.GenericEvent
@@ -125,13 +145,36 @@ type Provider struct {
 
 // NewProvider will return a new provider where a TLS config is ready to be fetched.
 func NewProvider(log logr.Logger, cm certmanager.Signer, opts Options, issuerChangeNotifier certmanager.IssuerChangeNotifier) (*Provider, error) {
-	return &Provider{
+	minVersion, err := cliflag.TLSVersion(opts.ServingTLSMinVersion)
+	if err != nil {
+		return nil, fmt.Errorf("serving tls min version: %w", err)
+	}
+	// Enforce a hard security floor to avoid accidental downgrades to TLS 1.0/1.1.
+	if minVersion < tls.VersionTLS12 {
+		return nil, fmt.Errorf("serving tls min version must be VersionTLS12 or higher")
+	}
+	cipherSuites, err := cliflag.TLSCipherSuites(opts.ServingTLSCipherSuites)
+	if err != nil {
+		return nil, fmt.Errorf("serving tls cipher suites: %w", err)
+	}
+	curves, err := ParseCurvePreferences(opts.ServingTLSCurvePreferences)
+	if err != nil {
+		return nil, fmt.Errorf("serving tls curve preferences: %w", err)
+	}
+
+	p := &Provider{
 		opts: opts,
 		log:  log.WithName("tls-provider"),
 		cm:   cm,
 
-		issuerChangeNotifier: issuerChangeNotifier,
-	}, nil
+		servingMinVersion:       minVersion,
+		servingCipherSuites:     cipherSuites,
+		servingCurvePreferences: curves,
+		issuerChangeNotifier:    issuerChangeNotifier,
+	}
+	p.servingApplyCipherSuites = len(cipherSuites) > 0
+	p.servingApplyCurvePrefs = len(curves) > 0
+	return p, nil
 }
 
 // Start will start the TLS provider. This will fetch a serving certificate and
@@ -293,11 +336,21 @@ func (p *Provider) Config(ctx context.Context) (*tls.Config, error) {
 		p.lock.RUnlock()
 
 		if conf != nil {
-			return &tls.Config{
-				MinVersion:         tls.VersionTLS12,
+			// Keep MinVersion enforcement local so static analyzers can prove we never
+			// build configs below TLS 1.2.
+			effectiveMinVersion := max(p.servingMinVersion, uint16(tls.VersionTLS12))
+			cfg := &tls.Config{
+				MinVersion:         effectiveMinVersion, // #nosec G402 -- value is clamped to TLS 1.2+ above.
 				GetConfigForClient: p.getConfigForClient,
 				ClientAuth:         tls.RequireAndVerifyClientCert,
-			}, nil
+			}
+			if p.servingApplyCipherSuites {
+				cfg.CipherSuites = p.servingCipherSuites
+			}
+			if p.servingApplyCurvePrefs {
+				cfg.CurvePreferences = p.servingCurvePreferences
+			}
+			return cfg, nil
 		}
 
 		select {
@@ -424,8 +477,11 @@ func (p *Provider) fetchCertificate(ctx context.Context) (time.Time, error) {
 	// this provider. This config will serve using the just signed certificate
 	// and private key. Mutually authenticate incoming client requests based if a
 	// certificate is present.
-	p.tlsConfig = &tls.Config{
-		MinVersion:   tls.VersionTLS12,
+	// Keep MinVersion enforcement local so static analyzers can prove we never
+	// build configs below TLS 1.2.
+	effectiveMinVersion := max(p.servingMinVersion, uint16(tls.VersionTLS12))
+	inner := &tls.Config{
+		MinVersion:   effectiveMinVersion, // #nosec G402 -- value is clamped to TLS 1.2+ above.
 		Certificates: []tls.Certificate{tlsCert},
 		// Advertise ALPN, required in modern gRPC versions
 		// Typically gRPC sets this for us, but since this tls.Config ultimately gets returned in GetConfigForClient it doesn't.
@@ -443,6 +499,13 @@ func (p *Provider) fetchCertificate(ctx context.Context) (time.Time, error) {
 			return err
 		},
 	}
+	if p.servingApplyCipherSuites {
+		inner.CipherSuites = p.servingCipherSuites
+	}
+	if p.servingApplyCurvePrefs {
+		inner.CurvePreferences = p.servingCurvePreferences
+	}
+	p.tlsConfig = inner
 
 	success = "1"
 

@@ -198,6 +198,19 @@ app:
     # Based on [NIST 800-204A recommendations (SM-DR13)](https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf).
     certificateDuration: 1h
 
+    # Minimum TLS version for the gRPC serving listener (Kubernetes-style name, e.g. VersionTLS12).
+    # If unset, TLS 1.2 is used.
+    # +docs:property
+    # servingTLSMinVersion: VersionTLS12
+
+    # Cipher suites for the gRPC serving listener (TLS_CIPHER_SUITE names). If empty, Go defaults apply.
+    # +docs:property
+    servingTLSCipherSuites: []
+
+    # TLS key exchange curves for the gRPC listener (e.g. X25519, CurveP256, or decimal CurveID). If empty, Go defaults apply.
+    # +docs:property
+    servingTLSCurvePreferences: []
+
     # If true, create the istiod certificate using a cert-manager certificate as part
     # of the install. If set to "dynamic", will create the cert dynamically when
     # istio-csr pods start up. If false, no cert is created.

@@ -554,6 +554,15 @@
         "rootCAFile": {
           "$ref": "#/$defs/helm-values.app.tls.rootCAFile"
         },
+        "servingTLSCipherSuites": {
+          "$ref": "#/$defs/helm-values.app.tls.servingTLSCipherSuites"
+        },
+        "servingTLSCurvePreferences": {
+          "$ref": "#/$defs/helm-values.app.tls.servingTLSCurvePreferences"
+        },
+        "servingTLSMinVersion": {
+          "$ref": "#/$defs/helm-values.app.tls.servingTLSMinVersion"
+        },
         "trustDomain": {
           "$ref": "#/$defs/helm-values.app.tls.trustDomain"
         }
@@ -607,6 +616,22 @@
     },
     "helm-values.app.tls.rootCAFile": {
       "description": "An optional file location to a PEM encoded root CA that the root CA. ConfigMap in all namespaces will be populated with. If empty, the CA returned from cert-manager for the serving certificate will be used."
+    },
+    "helm-values.app.tls.servingTLSCipherSuites": {
+      "default": [],
+      "description": "Cipher suites for the gRPC serving listener (TLS_CIPHER_SUITE names). If empty, Go defaults apply.",
+      "items": {},
+      "type": "array"
+    },
+    "helm-values.app.tls.servingTLSCurvePreferences": {
+      "default": [],
+      "description": "TLS key exchange curves for the gRPC listener (e.g. X25519, CurveP256, or decimal CurveID). If empty, Go defaults apply.",
+      "items": {},
+      "type": "array"
+    },
+    "helm-values.app.tls.servingTLSMinVersion": {
+      "description": "Minimum TLS version for the gRPC serving listener (Kubernetes-style name, e.g. VersionTLS12).\nIf unset, TLS 1.2 is used.",
+      "type": "string"
     },
     "helm-values.app.tls.trustDomain": {
       "default": "cluster.local",
