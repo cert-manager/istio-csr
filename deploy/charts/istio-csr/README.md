@@ -542,6 +542,13 @@ resources:
     cpu: 100m
     memory: 128Mi
 ```
+#### **priorityClassName** ~ `string`
+> Default value:
+> ```yaml
+> ""
+> ```
+
+Configure the priority class of the pod. For more information, see [PriorityClass](https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/#priorityclass).
 #### **securityContext** ~ `object`
 > Default value:
 > ```yaml

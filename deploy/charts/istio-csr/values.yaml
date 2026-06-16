@@ -324,6 +324,9 @@ volumeMounts: []
 #      memory: 128Mi
 resources: {}
 
+# Configure the priority class of the pod. For more information, see [PriorityClass](https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/#priorityclass).
+priorityClassName: ""
+
 # Kubernetes [security context](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/).
 #
 # See the default values for an example.
