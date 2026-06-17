@@ -40,29 +40,81 @@ func (stubIssuerNotifier) HasIssuerConfig() bool { return true }
 
 func (stubIssuerNotifier) InitialIssuer() *cmmeta.IssuerReference { return nil }
 
-func TestNewProvider_InvalidServingTLS(t *testing.T) {
+func TestNewProvider(t *testing.T) {
 	t.Parallel()
-	_, err := NewProvider(logr.Discard(), cmfake.New(), Options{
-		ServingTLSCipherSuites: []string{"NOT_A_CIPHER_SUITE"},
-	}, stubIssuerNotifier{})
-	require.Error(t, err)
 
-	_, err = NewProvider(logr.Discard(), cmfake.New(), Options{
-		ServingTLSMinVersion: "VersionTLS0xBAD",
-	}, stubIssuerNotifier{})
-	require.Error(t, err)
+	tests := []struct {
+		name                  string
+		opts                  Options
+		wantSuccess           bool
+		wantErr               string
+		applyCipherSuites     bool
+		applyCurvePreferences bool
+	}{
+		{
+			name:        "empty options use Go TLS defaults",
+			opts:        Options{},
+			wantSuccess: true,
+		},
+		{
+			name: "explicit cipher suites",
+			opts: Options{
+				ServingTLSCipherSuites: []string{"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"},
+			},
+			wantSuccess:       true,
+			applyCipherSuites: true,
+		},
+		{
+			name: "explicit curve preferences",
+			opts: Options{
+				ServingTLSCurvePreferences: []string{"X25519"},
+			},
+			wantSuccess:           true,
+			applyCurvePreferences: true,
+		},
+		{
+			name: "invalid cipher suite",
+			opts: Options{
+				ServingTLSCipherSuites: []string{"NOT_A_CIPHER_SUITE"},
+			},
+		},
+		{
+			name: "invalid min TLS version name",
+			opts: Options{
+				ServingTLSMinVersion: "VersionTLS0xBAD",
+			},
+		},
+		{
+			name: "min TLS version below 1.2",
+			opts: Options{
+				ServingTLSMinVersion: "VersionTLS11",
+			},
+			wantErr: "serving tls min version must be VersionTLS12 or higher",
+		},
+		{
+			name: "invalid curve preference",
+			opts: Options{
+				ServingTLSCurvePreferences: []string{"not-a-curve"},
+			},
+		},
+	}
 
-	_, err = NewProvider(logr.Discard(), cmfake.New(), Options{
-		ServingTLSMinVersion: "VersionTLS11",
-	}, stubIssuerNotifier{})
-	require.EqualError(t, err, "serving tls min version must be VersionTLS12 or higher")
-}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			p, err := NewProvider(logr.Discard(), cmfake.New(), tt.opts, stubIssuerNotifier{})
+			if !tt.wantSuccess {
+				if tt.wantErr != "" {
+					require.EqualError(t, err, tt.wantErr)
+					return
+				}
+				require.Error(t, err)
+				return
+			}
 
-func TestNewProvider_ValidServingTLSDefaults(t *testing.T) {
-	t.Parallel()
-	p, err := NewProvider(logr.Discard(), cmfake.New(), Options{}, stubIssuerNotifier{})
-	require.NoError(t, err)
-	require.NotNil(t, p)
-	require.False(t, p.servingApplyCipherSuites)
-	require.False(t, p.servingApplyCurvePrefs)
+			require.NoError(t, err)
+			require.NotNil(t, p)
+			require.Equal(t, tt.applyCipherSuites, p.servingApplyCipherSuites)
+			require.Equal(t, tt.applyCurvePreferences, p.servingApplyCurvePrefs)
+		})
+	}
 }

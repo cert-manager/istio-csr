@@ -40,7 +40,7 @@ func ParseCurvePreferences(names []string) ([]tls.CurveID, error) {
 		if name == "" {
 			return nil, fmt.Errorf("empty curve preference entry")
 		}
-		id, err := parseOneCurveID(name)
+		id, err := parseCurveID(name)
 		if err != nil {
 			return nil, err
 		}
@@ -49,7 +49,7 @@ func ParseCurvePreferences(names []string) ([]tls.CurveID, error) {
 	return out, nil
 }
 
-func parseOneCurveID(name string) (tls.CurveID, error) {
+func parseCurveID(name string) (tls.CurveID, error) {
 	if isAllDecimal(name) {
 		u, err := strconv.ParseUint(name, 10, 16)
 		if err != nil {

@@ -24,14 +24,58 @@ import (
 )
 
 func TestParseCurvePreferences(t *testing.T) {
-	got, err := ParseCurvePreferences([]string{"X25519", "CurveP256"})
-	require.NoError(t, err)
-	require.Equal(t, []tls.CurveID{tls.X25519, tls.CurveP256}, got)
+	tests := []struct {
+		name    string
+		input   []string
+		want    []tls.CurveID
+		wantErr bool
+	}{
+		{
+			name:  "well-known curve names",
+			input: []string{"X25519", "CurveP256"},
+			want:  []tls.CurveID{tls.X25519, tls.CurveP256},
+		},
+		{
+			name:  "curve name aliases",
+			input: []string{"P-256", "P384"},
+			want:  []tls.CurveID{tls.CurveP256, tls.CurveP384},
+		},
+		{
+			name:  "whitespace is trimmed",
+			input: []string{" X25519 ", "CurveP256"},
+			want:  []tls.CurveID{tls.X25519, tls.CurveP256},
+		},
+		{
+			name:  "nil input uses Go defaults",
+			input: nil,
+			want:  nil,
+		},
+		{
+			name:  "empty input uses Go defaults",
+			input: []string{},
+			want:  nil,
+		},
+		{
+			name:    "unknown curve name",
+			input:   []string{"not-a-curve"},
+			wantErr: true,
+		},
+		{
+			name:    "empty curve entry",
+			input:   []string{"X25519", ""},
+			wantErr: true,
+		},
+	}
 
-	got, err = ParseCurvePreferences(nil)
-	require.NoError(t, err)
-	require.Nil(t, got)
-
-	_, err = ParseCurvePreferences([]string{"not-a-curve"})
-	require.Error(t, err)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := ParseCurvePreferences(tt.input)
+			if tt.wantErr {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			require.Equal(t, tt.want, got)
+		})
+	}
 }
