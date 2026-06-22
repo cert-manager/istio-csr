@@ -244,7 +244,7 @@ func (m *manager) Sign(ctx context.Context, identities string, csrPEM []byte, du
 	// If we are not preserving CertificateRequests, always delete from
 	// Kubernetes on return.
 	if !m.opts.PreserveCertificateRequests {
-		// nolint:contextcheck
+		//nolint:contextcheck
 		defer func() {
 			// Use go routine to prevent blocking on Delete call.
 			go func() {
