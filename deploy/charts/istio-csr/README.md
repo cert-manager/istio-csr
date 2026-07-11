@@ -492,6 +492,14 @@ Optional extra labels for pod.
 > ```
 
 Optional extra annotations for pod.
+#### **automountServiceAccountToken** ~ `bool`
+> Default value:
+> ```yaml
+> true
+> ```
+
+Automounting API credentials for the istio-csr pod.
+
 #### **volumes** ~ `array`
 > Default value:
 > ```yaml
