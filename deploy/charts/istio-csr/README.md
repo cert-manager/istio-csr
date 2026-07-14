@@ -337,7 +337,7 @@ If unset, TLS 1.2 is used.
 > []
 > ```
 
-Cipher suites for the gRPC serving listener (TLS_CIPHER_SUITE names). If empty, Go defaults apply.
+Cipher suites for the gRPC serving listener (TLS_CIPHER_SUITE names). If empty, Go defaults apply. Only affects TLS 1.0–1.2; TLS 1.3 cipher suites are not configurable in Go.
 
 #### **app.tls.servingTLSCurvePreferences** ~ `array`
 > Default value:

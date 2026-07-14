@@ -110,6 +110,7 @@ type Options struct {
 
 	// ServingTLSCipherSuites restricts cipher suites for the gRPC listener.
 	// Empty means use Go defaults (same as leaving tls.Config.CipherSuites nil).
+	// Only affects TLS 1.0–1.2; TLS 1.3 cipher suites are not configurable in Go.
 	ServingTLSCipherSuites []string
 
 	// ServingTLSCurvePreferences sets tls.Config.CurvePreferences for the gRPC
@@ -130,11 +131,9 @@ type Provider struct {
 
 	cm certmanager.Signer
 
-	servingMinVersion        uint16
-	servingCipherSuites      []uint16
-	servingCurvePreferences  []tls.CurveID
-	servingApplyCipherSuites bool
-	servingApplyCurvePrefs   bool
+	servingMinVersion       uint16
+	servingCipherSuites     []uint16
+	servingCurvePreferences []tls.CurveID
 
 	lock          sync.RWMutex
 	tlsConfig     *tls.Config
@@ -172,8 +171,6 @@ func NewProvider(log logr.Logger, cm certmanager.Signer, opts Options, issuerCha
 		servingCurvePreferences: curves,
 		issuerChangeNotifier:    issuerChangeNotifier,
 	}
-	p.servingApplyCipherSuites = len(cipherSuites) > 0
-	p.servingApplyCurvePrefs = len(curves) > 0
 	return p, nil
 }
 
@@ -344,10 +341,10 @@ func (p *Provider) Config(ctx context.Context) (*tls.Config, error) {
 				GetConfigForClient: p.getConfigForClient,
 				ClientAuth:         tls.RequireAndVerifyClientCert,
 			}
-			if p.servingApplyCipherSuites {
+			if len(p.servingCipherSuites) > 0 {
 				cfg.CipherSuites = p.servingCipherSuites
 			}
-			if p.servingApplyCurvePrefs {
+			if len(p.servingCurvePreferences) > 0 {
 				cfg.CurvePreferences = p.servingCurvePreferences
 			}
 			return cfg, nil
@@ -499,10 +496,10 @@ func (p *Provider) fetchCertificate(ctx context.Context) (time.Time, error) {
 			return err
 		},
 	}
-	if p.servingApplyCipherSuites {
+	if len(p.servingCipherSuites) > 0 {
 		inner.CipherSuites = p.servingCipherSuites
 	}
-	if p.servingApplyCurvePrefs {
+	if len(p.servingCurvePreferences) > 0 {
 		inner.CurvePreferences = p.servingCurvePreferences
 	}
 	p.tlsConfig = inner
