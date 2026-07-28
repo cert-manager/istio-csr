@@ -262,13 +262,13 @@ func (o *Options) addTLSFlags(fs *pflag.FlagSet) {
 		"The type of signature algorithm to use when generating private keys. "+
 			"Currently only RSA and ECDSA are supported. By default RSA is used.")
 
-	tlsCipherPossibleValues := cliflag.TLSCipherPossibleValues()
 	fs.StringSliceVar(&o.TLS.ServingTLSCipherSuites,
 		"serving-tls-cipher-suites", o.TLS.ServingTLSCipherSuites,
 		"Comma-separated list of cipher suites for the gRPC serving listener. "+
 			"If omitted, the default Go cipher suites are used. "+
 			"Only affects TLS 1.0–1.2; TLS 1.3 cipher suites are not configurable in Go. "+
-			"Possible values include: "+strings.Join(tlsCipherPossibleValues, ","))
+			"Preferred values: "+strings.Join(cliflag.PreferredTLSCipherNames(), ", ")+". "+
+			"Insecure values: "+strings.Join(cliflag.InsecureTLSCipherNames(), ", ")+".")
 	tlsPossibleVersions := cliflag.TLSPossibleVersions()
 	fs.StringVar(&o.TLS.ServingTLSMinVersion,
 		"serving-tls-min-version", o.TLS.ServingTLSMinVersion,
