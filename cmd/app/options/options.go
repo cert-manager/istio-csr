@@ -266,7 +266,7 @@ func (o *Options) addTLSFlags(fs *pflag.FlagSet) {
 		"serving-tls-cipher-suites", o.TLS.ServingTLSCipherSuites,
 		"Comma-separated list of cipher suites for the gRPC serving listener. "+
 			"If omitted, the default Go cipher suites are used. "+
-			"Only affects TLS 1.0–1.2; TLS 1.3 cipher suites are not configurable in Go. "+
+			"Only affects TLS 1.2; TLS 1.3 cipher suites are not configurable in Go. "+
 			"Preferred values: "+strings.Join(cliflag.PreferredTLSCipherNames(), ", ")+". "+
 			"Insecure values: "+strings.Join(cliflag.InsecureTLSCipherNames(), ", ")+".")
 	tlsPossibleVersions := cliflag.TLSPossibleVersions()

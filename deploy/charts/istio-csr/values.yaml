@@ -199,12 +199,12 @@ app:
     certificateDuration: 1h
 
     # Minimum TLS version for the gRPC serving listener (Kubernetes-style name, e.g. VersionTLS12).
-    # If unset, TLS 1.2 is used.
+    # If unset, TLS 1.2 is used but a future version will increase the default.
     # +docs:property
     # servingTLSMinVersion: VersionTLS12
 
     # Cipher suites for the gRPC serving listener (TLS_CIPHER_SUITE names). If empty, Go defaults apply.
-    # Only affects TLS 1.0–1.2; TLS 1.3 cipher suites are not configurable in Go.
+    # Only affects TLS 1.2; TLS 1.3 cipher suites are not configurable in Go.
     # Acceptable names match Kubernetes component-base (same as kube-apiserver --tls-cipher-suites);
     # see [TLSCipherPossibleValues](https://pkg.go.dev/k8s.io/component-base/cli/flag#TLSCipherPossibleValues).
     # Some listed values are considered insecure — prefer [PreferredTLSCipherNames](https://pkg.go.dev/k8s.io/component-base/cli/flag#PreferredTLSCipherNames).

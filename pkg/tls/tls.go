@@ -110,7 +110,7 @@ type Options struct {
 
 	// ServingTLSCipherSuites restricts cipher suites for the gRPC listener.
 	// Empty means use Go defaults (same as leaving tls.Config.CipherSuites nil).
-	// Only affects TLS 1.0–1.2; TLS 1.3 cipher suites are not configurable in Go.
+	// Only affects TLS 1.2; TLS 1.3 cipher suites are not configurable in Go.
 	ServingTLSCipherSuites []string
 
 	// ServingTLSCurvePreferences sets tls.Config.CurvePreferences for the gRPC
@@ -333,20 +333,11 @@ func (p *Provider) Config(ctx context.Context) (*tls.Config, error) {
 		p.lock.RUnlock()
 
 		if conf != nil {
-			// Keep MinVersion enforcement local so static analyzers can prove we never
-			// build configs below TLS 1.2.
-			effectiveMinVersion := max(p.servingMinVersion, uint16(tls.VersionTLS12))
 			cfg := &tls.Config{
-				MinVersion:         effectiveMinVersion, // #nosec G402 -- value is clamped to TLS 1.2+ above.
 				GetConfigForClient: p.getConfigForClient,
 				ClientAuth:         tls.RequireAndVerifyClientCert,
 			}
-			if len(p.servingCipherSuites) > 0 {
-				cfg.CipherSuites = p.servingCipherSuites
-			}
-			if len(p.servingCurvePreferences) > 0 {
-				cfg.CurvePreferences = p.servingCurvePreferences
-			}
+			p.applyTLSSecuritySettings(cfg)
 			return cfg, nil
 		}
 
@@ -356,6 +347,20 @@ func (p *Provider) Config(ctx context.Context) (*tls.Config, error) {
 		case <-ctx.Done():
 			return nil, ctx.Err()
 		}
+	}
+}
+
+// applyTLSSecuritySettings sets MinVersion (clamped to TLS 1.2+), CipherSuites,
+// and CurvePreferences from the provider's serving TLS options onto cfg.
+func (p *Provider) applyTLSSecuritySettings(cfg *tls.Config) {
+	// Keep MinVersion enforcement local so static analyzers can prove we never
+	// build configs below TLS 1.2.
+	cfg.MinVersion = max(p.servingMinVersion, uint16(tls.VersionTLS12)) // #nosec G402 -- value is clamped to TLS 1.2+.
+	if len(p.servingCipherSuites) > 0 {
+		cfg.CipherSuites = p.servingCipherSuites
+	}
+	if len(p.servingCurvePreferences) > 0 {
+		cfg.CurvePreferences = p.servingCurvePreferences
 	}
 }
 
@@ -474,11 +479,7 @@ func (p *Provider) fetchCertificate(ctx context.Context) (time.Time, error) {
 	// this provider. This config will serve using the just signed certificate
 	// and private key. Mutually authenticate incoming client requests based if a
 	// certificate is present.
-	// Keep MinVersion enforcement local so static analyzers can prove we never
-	// build configs below TLS 1.2.
-	effectiveMinVersion := max(p.servingMinVersion, uint16(tls.VersionTLS12))
 	inner := &tls.Config{
-		MinVersion:   effectiveMinVersion, // #nosec G402 -- value is clamped to TLS 1.2+ above.
 		Certificates: []tls.Certificate{tlsCert},
 		// Advertise ALPN, required in modern gRPC versions
 		// Typically gRPC sets this for us, but since this tls.Config ultimately gets returned in GetConfigForClient it doesn't.
@@ -496,12 +497,7 @@ func (p *Provider) fetchCertificate(ctx context.Context) (time.Time, error) {
 			return err
 		},
 	}
-	if len(p.servingCipherSuites) > 0 {
-		inner.CipherSuites = p.servingCipherSuites
-	}
-	if len(p.servingCurvePreferences) > 0 {
-		inner.CurvePreferences = p.servingCurvePreferences
-	}
+	p.applyTLSSecuritySettings(inner)
 	p.tlsConfig = inner
 
 	success = "1"
