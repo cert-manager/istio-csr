@@ -273,7 +273,7 @@ func (o *Options) addTLSFlags(fs *pflag.FlagSet) {
 	fs.StringVar(&o.TLS.ServingTLSMinVersion,
 		"serving-tls-min-version", o.TLS.ServingTLSMinVersion,
 		"Minimum TLS version for the gRPC serving listener. "+
-			"If omitted, TLS 1.2 is used (matching the previous hard-coded default). "+
+			"If omitted, TLS 1.2 is used but a future version will increase the default. "+
 			"Possible values: "+strings.Join(tlsPossibleVersions, ", "))
 	fs.StringSliceVar(&o.TLS.ServingTLSCurvePreferences,
 		"serving-tls-curve-preferences", o.TLS.ServingTLSCurvePreferences,

@@ -105,7 +105,7 @@ type Options struct {
 
 	// ServingTLSMinVersion is the minimum TLS version for the gRPC listener,
 	// using Kubernetes-style version names (for example VersionTLS12). Empty
-	// selects TLS 1.2, matching the historical default.
+	// selects TLS 1.2, but a future version will increase the default.
 	ServingTLSMinVersion string
 
 	// ServingTLSCipherSuites restricts cipher suites for the gRPC listener.
@@ -353,9 +353,7 @@ func (p *Provider) Config(ctx context.Context) (*tls.Config, error) {
 // applyTLSSecuritySettings sets MinVersion (clamped to TLS 1.2+), CipherSuites,
 // and CurvePreferences from the provider's serving TLS options onto cfg.
 func (p *Provider) applyTLSSecuritySettings(cfg *tls.Config) {
-	// Keep MinVersion enforcement local so static analyzers can prove we never
-	// build configs below TLS 1.2.
-	cfg.MinVersion = max(p.servingMinVersion, uint16(tls.VersionTLS12)) // #nosec G402 -- value is clamped to TLS 1.2+.
+	cfg.MinVersion = max(p.servingMinVersion, uint16(tls.VersionTLS12))
 	if len(p.servingCipherSuites) > 0 {
 		cfg.CipherSuites = p.servingCipherSuites
 	}
