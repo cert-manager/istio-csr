@@ -15,7 +15,7 @@ require (
 	github.com/spf13/pflag v1.0.10
 	github.com/stretchr/testify v1.11.1
 	google.golang.org/grpc v1.83.0
-	google.golang.org/protobuf v1.36.12-0.20260806062936-644d0267c26e
+	google.golang.org/protobuf v1.36.12
 	istio.io/api v1.30.3
 	istio.io/istio v0.0.0-20260528141032-c51394391cf5
 	k8s.io/api v0.36.3
