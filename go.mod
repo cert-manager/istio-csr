@@ -1,6 +1,6 @@
 module github.com/cert-manager/istio-csr
 
-go 1.26.0
+go 1.26.6
 
 require (
 	github.com/cert-manager/cert-manager v1.21.1
