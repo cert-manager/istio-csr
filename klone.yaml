@@ -33,9 +33,9 @@ targets:
       repo_hash: b514cb5c3841a7877b5f44c070b5097d98347562
       repo_path: modules/go
     - folder_name: helm
-      repo_url: https://github.com/cert-manager/makefile-modules.git
-      repo_ref: main
-      repo_hash: b514cb5c3841a7877b5f44c070b5097d98347562
+      repo_url: https://github.com/hjoshi123/makefile-modules.git
+      repo_ref: feat/helm-diff-target
+      repo_hash: f9a8ff07dfd31c001f44b668ba001afc88a5bcb1
       repo_path: modules/helm
     - folder_name: help
       repo_url: https://github.com/cert-manager/makefile-modules.git
