@@ -16,6 +16,7 @@ require (
 	github.com/stretchr/testify v1.11.1
 	google.golang.org/grpc v1.83.0
 	google.golang.org/protobuf v1.36.12
+	hegel.dev/go/hegel v0.6.30
 	istio.io/api v1.30.3
 	istio.io/istio v0.0.0-20260528141032-c51394391cf5
 	k8s.io/api v0.36.3
@@ -46,6 +47,7 @@ require (
 	github.com/coreos/go-oidc/v3 v3.18.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0 // indirect
+	github.com/ebitengine/purego v0.11.0-alpha.6.0.20260707033313-5f49e7c49322 // indirect
 	github.com/emicklei/go-restful/v3 v3.13.0 // indirect
 	github.com/envoyproxy/go-control-plane/contrib v1.36.1-0.20260523003051-13fbb3da6c97 // indirect
 	github.com/envoyproxy/go-control-plane/envoy v1.37.1-0.20260523003051-13fbb3da6c97 // indirect

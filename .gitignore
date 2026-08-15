@@ -7,3 +7,5 @@ test/e2e/e2e.test
 
 *.iml
 .idea
+# hegel property-testing example database
+.hegel/
