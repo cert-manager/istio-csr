@@ -53,6 +53,8 @@ github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc h1:U9qPSI2PIWSS1
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0 h1:NMZiJj8QnKe1LgsbDayM4UoHwbvwDRwnI3hwNaAHRnc=
 github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0/go.mod h1:ZXNYxsqcloTdSy/rNShjYzMhyjf0LaoftYK0p+A3h40=
+github.com/ebitengine/purego v0.11.0-alpha.6.0.20260707033313-5f49e7c49322 h1:DRV0C+Y8n0cds50o0yWKHWLtfldN40JYRyPuXzSZ4Ac=
+github.com/ebitengine/purego v0.11.0-alpha.6.0.20260707033313-5f49e7c49322/go.mod h1:DCHPP08djqhNSoTfImcnHYQRZmd0qhakvrozqaEYhGQ=
 github.com/emicklei/go-restful/v3 v3.13.0 h1:C4Bl2xDndpU6nJ4bc1jXd+uTmYPVUwkD6bFY/oTyCes=
 github.com/emicklei/go-restful/v3 v3.13.0/go.mod h1:6n3XBCmQQb25CM2LCACGz8ukIrRry+4bhvbpWn3mrbc=
 github.com/envoyproxy/go-control-plane/contrib v1.36.1-0.20260523003051-13fbb3da6c97 h1:J+q9/2WuRjkLrHa1DOoq9+wGLMW6GUMYPUQC1fVhVp8=
@@ -374,6 +376,8 @@ gopkg.in/natefinch/lumberjack.v2 v2.2.1/go.mod h1:YD8tP3GAjkrDg1eZH7EGmyESg/lsYs
 gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
 gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=
 gopkg.in/yaml.v3 v3.0.1/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
+hegel.dev/go/hegel v0.6.30 h1:SFmxClsHKXIMsZ29WewsVI+TfOsIQENtNvGt13p3l68=
+hegel.dev/go/hegel v0.6.30/go.mod h1:SQZksLxpfxeGnV24rgAsAWP1jhMLwbmF1y448HQ1H44=
 istio.io/api v1.30.3 h1:pPSa0uah/t7CEuwacS4rw5qK/oHGvxC0WO8i4RRGwEU=
 istio.io/api v1.30.3/go.mod h1:+brQWcBHoROuyA6fv8rbgg8Kfn0RCGuqoY0duCMuSLA=
 istio.io/client-go v1.30.0-alpha.1.0.20260528124329-1b44d2b68dfa h1:lqebUktEjKRkD2+eEaqxgF/+dCrE8kAE+wVe7f83E7c=

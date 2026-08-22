@@ -19,7 +19,6 @@ package server
 import (
 	"fmt"
 	"net/http"
-	"net/url"
 	"testing"
 
 	"google.golang.org/protobuf/types/known/structpb"
@@ -38,73 +37,6 @@ import (
 
 	"github.com/cert-manager/istio-csr/test/gen"
 )
-
-func TestIdentitiesMatch(t *testing.T) {
-	tests := map[string]struct {
-		aList, bURL []string
-		expMatch    bool
-	}{
-		"if both are empty then true": {
-			aList:    nil,
-			bURL:     nil,
-			expMatch: true,
-		},
-		"if aList has identity, bURL not, false": {
-			aList:    []string{"spiffee://foo.bar"},
-			bURL:     nil,
-			expMatch: false,
-		},
-		"if aList has no identity, bURL does, false": {
-			aList:    nil,
-			bURL:     []string{"spiffe://foo.bar"},
-			expMatch: false,
-		},
-		"if aList one identity, bURL has the same, true": {
-			aList:    []string{"spiffe://foo.bar"},
-			bURL:     []string{"spiffe://foo.bar"},
-			expMatch: true,
-		},
-		"if aList one identity, bURL has different, false": {
-			aList:    []string{"spiffe://123.456"},
-			bURL:     []string{"spiffe://foo.bar"},
-			expMatch: false,
-		},
-		"if aList two identities, bURL has same, true": {
-			aList:    []string{"spiffe://123.456", "spiffe://foo.bar"},
-			bURL:     []string{"spiffe://123.456", "spiffe://foo.bar"},
-			expMatch: true,
-		},
-		"if aList two identities, bURL has same but different order, true": {
-			aList:    []string{"spiffe://123.456", "spiffe://foo.bar"},
-			bURL:     []string{"spiffe://foo.bar", "spiffe://123.456"},
-			expMatch: true,
-		},
-		"if aList two identities, bURL has different, false": {
-			aList:    []string{"spiffe://123.456", "spiffe://foo.bar"},
-			bURL:     []string{"spiffe://123.456", "spiffe://bar.foo"},
-			expMatch: false,
-		},
-	}
-
-	for name, test := range tests {
-		t.Run(name, func(t *testing.T) {
-			var urls []*url.URL
-			for _, burl := range test.bURL {
-				url, err := url.Parse(burl)
-				if err != nil {
-					t.Fatal(err)
-				}
-
-				urls = append(urls, url)
-			}
-
-			if match := identitiesMatch(test.aList, urls); match != test.expMatch {
-				t.Errorf("unexpected match, exp=%t got=%t (%+v %+v)",
-					test.expMatch, match, test.aList, urls)
-			}
-		})
-	}
-}
 
 type mockAuthenticator struct {
 	identities     []string
