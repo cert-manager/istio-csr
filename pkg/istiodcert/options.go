@@ -108,7 +108,7 @@ func (o *Options) Validate() error {
 			// This validation function returns a slice of strings if there was an error
 			validationErrors := k8svalidation.IsDNS1123Subdomain(name)
 			if len(validationErrors) > 0 {
-				errs = append(errs, fmt.Errorf("invalid additional DNS name %q: ", strings.Join(validationErrors, ", ")))
+				errs = append(errs, fmt.Errorf("invalid additional DNS name %q: %s", name, strings.Join(validationErrors, ", ")))
 			}
 		}
 	}
