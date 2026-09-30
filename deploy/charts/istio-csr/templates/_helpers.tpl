@@ -99,3 +99,16 @@ Runtime config name
     {{ include "cert-manager-istio-csr.name" . }}
 {{- end -}}
 {{- end }}
+{{/*
+Render one additionalAnnotations entry as a value for a pflag StringToString flag.
+pflag only CSV-parses the value when it contains more than one "=", so the pair is
+CSV-quoted (with embedded quotes doubled) only in that case; otherwise it is passed raw.
+*/}}
+{{- define "cert-manager-istio-csr.annotationFlagValue" -}}
+{{- $pair := printf "%s=%s" .name .value -}}
+{{- if contains "=" .value -}}
+{{- printf "\"%s\"" (replace "\"" "\"\"" $pair) -}}
+{{- else -}}
+{{- $pair -}}
+{{- end -}}
+{{- end -}}

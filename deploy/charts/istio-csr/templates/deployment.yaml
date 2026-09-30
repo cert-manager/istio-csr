@@ -83,13 +83,8 @@ spec:
           - "--preserve-certificate-requests={{.Values.app.certmanager.preserveCertificateRequests}}"
 
             # AdditionalAnnotations
-          {{- if .Values.app.certmanager.additionalAnnotations }}
-            {{- $annotations := list }}
-            {{- range $annotation := .Values.app.certmanager.additionalAnnotations }}
-              {{- $x := list $annotation.name $annotation.value | join "=" }}
-              {{- $annotations = append $annotations $x }}
-            {{- end }}
-          - {{ printf "\"%s=%s\"" "--certificate-request-additional-annotations" ( join "," $annotations ) | quote -}}
+          {{- range $annotation := .Values.app.certmanager.additionalAnnotations }}
+          - {{ printf "--certificate-request-additional-annotations=%s" (include "cert-manager-istio-csr.annotationFlagValue" $annotation) | quote }}
           {{- end }}
 
             # tls
@@ -145,12 +140,8 @@ spec:
           - "--istiod-cert-key-algorithm={{ default .Values.app.server.serving.signatureAlgorithm .Values.app.tls.istiodPrivateKeyAlgorithm }}"
           - "--istiod-cert-key-size={{ .Values.app.tls.istiodPrivateKeySize }}"
           - "--istiod-cert-additional-dns-names={{ join "," .Values.app.tls.istiodAdditionalDNSNames }}"
-          {{- if .Values.app.certmanager.additionalAnnotations }}
-          {{- $annotationList := list }}
           {{- range $annotation := .Values.app.certmanager.additionalAnnotations }}
-          {{ $annotationList = append $annotationList (printf "%s=%s" $annotation.name $annotation.value) }}
-          {{- end }}
-          - {{ printf "\"%s=%s\"" "--istiod-cert-additional-annotations" ( join "," $annotationList ) | quote -}}
+          - {{ printf "--istiod-cert-additional-annotations=%s" (include "cert-manager-istio-csr.annotationFlagValue" $annotation) | quote }}
           {{- end }}
           - "--istiod-cert-istio-revisions={{ join "," .Values.app.istio.revisions }}"
         {{- if .Values.volumeMounts }}
