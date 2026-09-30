@@ -51,6 +51,9 @@ type Options struct {
 	AdditionalAnnotations map[string]string
 
 	IstioRevisions []string
+
+	// MaxConcurrentReconciles is the maximum number of concurrent reconciles.
+	MaxConcurrentReconciles int
 }
 
 // Validate confirms that the given istiod cert options are valid
@@ -61,6 +64,10 @@ func (o *Options) Validate() error {
 	}
 
 	var errs []error
+
+	if o.MaxConcurrentReconciles < 1 {
+		errs = append(errs, fmt.Errorf("max-concurrent-reconciles must be at least 1, got %d", o.MaxConcurrentReconciles))
+	}
 
 	if o.RenewBefore.Nanoseconds() >= o.Duration.Nanoseconds() {
 		errs = append(errs, fmt.Errorf("istiod certificate renew-before %s must be smaller than the requested duration %s", o.RenewBefore.String(), o.Duration.String()))

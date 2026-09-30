@@ -36,10 +36,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
-	"k8s.io/utils/ptr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -58,8 +58,8 @@ type DynamicIstiodCertProvisioner struct {
 	certManagerClient cmclient.CertificateInterface
 	opts              Options
 
-	initialIssuerRef *cmmeta.ObjectReference
-	issuerRef        *cmmeta.ObjectReference
+	initialIssuerRef *cmmeta.IssuerReference
+	issuerRef        *cmmeta.IssuerReference
 
 	issuerRefMutex sync.Mutex
 
@@ -123,7 +123,7 @@ func (dicp *DynamicIstiodCertProvisioner) NeedLeaderElection() bool {
 	return true
 }
 
-func (dicp *DynamicIstiodCertProvisioner) handleNewIssuer(issuerRef *cmmeta.ObjectReference) {
+func (dicp *DynamicIstiodCertProvisioner) handleNewIssuer(issuerRef *cmmeta.IssuerReference) {
 	dicp.issuerRefMutex.Lock()
 	defer dicp.issuerRefMutex.Unlock()
 
@@ -151,7 +151,10 @@ func (dicp *DynamicIstiodCertProvisioner) handleNewIssuer(issuerRef *cmmeta.Obje
 // 1. Handle provisioning and updating the dynamic istiod cert
 // 2. Handle listening for updates to the active issuer ref and re-issuing
 func (dicp *DynamicIstiodCertProvisioner) AddControllersToManager(mgr manager.Manager) error {
-	b := ctrl.NewControllerManagedBy(mgr)
+	b := ctrl.NewControllerManagedBy(mgr).
+		WithOptions(controller.Options{
+			MaxConcurrentReconciles: dicp.opts.MaxConcurrentReconciles,
+		})
 
 	b.For(
 		new(cmapi.Certificate), builder.WithPredicates(predicate.NewPredicateFuncs(func(obj client.Object) bool {
@@ -206,7 +209,7 @@ func (dicp *DynamicIstiodCertProvisioner) Reconcile(ctx context.Context, req ctr
 		CommonName:  commonName,
 		DNSNames:    dnsNames,
 		URIs:        []string{spiffeID},
-		SecretName:  "istiod-tls",
+		SecretName:  "istiod-tls", // #nosec G101 -- not a credential, Kubernetes Secret resource name
 		Duration:    &metav1.Duration{Duration: dicp.opts.Duration},
 		RenewBefore: &metav1.Duration{Duration: dicp.opts.RenewBefore},
 		PrivateKey: &cmapi.CertificatePrivateKey{
@@ -214,7 +217,7 @@ func (dicp *DynamicIstiodCertProvisioner) Reconcile(ctx context.Context, req ctr
 			Algorithm:      dicp.opts.CMKeyAlgorithm,
 			Size:           dicp.opts.KeySize,
 		},
-		RevisionHistoryLimit: ptr.To(int32(1)),
+		RevisionHistoryLimit: new(int32(1)),
 		IssuerRef:            *dicp.issuerRef,
 	}
 

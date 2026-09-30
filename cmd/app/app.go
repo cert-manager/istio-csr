@@ -89,12 +89,15 @@ func NewCommand(ctx context.Context) *cobra.Command {
 
 			mlog := opts.Logr.WithName("manager")
 			eventBroadcaster := record.NewBroadcaster()
-			eventBroadcaster.StartLogging(func(format string, args ...interface{}) { mlog.V(3).Info(fmt.Sprintf(format, args...)) })
+			eventBroadcaster.StartLogging(func(format string, args ...any) { mlog.V(3).Info(fmt.Sprintf(format, args...)) })
 			eventBroadcaster.StartRecordingToSink(&clientv1.EventSinkImpl{Interface: cl.CoreV1().Events(opts.CertManager.Namespace)})
 
 			mgr, err := ctrl.NewManager(opts.RestConfig, ctrl.Options{
-				Scheme:                        intscheme,
-				EventBroadcaster:              eventBroadcaster,
+				Scheme: intscheme,
+				// The deprecation warns of goroutine leaks when the manager is
+				// shorter-lived than the process; this manager runs for the
+				// whole process lifetime.
+				EventBroadcaster:              eventBroadcaster, //nolint:staticcheck // SA1019
 				LeaderElection:                true,
 				LeaderElectionNamespace:       opts.Controller.LeaderElectionNamespace,
 				LeaderElectionID:              "istio-csr",
@@ -168,6 +171,7 @@ func NewCommand(ctx context.Context) *cobra.Command {
 				TLS:                        tls,
 				Manager:                    mgr,
 				ConfigMapNamespaceSelector: opts.Controller.ConfigMapNamespaceSelector,
+				MaxConcurrentReconciles:    opts.Controller.MaxConcurrentReconciles,
 			}); err != nil {
 				return fmt.Errorf("failed to add CA root controller: %w", err)
 			}

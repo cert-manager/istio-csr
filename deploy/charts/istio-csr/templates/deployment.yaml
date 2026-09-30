@@ -35,6 +35,9 @@ spec:
         {{- toYaml . | nindent 8 }}
     {{- end }}
       serviceAccountName: {{ include "cert-manager-istio-csr.name" . }}
+      {{- with .Values.priorityClassName }}
+      priorityClassName: "{{ . }}"
+      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -53,7 +56,7 @@ spec:
       {{- end }}
       containers:
       - name: {{ include "cert-manager-istio-csr.name" . }}
-        image: "{{ template "image" (tuple .Values.image $.Chart.AppVersion) }}"
+        image: "{{ template "cert-manager-istio-csr.image" (tuple .Values.image .Values.imageRegistry .Values.imageNamespace (printf ":%s" $.Chart.AppVersion)) }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         ports:
         - containerPort: {{ .Values.app.server.serving.port }}
@@ -96,6 +99,15 @@ spec:
         {{- end  }}
           - "--serving-certificate-duration={{.Values.app.tls.certificateDuration}}"
           - "--trust-domain={{.Values.app.tls.trustDomain}}"
+          {{- if .Values.app.tls.servingTLSMinVersion }}
+          - "--serving-tls-min-version={{ .Values.app.tls.servingTLSMinVersion }}"
+          {{- end }}
+          {{- range .Values.app.tls.servingTLSCipherSuites }}
+          - "--serving-tls-cipher-suites={{ . }}"
+          {{- end }}
+          {{- range .Values.app.tls.servingTLSCurvePreferences }}
+          - "--serving-tls-curve-preferences={{ . }}"
+          {{- end }}
 
           # server
           - "--cluster-id={{.Values.app.server.clusterID}}"
@@ -117,6 +129,9 @@ spec:
           - "--configmap-namespace-selector={{ .Values.app.controller.configmapNamespaceSelector }}"
           {{- end }}
           - "--disable-kubernetes-client-rate-limiter={{ .Values.app.controller.disableKubernetesClientRateLimiter }}"
+          {{- if gt (.Values.app.controller.maxConcurrentReconciles | int) 1 }}
+          - "--max-concurrent-reconciles={{ .Values.app.controller.maxConcurrentReconciles | int }}"
+          {{- end }}
 
           - "--runtime-issuance-config-map-name={{ include "cert-manager-istio-csr.runtimeConfigurationName" . }}"
           - "--runtime-issuance-config-map-namespace={{.Release.Namespace}}"

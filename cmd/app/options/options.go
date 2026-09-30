@@ -82,6 +82,11 @@ type OptionsController struct {
 	// if the Kubernetes API server supports
 	// [API Priority and Fairness](https://kubernetes.io/docs/concepts/cluster-administration/flow-control/).
 	DisableKubernetesClientRateLimiter bool
+
+	// MaxConcurrentReconciles is the maximum number of concurrent reconciles
+	// that can be run for the controllers.
+	// The higher the number, the more goroutines get scheduled to handle queued reconciliations
+	MaxConcurrentReconciles int
 }
 
 func New() *Options {
@@ -156,6 +161,12 @@ func (o *Options) Complete() error {
 	if o.CertManager.PreserveCertificateRequests {
 		log.Info("WARNING: --preserve-certificate-requests is enabled. Do not enable this option in production, or environments with any non-trivial number of workloads for an extended period of time. Doing so will balloon the resource consumption of ETCD, the API server, and istio-csr, leading to errors and slowdown. This option is intended for debugging purposes only, for limited periods of time.")
 	}
+
+	if o.Controller.MaxConcurrentReconciles < 1 {
+		return fmt.Errorf("max-concurrent-reconciles must be at least 1, got %d", o.Controller.MaxConcurrentReconciles)
+	}
+
+	o.IstiodCert.MaxConcurrentReconciles = o.Controller.MaxConcurrentReconciles
 
 	err = o.IstiodCert.Validate()
 	if err != nil {
@@ -250,6 +261,25 @@ func (o *Options) addTLSFlags(fs *pflag.FlagSet) {
 		"serving-signature-algorithm", "RSA",
 		"The type of signature algorithm to use when generating private keys. "+
 			"Currently only RSA and ECDSA are supported. By default RSA is used.")
+
+	fs.StringSliceVar(&o.TLS.ServingTLSCipherSuites,
+		"serving-tls-cipher-suites", o.TLS.ServingTLSCipherSuites,
+		"Comma-separated list of cipher suites for the gRPC serving listener. "+
+			"If omitted, the default Go cipher suites are used. "+
+			"Only affects TLS 1.2; TLS 1.3 cipher suites are not configurable in Go. "+
+			"Preferred values: "+strings.Join(cliflag.PreferredTLSCipherNames(), ", ")+". "+
+			"Insecure values: "+strings.Join(cliflag.InsecureTLSCipherNames(), ", ")+".")
+	tlsPossibleVersions := cliflag.TLSPossibleVersions()
+	fs.StringVar(&o.TLS.ServingTLSMinVersion,
+		"serving-tls-min-version", o.TLS.ServingTLSMinVersion,
+		"Minimum TLS version for the gRPC serving listener. "+
+			"If omitted, TLS 1.2 is used but a future version will increase the default. "+
+			"Possible values: "+strings.Join(tlsPossibleVersions, ", "))
+	fs.StringSliceVar(&o.TLS.ServingTLSCurvePreferences,
+		"serving-tls-curve-preferences", o.TLS.ServingTLSCurvePreferences,
+		"Ordered list of TLS key exchange curves for the gRPC serving listener "+
+			"(for example X25519,CurveP256, or decimal tls.CurveID values supported by this Go toolchain). "+
+			"If omitted, Go defaults are used.")
 }
 
 func (o *Options) addCertManagerFlags(fs *pflag.FlagSet) {
@@ -329,4 +359,8 @@ func (o *Options) addControllerFlags(fs *pflag.FlagSet) {
 		"disable-kubernetes-client-rate-limiter", false,
 		"Allows the default client-go rate limiter to be disabled if the Kubernetes API server supports "+
 			"[API Priority and Fairness](https://kubernetes.io/docs/concepts/cluster-administration/flow-control/)")
+
+	fs.IntVar(&o.Controller.MaxConcurrentReconciles,
+		"max-concurrent-reconciles", 1,
+		"Maximum number of concurrent reconciles for controllers.")
 }

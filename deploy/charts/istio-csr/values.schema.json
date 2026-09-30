@@ -27,8 +27,14 @@
         "image": {
           "$ref": "#/$defs/helm-values.image"
         },
+        "imageNamespace": {
+          "$ref": "#/$defs/helm-values.imageNamespace"
+        },
         "imagePullSecrets": {
           "$ref": "#/$defs/helm-values.imagePullSecrets"
+        },
+        "imageRegistry": {
+          "$ref": "#/$defs/helm-values.imageRegistry"
         },
         "nameOverride": {
           "$ref": "#/$defs/helm-values.nameOverride"
@@ -44,6 +50,9 @@
         },
         "podLabels": {
           "$ref": "#/$defs/helm-values.podLabels"
+        },
+        "priorityClassName": {
+          "$ref": "#/$defs/helm-values.priorityClassName"
         },
         "replicaCount": {
           "$ref": "#/$defs/helm-values.replicaCount"
@@ -199,6 +208,9 @@
         },
         "leaderElectionNamespace": {
           "$ref": "#/$defs/helm-values.app.controller.leaderElectionNamespace"
+        },
+        "maxConcurrentReconciles": {
+          "$ref": "#/$defs/helm-values.app.controller.maxConcurrentReconciles"
         }
       },
       "type": "object"
@@ -215,6 +227,10 @@
     "helm-values.app.controller.leaderElectionNamespace": {
       "default": "istio-system",
       "type": "string"
+    },
+    "helm-values.app.controller.maxConcurrentReconciles": {
+      "description": "Maximum number of concurrent reconciles that the controller executes with. Defaults to 1.\nExample: 4",
+      "type": "number"
     },
     "helm-values.app.istio": {
       "additionalProperties": false,
@@ -541,6 +557,15 @@
         "rootCAFile": {
           "$ref": "#/$defs/helm-values.app.tls.rootCAFile"
         },
+        "servingTLSCipherSuites": {
+          "$ref": "#/$defs/helm-values.app.tls.servingTLSCipherSuites"
+        },
+        "servingTLSCurvePreferences": {
+          "$ref": "#/$defs/helm-values.app.tls.servingTLSCurvePreferences"
+        },
+        "servingTLSMinVersion": {
+          "$ref": "#/$defs/helm-values.app.tls.servingTLSMinVersion"
+        },
         "trustDomain": {
           "$ref": "#/$defs/helm-values.app.tls.trustDomain"
         }
@@ -595,6 +620,22 @@
     "helm-values.app.tls.rootCAFile": {
       "description": "An optional file location to a PEM encoded root CA that the root CA. ConfigMap in all namespaces will be populated with. If empty, the CA returned from cert-manager for the serving certificate will be used."
     },
+    "helm-values.app.tls.servingTLSCipherSuites": {
+      "default": [],
+      "description": "Cipher suites for the gRPC serving listener (TLS_CIPHER_SUITE names). If empty, Go defaults apply. Only affects TLS 1.2; TLS 1.3 cipher suites are not configurable in Go. Acceptable names match Kubernetes component-base (same as kube-apiserver --tls-cipher-suites); see [TLSCipherPossibleValues](https://pkg.go.dev/k8s.io/component-base/cli/flag#TLSCipherPossibleValues). Some listed values are considered insecure — prefer [PreferredTLSCipherNames](https://pkg.go.dev/k8s.io/component-base/cli/flag#PreferredTLSCipherNames).",
+      "items": {},
+      "type": "array"
+    },
+    "helm-values.app.tls.servingTLSCurvePreferences": {
+      "default": [],
+      "description": "TLS key exchange curves for the gRPC listener (e.g. X25519, CurveP256, or decimal CurveID). If empty, Go defaults apply.",
+      "items": {},
+      "type": "array"
+    },
+    "helm-values.app.tls.servingTLSMinVersion": {
+      "description": "Minimum TLS version for the gRPC serving listener (Kubernetes-style name, e.g. VersionTLS12). If unset, TLS 1.2 is used but a future version will increase the default.",
+      "type": "string"
+    },
     "helm-values.app.tls.trustDomain": {
       "default": "cluster.local",
       "description": "The Istio cluster's trust domain.",
@@ -630,6 +671,9 @@
         "digest": {
           "$ref": "#/$defs/helm-values.image.digest"
         },
+        "name": {
+          "$ref": "#/$defs/helm-values.image.name"
+        },
         "pullPolicy": {
           "$ref": "#/$defs/helm-values.image.pullPolicy"
         },
@@ -649,22 +693,32 @@
       "description": "Target image digest. Override any tag, if set.\nFor example:\ndigest: sha256:0e072dddd1f7f8fc8909a2ca6f65e76c5f0d2fcfb8be47935ae3457e8bbceb20",
       "type": "string"
     },
+    "helm-values.image.name": {
+      "default": "cert-manager-istio-csr",
+      "description": "The image name for istio-csr.\nThis is used (together with `imageRegistry` and `imageNamespace`) to construct the full image reference.",
+      "type": "string"
+    },
     "helm-values.image.pullPolicy": {
       "default": "IfNotPresent",
       "description": "Kubernetes imagePullPolicy on Deployment.",
       "type": "string"
     },
     "helm-values.image.registry": {
-      "description": "Target image registry. This value is prepended to the target image repository, if set.\nFor example:\nregistry: quay.io\nrepository: jetstack/cert-manager-istio-csr",
+      "description": "Target image registry. This value is prepended to the target image repository, if set.\nFor example:\nregistry: quay.io\nrepository: jetstack/cert-manager-istio-csr\nDeprecated: per-component registry prefix.\n\nIf set, this value is *prepended* to the image repository that the chart would otherwise render. This applies both when `image.repository` is set and when the repository is computed from\n`imageRegistry` + `imageNamespace` + `image.name`.\n\nThis can produce \"double registry\" style references such as\n`legacy.example.io/quay.io/jetstack/...`. Prefer using the global\n`imageRegistry`/`imageNamespace` values.",
       "type": "string"
     },
     "helm-values.image.repository": {
-      "default": "quay.io/jetstack/cert-manager-istio-csr",
-      "description": "Target image repository.",
+      "default": "",
+      "description": "Full repository override (takes precedence over `imageRegistry`, `imageNamespace`, and `image.name`).\nExample: quay.io/jetstack/cert-manager-istio-csr",
       "type": "string"
     },
     "helm-values.image.tag": {
       "description": "Override the image tag to deploy by setting this variable. If no value is set, the chart's appVersion is used.",
+      "type": "string"
+    },
+    "helm-values.imageNamespace": {
+      "default": "jetstack",
+      "description": "The repository namespace used for istio-csr images by default.\nExamples:\n- jetstack\n- cert-manager",
       "type": "string"
     },
     "helm-values.imagePullSecrets": {
@@ -672,6 +726,11 @@
       "description": "Optional secrets used for pulling the istio-csr container image.",
       "items": {},
       "type": "array"
+    },
+    "helm-values.imageRegistry": {
+      "default": "quay.io",
+      "description": "The container registry used for istio-csr images by default. This can include path prefixes (e.g. \"artifactory.example.com/docker\").",
+      "type": "string"
     },
     "helm-values.nameOverride": {
       "description": "nameOverride replaces the name of the chart in the Chart.yaml file when this is used to construct Kubernetes object names.",
@@ -720,6 +779,11 @@
       "default": {},
       "description": "Optional extra labels for pod.",
       "type": "object"
+    },
+    "helm-values.priorityClassName": {
+      "default": "",
+      "description": "Configure the priority class of the pod. For more information, see [PriorityClass](https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/#priorityclass).",
+      "type": "string"
     },
     "helm-values.replicaCount": {
       "default": 1,

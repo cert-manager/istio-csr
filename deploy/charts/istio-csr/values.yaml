@@ -6,16 +6,45 @@
 # The number of replicas of istio-csr to run.
 replicaCount: 1
 
+# The container registry used for istio-csr images by default.
+# This can include path prefixes (e.g. "artifactory.example.com/docker").
+# +docs:property
+imageRegistry: quay.io
+# The repository namespace used for istio-csr images by default.
+# Examples:
+# - jetstack
+# - cert-manager
+# +docs:property
+imageNamespace: jetstack
+
 image:
   # Target image registry. This value is prepended to the target image repository, if set.
   # For example:
   #   registry: quay.io
   #   repository: jetstack/cert-manager-istio-csr
+  # Deprecated: per-component registry prefix.
+  #
+  # If set, this value is *prepended* to the image repository that the chart would otherwise render.
+  # This applies both when `image.repository` is set and when the repository is computed from
+  # `imageRegistry` + `imageNamespace` + `image.name`.
+  #
+  # This can produce "double registry" style references such as
+  # `legacy.example.io/quay.io/jetstack/...`. Prefer using the global
+  # `imageRegistry`/`imageNamespace` values.
   # +docs:property
   # registry: quay.io
 
-  # Target image repository.
-  repository: quay.io/jetstack/cert-manager-istio-csr
+  # Full repository override (takes precedence over `imageRegistry`, `imageNamespace`,
+  # and `image.name`).
+  # Example: quay.io/jetstack/cert-manager-istio-csr
+  # +docs:property
+  repository: ""
+
+  # The image name for istio-csr.
+  # This is used (together with `imageRegistry` and `imageNamespace`) to construct the full
+  # image reference.
+  # +docs:property
+  name: cert-manager-istio-csr
 
   # Override the image tag to deploy by setting this variable.
   # If no value is set, the chart's appVersion is used.
@@ -169,6 +198,23 @@ app:
     # Based on [NIST 800-204A recommendations (SM-DR13)](https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf).
     certificateDuration: 1h
 
+    # Minimum TLS version for the gRPC serving listener (Kubernetes-style name, e.g. VersionTLS12).
+    # If unset, TLS 1.2 is used but a future version will increase the default.
+    # +docs:property
+    # servingTLSMinVersion: VersionTLS12
+
+    # Cipher suites for the gRPC serving listener (TLS_CIPHER_SUITE names). If empty, Go defaults apply.
+    # Only affects TLS 1.2; TLS 1.3 cipher suites are not configurable in Go.
+    # Acceptable names match Kubernetes component-base (same as kube-apiserver --tls-cipher-suites);
+    # see [TLSCipherPossibleValues](https://pkg.go.dev/k8s.io/component-base/cli/flag#TLSCipherPossibleValues).
+    # Some listed values are considered insecure — prefer [PreferredTLSCipherNames](https://pkg.go.dev/k8s.io/component-base/cli/flag#PreferredTLSCipherNames).
+    # +docs:property
+    servingTLSCipherSuites: []
+
+    # TLS key exchange curves for the gRPC listener (e.g. X25519, CurveP256, or decimal CurveID). If empty, Go defaults apply.
+    # +docs:property
+    servingTLSCurvePreferences: []
+
     # If true, create the istiod certificate using a cert-manager certificate as part
     # of the install. If set to "dynamic", will create the cert dynamically when
     # istio-csr pods start up. If false, no cert is created.
@@ -248,6 +294,12 @@ app:
     # to avoid overloading the server.
     disableKubernetesClientRateLimiter: false
 
+    # Maximum number of concurrent reconciles that the controller executes with. Defaults to 1.
+    # Example: 4
+    # +docs:type=number
+    # +docs:property
+    # maxConcurrentReconciles:
+
 # Optional extra labels for deployment.
 deploymentLabels: {}
 
@@ -288,6 +340,9 @@ volumeMounts: []
 #      cpu: 100m
 #      memory: 128Mi
 resources: {}
+
+# Configure the priority class of the pod. For more information, see [PriorityClass](https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/#priorityclass).
+priorityClassName: ""
 
 # Kubernetes [security context](https://kubernetes.io/docs/tasks/configure-pod-container/security-context/).
 #

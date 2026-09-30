@@ -17,6 +17,25 @@ nameOverride replaces the name of the chart in the Chart.yaml file when this is 
 > ```
 
 The number of replicas of istio-csr to run.
+#### **imageRegistry** ~ `string`
+> Default value:
+> ```yaml
+> quay.io
+> ```
+
+The container registry used for istio-csr images by default. This can include path prefixes (e.g. "artifactory.example.com/docker").
+
+#### **imageNamespace** ~ `string`
+> Default value:
+> ```yaml
+> jetstack
+> ```
+
+The repository namespace used for istio-csr images by default.  
+Examples:  
+- jetstack  
+- cert-manager
+
 #### **image.registry** ~ `string`
 
 Target image registry. This value is prepended to the target image repository, if set.  
@@ -27,13 +46,33 @@ registry: quay.io
 repository: jetstack/cert-manager-istio-csr
 ```
 
+Deprecated: per-component registry prefix.  
+  
+If set, this value is *prepended* to the image repository that the chart would otherwise render. This applies both when `image.repository` is set and when the repository is computed from  
+`imageRegistry` + `imageNamespace` + `image.name`.  
+  
+This can produce "double registry" style references such as  
+`legacy.example.io/quay.io/jetstack/...`. Prefer using the global  
+`imageRegistry`/`imageNamespace` values.
+
 #### **image.repository** ~ `string`
 > Default value:
 > ```yaml
-> quay.io/jetstack/cert-manager-istio-csr
+> ""
 > ```
 
-Target image repository.
+Full repository override (takes precedence over `imageRegistry`, `imageNamespace`, and `image.name`).  
+Example: quay.io/jetstack/cert-manager-istio-csr
+
+#### **image.name** ~ `string`
+> Default value:
+> ```yaml
+> cert-manager-istio-csr
+> ```
+
+The image name for istio-csr.  
+This is used (together with `imageRegistry` and `imageNamespace`) to construct the full image reference.
+
 #### **image.tag** ~ `string`
 
 Override the image tag to deploy by setting this variable. If no value is set, the chart's appVersion is used.
@@ -287,6 +326,26 @@ An optional file location to a PEM encoded root CA that the root CA. ConfigMap i
 > ```
 
 Requested duration of the gRPC serving certificate. Will be automatically renewed. Based on [NIST 800-204A recommendations (SM-DR13)](https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-204A.pdf).
+#### **app.tls.servingTLSMinVersion** ~ `string`
+
+Minimum TLS version for the gRPC serving listener (Kubernetes-style name, e.g. VersionTLS12). If unset, TLS 1.2 is used but a future version will increase the default.
+
+#### **app.tls.servingTLSCipherSuites** ~ `array`
+> Default value:
+> ```yaml
+> []
+> ```
+
+Cipher suites for the gRPC serving listener (TLS_CIPHER_SUITE names). If empty, Go defaults apply. Only affects TLS 1.2; TLS 1.3 cipher suites are not configurable in Go. Acceptable names match Kubernetes component-base (same as kube-apiserver --tls-cipher-suites); see [TLSCipherPossibleValues](https://pkg.go.dev/k8s.io/component-base/cli/flag#TLSCipherPossibleValues). Some listed values are considered insecure — prefer [PreferredTLSCipherNames](https://pkg.go.dev/k8s.io/component-base/cli/flag#PreferredTLSCipherNames).
+
+#### **app.tls.servingTLSCurvePreferences** ~ `array`
+> Default value:
+> ```yaml
+> []
+> ```
+
+TLS key exchange curves for the gRPC listener (e.g. X25519, CurveP256, or decimal CurveID). If empty, Go defaults apply.
+
 #### **app.tls.istiodCertificateEnable** ~ `boolean,string,null`
 > Default value:
 > ```yaml
@@ -419,6 +478,12 @@ Example: maistra.io/member-of=istio-system
 Allows you to disable the default Kubernetes client rate limiter if istio-csr is exceeding the default QPS (5) and Burst (10) limits. For example, in large clusters with many Istio workloads, restarting the Pods may cause istio-csr to send bursts of Kubernetes API requests that exceed the limits of the default Kubernetes client rate limiter, and istio-csr will become slow to issue certificates for your workloads. Only disable client rate limiting if the Kubernetes API server supports  
 [API Priority and Fairness](https://kubernetes.io/docs/concepts/cluster-administration/flow-control/),  
 to avoid overloading the server.
+#### **app.controller.maxConcurrentReconciles** ~ `number`
+
+Maximum number of concurrent reconciles that the controller executes with. Defaults to 1.  
+Example: 4
+
+
 #### **deploymentLabels** ~ `object`
 > Default value:
 > ```yaml
@@ -497,6 +562,13 @@ resources:
     cpu: 100m
     memory: 128Mi
 ```
+#### **priorityClassName** ~ `string`
+> Default value:
+> ```yaml
+> ""
+> ```
+
+Configure the priority class of the pod. For more information, see [PriorityClass](https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/#priorityclass).
 #### **securityContext** ~ `object`
 > Default value:
 > ```yaml

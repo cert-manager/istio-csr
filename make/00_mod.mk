@@ -39,10 +39,7 @@ helm_labels_template_name := cert-manager-istio-csr.labels
 golangci_lint_config := .golangci.yaml
 
 define helm_values_mutation_function
-$(YQ) \
-	'( .image.repository = "$(oci_manager_image_name)" ) | \
-	( .image.tag = "$(oci_manager_image_tag)" )' \
-	$1 --inplace
+echo "no mutations defined for this chart"
 endef
 
 images_amd64 ?=
