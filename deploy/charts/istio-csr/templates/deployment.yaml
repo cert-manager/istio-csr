@@ -35,6 +35,9 @@ spec:
         {{- toYaml . | nindent 8 }}
     {{- end }}
       serviceAccountName: {{ include "cert-manager-istio-csr.name" . }}
+      {{- if hasKey .Values "automountServiceAccountToken" }}
+      automountServiceAccountToken: {{ .Values.automountServiceAccountToken }}
+      {{- end }}
       {{- with .Values.priorityClassName }}
       priorityClassName: "{{ . }}"
       {{- end }}

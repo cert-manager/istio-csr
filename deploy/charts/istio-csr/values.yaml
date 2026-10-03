@@ -312,6 +312,10 @@ podLabels: {}
 # Optional extra annotations for pod.
 podAnnotations: {}
 
+# Automounting API credentials for the istio-csr pod.
+# +docs:property
+automountServiceAccountToken: true
+
 # Optional extra volumes. Useful for mounting custom root CAs.
 #
 # For example:
