@@ -67,3 +67,24 @@ tests:
       - contains:
           path: spec.template.spec.containers[0].args
           content: --istiod-cert-additional-annotations=b.io/y=two
+
+  - it: renders numeric and boolean values as strings
+    set:
+      app.certmanager.additionalAnnotations:
+        - name: a.io/n
+          value: 42
+        - name: b.io/b
+          value: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --certificate-request-additional-annotations=a.io/n=42
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --certificate-request-additional-annotations=b.io/b=true
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --istiod-cert-additional-annotations=a.io/n=42
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --istiod-cert-additional-annotations=b.io/b=true

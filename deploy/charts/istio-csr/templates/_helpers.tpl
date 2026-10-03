@@ -105,8 +105,9 @@ pflag only CSV-parses the value when it contains more than one "=", so the pair 
 CSV-quoted (with embedded quotes doubled) only in that case; otherwise it is passed raw.
 */}}
 {{- define "cert-manager-istio-csr.annotationFlagValue" -}}
-{{- $pair := printf "%s=%s" .name .value -}}
-{{- if contains "=" .value -}}
+{{- $value := toString .value -}}
+{{- $pair := printf "%s=%s" .name $value -}}
+{{- if contains "=" $value -}}
 {{- printf "\"%s\"" (replace "\"" "\"\"" $pair) -}}
 {{- else -}}
 {{- $pair -}}
