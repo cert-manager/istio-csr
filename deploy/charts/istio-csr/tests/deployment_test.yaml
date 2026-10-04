@@ -1,0 +1,90 @@
+suite: additionalAnnotations args
+templates:
+  - templates/deployment.yaml
+tests:
+  - it: renders no annotation args by default
+    asserts:
+      - notMatchRegex:
+          path: spec.template.spec.containers[0].args[*]
+          pattern: ^--(certificate-request|istiod-cert)-additional-annotations=
+
+  - it: passes a simple annotation raw
+    set:
+      app.certmanager.additionalAnnotations:
+        - name: a.io/x
+          value: istio-csr
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --certificate-request-additional-annotations=a.io/x=istio-csr
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --istiod-cert-additional-annotations=a.io/x=istio-csr
+
+  - it: passes a value with commas and quotes raw
+    set:
+      app.certmanager.additionalAnnotations:
+        - name: some.cert-manager.io/custom-fields
+          value: '[{ "Name": "field1", "Value": "value1" },{ "Name": "field2", "Value": "value2" }]'
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: '--certificate-request-additional-annotations=some.cert-manager.io/custom-fields=[{ "Name": "field1", "Value": "value1" },{ "Name": "field2", "Value": "value2" }]'
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: '--istiod-cert-additional-annotations=some.cert-manager.io/custom-fields=[{ "Name": "field1", "Value": "value1" },{ "Name": "field2", "Value": "value2" }]'
+
+  - it: CSV-quotes a value containing "="
+    set:
+      app.certmanager.additionalAnnotations:
+        - name: b.io/y
+          value: 'k=v,"q"'
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: '--certificate-request-additional-annotations="b.io/y=k=v,""q"""'
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: '--istiod-cert-additional-annotations="b.io/y=k=v,""q"""'
+
+  - it: renders one arg per annotation
+    set:
+      app.certmanager.additionalAnnotations:
+        - name: a.io/x
+          value: one
+        - name: b.io/y
+          value: two
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --certificate-request-additional-annotations=a.io/x=one
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --certificate-request-additional-annotations=b.io/y=two
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --istiod-cert-additional-annotations=a.io/x=one
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --istiod-cert-additional-annotations=b.io/y=two
+
+  - it: renders numeric and boolean values as strings
+    set:
+      app.certmanager.additionalAnnotations:
+        - name: a.io/n
+          value: 42
+        - name: b.io/b
+          value: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --certificate-request-additional-annotations=a.io/n=42
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --certificate-request-additional-annotations=b.io/b=true
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --istiod-cert-additional-annotations=a.io/n=42
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --istiod-cert-additional-annotations=b.io/b=true
