@@ -643,7 +643,7 @@
     },
     "helm-values.commonLabels": {
       "default": {},
-      "description": "Labels to apply to all resources.",
+      "description": "Labels to apply to all resources.\nOn a key collision these win over the chart's own labels, with two exceptions: the \"app\" label on the istio-csr Pods and on the metrics. Service is matched by selectors, so it cannot be overridden there. It is still applied to every other resource.",
       "type": "object"
     },
     "helm-values.deploymentAnnotations": {
@@ -777,7 +777,7 @@
     },
     "helm-values.podLabels": {
       "default": {},
-      "description": "Optional extra labels for pod.",
+      "description": "Optional extra labels for pod.\nOn a key collision these win over commonLabels. The \"app\" label cannot be overridden, because it must match the selectors that target these Pods.",
       "type": "object"
     },
     "helm-values.priorityClassName": {

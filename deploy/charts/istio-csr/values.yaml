@@ -307,6 +307,8 @@ deploymentLabels: {}
 deploymentAnnotations: {}
 
 # Optional extra labels for pod.
+# On a key collision these win over commonLabels. The "app" label cannot be
+# overridden, because it must match the selectors that target these Pods.
 podLabels: {}
 
 # Optional extra annotations for pod.
@@ -400,6 +402,10 @@ nodeSelector:
   kubernetes.io/os: linux
 
 # Labels to apply to all resources.
+# On a key collision these win over the chart's own labels, with two
+# exceptions: the "app" label on the istio-csr Pods and on the metrics
+# Service is matched by selectors, so it cannot be overridden there. It is
+# still applied to every other resource.
 commonLabels: {}
 
 # Create resources alongside installing istio-csr, via Helm values. Can accept an array of YAML-formatted

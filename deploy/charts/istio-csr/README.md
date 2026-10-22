@@ -504,7 +504,8 @@ Optional extra annotations for deployment.
 > {}
 > ```
 
-Optional extra labels for pod.
+Optional extra labels for pod.  
+On a key collision these win over commonLabels. The "app" label cannot be overridden, because it must match the selectors that target these Pods.
 #### **podAnnotations** ~ `object`
 > Default value:
 > ```yaml
@@ -657,7 +658,8 @@ Kubernetes node selector: node labels for pod assignment.
 > {}
 > ```
 
-Labels to apply to all resources.
+Labels to apply to all resources.  
+On a key collision these win over the chart's own labels, with two exceptions: the "app" label on the istio-csr Pods and on the metrics. Service is matched by selectors, so it cannot be overridden there. It is still applied to every other resource.
 #### **extraObjects** ~ `array`
 > Default value:
 > ```yaml
