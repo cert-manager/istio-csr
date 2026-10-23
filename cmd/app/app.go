@@ -147,7 +147,7 @@ func NewCommand(ctx context.Context) *cobra.Command {
 				}
 			}
 
-			if err := mgr.AddReadyzCheck("tls_provider", deferCheckUntilIssuerConfig(tls.Check)); err != nil {
+			if err := mgr.AddReadyzCheck("tls_provider", logReadinessChanges(opts.Logr, "tls_provider", deferCheckUntilIssuerConfig(tls.Check))); err != nil {
 				return fmt.Errorf("failed to add tls provider readiness check: %w", err)
 			}
 			if err := mgr.Add(tls); err != nil {
@@ -159,7 +159,7 @@ func NewCommand(ctx context.Context) *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("failed to create grpc server: %w", err)
 			}
-			if err := mgr.AddReadyzCheck("grpc_server", deferCheckUntilIssuerConfig(server.Check)); err != nil {
+			if err := mgr.AddReadyzCheck("grpc_server", logReadinessChanges(opts.Logr, "grpc_server", deferCheckUntilIssuerConfig(server.Check))); err != nil {
 				return fmt.Errorf("failed to add grpc server readiness check: %w", err)
 			}
 			if err := mgr.Add(server); err != nil {
