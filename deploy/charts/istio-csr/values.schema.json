@@ -9,6 +9,9 @@
         "app": {
           "$ref": "#/$defs/helm-values.app"
         },
+        "automountServiceAccountToken": {
+          "$ref": "#/$defs/helm-values.automountServiceAccountToken"
+        },
         "commonLabels": {
           "$ref": "#/$defs/helm-values.commonLabels"
         },
@@ -640,6 +643,11 @@
       "default": "cluster.local",
       "description": "The Istio cluster's trust domain.",
       "type": "string"
+    },
+    "helm-values.automountServiceAccountToken": {
+      "default": true,
+      "description": "Automounting API credentials for the istio-csr pod.",
+      "type": "boolean"
     },
     "helm-values.commonLabels": {
       "default": {},
