@@ -34,6 +34,11 @@ jobs:
           go-version: ${{ steps.go-version.outputs.result }}
 
       - id: release
+        # On ubuntu-26.04 /tmp is a tmpfs with a ~7.8G per-user quota, which
+        # the multi-arch Go build exceeds. runner.temp is on the root disk.
+        # Why?: https://github.com/actions/runner-images/issues/14777
+        env:
+          TMPDIR: ${{ runner.temp }}
         run: make release
 
     outputs:
