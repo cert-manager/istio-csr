@@ -301,6 +301,7 @@ app:
     # maxConcurrentReconciles:
 
 # Optional extra labels for deployment.
+# On a key collision these win over commonLabels.
 deploymentLabels: {}
 
 # Optional extra annotations for deployment.
@@ -403,9 +404,9 @@ nodeSelector:
 
 # Labels to apply to all resources.
 # On a key collision these win over the chart's own labels, with two
-# exceptions: the "app" label on the istio-csr Pods and on the metrics
-# Service is matched by selectors, so it cannot be overridden there. It is
-# still applied to every other resource.
+# exceptions. The "app" label on the istio-csr Pods, and the same label on
+# the metrics Service, are matched by selectors and so cannot be overridden
+# there. They are still applied to every other resource.
 commonLabels: {}
 
 # Create resources alongside installing istio-csr, via Helm values. Can accept an array of YAML-formatted

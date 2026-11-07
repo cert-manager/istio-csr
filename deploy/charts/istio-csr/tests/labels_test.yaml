@@ -113,6 +113,23 @@ tests:
           value: default
         template: templates/metrics-servicemonitor.yaml
 
+  - it: deploymentLabels wins over commonLabels on the Deployment's own labels
+    set:
+      commonLabels:
+        team: from-common
+        shared: from-common
+      deploymentLabels:
+        team: from-deployment
+    asserts:
+      - equal:
+          path: metadata.labels.team
+          value: from-deployment
+        template: templates/deployment.yaml
+      - equal:
+          path: metadata.labels.shared
+          value: from-common
+        template: templates/deployment.yaml
+
   - it: app stays overridable where nothing has to keep matching it
     set:
       commonLabels:

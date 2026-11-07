@@ -4,10 +4,17 @@ metadata:
   name: {{ include "cert-manager-istio-csr.name" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "cert-manager-istio-csr.labels" . | nindent 4 }}
-    {{- with .Values.deploymentLabels }}
-    {{- toYaml . | nindent 4 }}
-    {{- end }}
+    {{- /*
+      Merged as one map so no key can be emitted twice, with
+      .Values.deploymentLabels winning over .Values.commonLabels. Nothing
+      reads the Deployment's own labels through a selector, so no key needs
+      pinning here.
+    */}}
+    {{- $deploymentLabels := mergeOverwrite
+          (include "cert-manager-istio-csr.labels" . | fromYaml)
+          (.Values.deploymentLabels | default dict)
+    -}}
+    {{- toYaml $deploymentLabels | nindent 4 }}
   {{- with .Values.deploymentAnnotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
