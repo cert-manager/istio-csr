@@ -5,8 +5,17 @@ metadata:
   name: {{ include "cert-manager-istio-csr.name" . }}-metrics
   namespace: {{ .Release.Namespace }}
   labels:
-    app: {{ include "cert-manager-istio-csr.name" . }}-metrics
-    {{- include "cert-manager-istio-csr.labels" . | nindent 4 }}
+    {{- /*
+      "app" is merged in last so .Values.commonLabels cannot override it: the
+      ServiceMonitor selects this Service on it, and overriding it would
+      silently stop metrics being scraped. Note the value carries the
+      "-metrics" suffix, matching the ServiceMonitor's selector.
+    */}}
+    {{- $labels := mergeOverwrite
+          (include "cert-manager-istio-csr.labels" . | fromYaml)
+          (dict "app" (printf "%s-metrics" (include "cert-manager-istio-csr.name" .)))
+    -}}
+    {{- toYaml $labels | nindent 4 }}
 spec:
   type: {{ .Values.app.metrics.service.type }}
   ports:

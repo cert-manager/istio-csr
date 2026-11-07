@@ -4,10 +4,17 @@ metadata:
   name: {{ include "cert-manager-istio-csr.name" . }}
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "cert-manager-istio-csr.labels" . | nindent 4 }}
-    {{- with .Values.deploymentLabels }}
-    {{- toYaml . | nindent 4 }}
-    {{- end }}
+    {{- /*
+      Merged as one map so no key can be emitted twice, with
+      .Values.deploymentLabels winning over .Values.commonLabels. Nothing
+      reads the Deployment's own labels through a selector, so no key needs
+      pinning here.
+    */}}
+    {{- $deploymentLabels := mergeOverwrite
+          (include "cert-manager-istio-csr.labels" . | fromYaml)
+          (.Values.deploymentLabels | default dict)
+    -}}
+    {{- toYaml $deploymentLabels | nindent 4 }}
   {{- with .Values.deploymentAnnotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
@@ -20,11 +27,23 @@ spec:
   template:
     metadata:
       labels:
-        app: {{ include "cert-manager-istio-csr.name" . }}
-        {{- include "cert-manager-istio-csr.labels" . | nindent 8 }}
-        {{- with .Values.podLabels }}
-        {{- toYaml . | nindent 8 }}
-        {{- end }}
+        {{- /*
+          Merged as one map so no key can be emitted twice. Sources are listed
+          lowest precedence first, so .Values.podLabels wins over
+          .Values.commonLabels, and "app" wins over both: the Deployment,
+          PodDisruptionBudget, metrics Service and gRPC Service selectors all
+          match on it, and a pod template that does not match the Deployment's
+          own selector is rejected by the API server.
+
+          mergeOverwrite, not merge: merge skips empty source values, so an
+          intentionally empty podLabels value would lose to commonLabels.
+        */}}
+        {{- $podLabels := mergeOverwrite
+              (include "cert-manager-istio-csr.labels" . | fromYaml)
+              (.Values.podLabels | default dict)
+              (dict "app" (include "cert-manager-istio-csr.name" .))
+        -}}
+        {{- toYaml $podLabels | nindent 8 }}
       {{- with .Values.podAnnotations }}
       annotations:
         {{- toYaml . | nindent 8 }}
