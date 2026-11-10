@@ -12,11 +12,11 @@ require (
 	github.com/onsi/gomega v1.44.0
 	github.com/prometheus/client_golang v1.25.0
 	github.com/spf13/cobra v1.10.2
-	github.com/spf13/pflag v1.0.10
+	github.com/spf13/pflag v1.1.0
 	github.com/stretchr/testify v1.12.1
 	google.golang.org/grpc v1.85.0
 	google.golang.org/protobuf v1.36.12
-	istio.io/api v1.31.3
+	istio.io/api v1.31.4
 	istio.io/istio v0.0.0-20260528141032-c51394391cf5
 	k8s.io/api v0.37.2
 	k8s.io/apimachinery v0.37.2
