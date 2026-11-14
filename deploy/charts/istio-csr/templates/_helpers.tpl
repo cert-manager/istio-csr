@@ -15,18 +15,47 @@ Create chart name and version as used by the chart label.
 
 {{/*
 Common labels
+
+Labels are merged as a map, not concatenated as YAML text, so a key in
+.Values.commonLabels cannot produce a duplicate key. On conflict
+.Values.commonLabels wins.
+
+The "app" label is not set here. Resources that carry it merge it in
+themselves, because its value differs per resource and whether it can be
+overridden depends on whether a selector reads it.
+
+IMPORTANT: This function is standardized across all charts in the cert-manager GH organization.
+Any changes to this function should also be made in cert-manager, trust-manager, approver-policy, ...
+See https://github.com/cert-manager/cert-manager/issues/9348 for a list of linked PRs.
 */}}
 {{- define "cert-manager-istio-csr.labels" -}}
-app.kubernetes.io/name: {{ include "cert-manager-istio-csr.name" . }}
-helm.sh/chart: {{ include "cert-manager-istio-csr.chart" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
+{{- $labels := dict
+  "app.kubernetes.io/name" (include "cert-manager-istio-csr.name" .)
+  "helm.sh/chart" (include "cert-manager-istio-csr.chart" .)
+  "app.kubernetes.io/instance" .Release.Name
+  "app.kubernetes.io/managed-by" .Release.Service
+-}}
 {{- if .Chart.AppVersion }}
-app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- $labels = set $labels "app.kubernetes.io/version" .Chart.AppVersion }}
 {{- end }}
-app.kubernetes.io/managed-by: {{ .Release.Service }}
-{{- if .Values.commonLabels }}
-{{ toYaml .Values.commonLabels }}
-{{- end }}
+{{- toYaml (mergeOverwrite $labels (.Values.commonLabels | default dict)) }}
+{{- end -}}
+
+{{/*
+Common labels plus "app", for resources that carry it but where nothing has
+to keep matching it.
+
+"app" is applied at a lower precedence than the common labels, so
+.Values.commonLabels can still override it, as it could before the labels
+were merged. Resources whose "app" label IS read by a selector merge it in at
+a higher precedence instead, so that it cannot be overridden and leave the
+selector matching nothing.
+*/}}
+{{- define "cert-manager-istio-csr.labelsWithApp" -}}
+{{- toYaml (mergeOverwrite
+      (dict "app" (include "cert-manager-istio-csr.name" .))
+      (include "cert-manager-istio-csr.labels" . | fromYaml)
+) }}
 {{- end -}}
 
 {{/*
