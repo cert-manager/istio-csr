@@ -25,7 +25,6 @@ import (
 	"strings"
 
 	securityapi "istio.io/api/security/v1alpha1"
-	"istio.io/istio/pkg/log"
 	"istio.io/istio/pkg/security"
 	pkiutil "istio.io/istio/security/pkg/pki/util"
 
@@ -64,13 +63,13 @@ func (s *Server) authRequest(ctx context.Context, icr *securityapi.IstioCertific
 	crMetadata := icr.GetMetadata().GetFields()
 	impersonatedIdentity := crMetadata[security.ImpersonatedIdentity].GetStringValue()
 	if impersonatedIdentity != "" {
-		log.Debugf("impersonated identity: %s", impersonatedIdentity)
+		s.log.V(2).Info("impersonated identity", "identity", impersonatedIdentity)
 		if s.nodeAuthorizer == nil {
-			log.Warnf("impersonation not allowed, as node authorizer (CA_TRUSTED_NODE_ACCOUNTS) is not configured")
+			s.log.Error(errors.New("impersonation not allowed"), "node authorizer (CA_TRUSTED_NODE_ACCOUNTS) is not configured")
 			return "", false
 		}
 		if err := s.nodeAuthorizer.authenticateImpersonation(caller.KubernetesInfo, impersonatedIdentity); err != nil {
-			log.Error(fmt.Errorf("failed to validate impersonated identity %v: %v", impersonatedIdentity, err))
+			s.log.Error(err, "failed to validate impersonated identity", "identity", impersonatedIdentity)
 			return identities, false
 		}
 		identities = impersonatedIdentity
