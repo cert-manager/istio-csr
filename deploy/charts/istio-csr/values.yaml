@@ -277,7 +277,10 @@ app:
 
   controller:
     leaderElectionNamespace: istio-system
-    # If set, limit where istio-csr creates configmaps with root CA certificates. If unset, configmap created in ALL namespaces.
+    # If set, limit where istio-csr creates ConfigMaps with root CA
+    # certificates. If unset, the ConfigMap is created in ALL namespaces.
+    # When a namespace stops matching this selector, an istio-ca-root-cert
+    # ConfigMap labeled istio-csr.cert-manager.io/managed=true is deleted.
     # Example: maistra.io/member-of=istio-system
     # +docs:type=string
     # +docs:property
