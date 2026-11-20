@@ -2,7 +2,7 @@ suite: clusterrole configmap rbac
 templates:
   - templates/clusterrole.yaml
 tests:
-  - it: scopes ConfigMap get/update to istio-ca-root-cert
+  - it: scopes ConfigMap get/update/delete to istio-ca-root-cert
     asserts:
       - equal:
           path: kind
@@ -18,7 +18,7 @@ tests:
           content:
             apiGroups: [""]
             resources: ["configmaps"]
-            verbs: ["get", "update"]
+            verbs: ["get", "update", "delete"]
             resourceNames: ["istio-ca-root-cert"]
       - notContains:
           path: rules

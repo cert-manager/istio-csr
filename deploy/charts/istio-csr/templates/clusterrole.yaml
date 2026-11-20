@@ -12,12 +12,12 @@ rules:
   resources:
   - "configmaps"
   verbs: ["create", "list", "watch"]
-  # get/update are limited to the istio-ca-root-cert ConfigMap name.
+  # get/update/delete are limited to the istio-ca-root-cert ConfigMap name.
 - apiGroups:
   - ""
   resources:
   - "configmaps"
-  verbs: ["get", "update"]
+  verbs: ["get", "update", "delete"]
   resourceNames:
   - "istio-ca-root-cert"
 - apiGroups:

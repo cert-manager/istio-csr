@@ -47,8 +47,23 @@ const (
 	// member namespaces containing the Istio root CA. It is hardcoded to match Istio's
 	// expected naming convention.
 	ConfigMapNameIstioRoot = "istio-ca-root-cert"
-	configMapLabelKey      = "istio.io/config"
+
+	// configMapLabelKey is required by Istio workloads consuming the root CA ConfigMap.
+	// Because Istio's namespace controller also applies this label, it cannot be used as
+	// an ownership marker when pruning or cleaning up ConfigMaps.
+	configMapLabelKey = "istio.io/config"
+
+	// configMapManagedByLabelKey identifies ConfigMaps managed by this controller.
+	// Cleanup only deletes objects that carry this label.
+	configMapManagedByLabelKey = "istio-csr.cert-manager.io/managed"
 )
+
+func istioRootConfigMapLabels() map[string]string {
+	return map[string]string{
+		configMapLabelKey:          "true",
+		configMapManagedByLabelKey: "true",
+	}
+}
 
 type Options struct {
 	// TLS is the tls provider that is used for updating the config map.
@@ -194,17 +209,15 @@ func (c *configmap) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resul
 		return ctrl.Result{}, err
 	}
 
-	// Ignore namespace that does not match the selector
-	if !c.namespaceSelector.Matches(labels.Set(namespace.GetLabels())) {
-		c.log.V(3).
-			WithValues("selector", c.namespaceSelector.String(), "namespace", namespace.GetName()).
-			Info("Ignoring namespace because it does not match the selector")
+	// Skip sync and cleanup while the namespace is deleting.
+	if !namespace.DeletionTimestamp.IsZero() || namespace.Status.Phase == corev1.NamespaceTerminating {
+		log.V(2).WithValues("phase", namespace.Status.Phase).Info("skipping sync for namespace as it is terminating")
 		return ctrl.Result{}, nil
 	}
 
-	if namespace.Status.Phase == corev1.NamespaceTerminating {
-		log.V(2).WithValues("phase", corev1.NamespaceTerminating).Info("skipping sync for namespace as it is terminating")
-		return ctrl.Result{}, nil
+	// Namespace no longer matches the selector: remove any leftover root CA ConfigMap.
+	if !c.namespaceSelector.Matches(labels.Set(namespace.GetLabels())) {
+		return c.deleteRootCAConfigMapIfPresent(ctx, log, req.Namespace)
 	}
 
 	c.rootCAsMu.RLock()
@@ -227,7 +240,7 @@ func (c *configmap) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resul
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      ConfigMapNameIstioRoot,
 				Namespace: req.Namespace,
-				Labels:    map[string]string{configMapLabelKey: "true"},
+				Labels:    istioRootConfigMapLabels(),
 			},
 			Data: map[string]string{
 				"root-cert.pem": rootCAsPEM,
@@ -263,9 +276,13 @@ func (c *configmap) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resul
 		updateNeeded = true
 	}
 
-	// If the ConfigMap doesn't have the expected label, update.
+	// Ensure both the Istio compatibility label and ownership marker are set.
 	if v, ok := configMap.Labels[configMapLabelKey]; !ok || v != "true" {
 		configMap.Labels[configMapLabelKey] = "true"
+		updateNeeded = true
+	}
+	if v, ok := configMap.Labels[configMapManagedByLabelKey]; !ok || v != "true" {
+		configMap.Labels[configMapManagedByLabelKey] = "true"
 		updateNeeded = true
 	}
 
@@ -276,5 +293,42 @@ func (c *configmap) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resul
 
 	log.V(3).Info("no update needed")
 
+	return ctrl.Result{}, nil
+}
+
+// deleteRootCAConfigMapIfPresent removes istio-ca-root-cert when the namespace no longer
+// matches --configmap-namespace-selector. It only deletes ConfigMaps this controller
+// owns (labeled istio-csr.cert-manager.io/managed=true).
+func (c *configmap) deleteRootCAConfigMapIfPresent(ctx context.Context, log logr.Logger, namespace string) (ctrl.Result, error) {
+	var configMap corev1.ConfigMap
+	err := c.client.Get(ctx, client.ObjectKey{Namespace: namespace, Name: ConfigMapNameIstioRoot}, &configMap)
+	// NotFound: ConfigMap does not exist, so nothing to clean up.
+	// Forbidden/Unauthorized: Missing RBAC permissions to read the ConfigMap;
+	// skip cleanup and do not requeue since permissions won't change on retry.
+	if apierrors.IsNotFound(err) || apierrors.IsForbidden(err) || apierrors.IsUnauthorized(err) {
+		log.V(3).Info("namespace does not match selector and ConfigMap is absent or is not accessible")
+		return ctrl.Result{}, nil
+	}
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	if val, exists := configMap.Labels[configMapManagedByLabelKey]; !exists || val != "true" {
+		log.V(2).Info("namespace does not match selector; ignoring ConfigMap not managed by istio-csr",
+			"selector", c.namespaceSelector.String())
+		return ctrl.Result{}, nil
+	}
+
+	log.Info("deleting ConfigMap from the namespace which no longer matches selector",
+		"selector", c.namespaceSelector.String())
+	// Constrain the delete to the exact object version that passed the ownership check.
+	// If the ConfigMap is concurrently replaced or relabeled, the API server returns a
+	// Conflict error (requeued by the standard error path) instead of deleting an unmanaged resource.
+	if err := c.client.Delete(ctx, &configMap, client.Preconditions{
+		UID:             &configMap.UID,
+		ResourceVersion: &configMap.ResourceVersion,
+	}); err != nil && !apierrors.IsNotFound(err) {
+		return ctrl.Result{}, err
+	}
 	return ctrl.Result{}, nil
 }
