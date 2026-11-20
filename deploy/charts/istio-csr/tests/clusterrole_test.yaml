@@ -1,0 +1,43 @@
+suite: clusterrole configmap rbac
+templates:
+  - templates/clusterrole.yaml
+tests:
+  - it: scopes ConfigMap get/update to istio-ca-root-cert
+    asserts:
+      - equal:
+          path: kind
+          value: ClusterRole
+      - contains:
+          path: rules
+          content:
+            apiGroups: [""]
+            resources: ["configmaps"]
+            verbs: ["create", "list", "watch"]
+      - contains:
+          path: rules
+          content:
+            apiGroups: [""]
+            resources: ["configmaps"]
+            verbs: ["get", "update"]
+            resourceNames: ["istio-ca-root-cert"]
+      - notContains:
+          path: rules
+          content:
+            apiGroups: [""]
+            resources: ["configmaps"]
+            verbs: ["get", "list", "create", "update", "watch"]
+
+  - it: retains namespaces and tokenreviews rules
+    asserts:
+      - contains:
+          path: rules
+          content:
+            apiGroups: [""]
+            resources: ["namespaces"]
+            verbs: ["get", "list", "watch"]
+      - contains:
+          path: rules
+          content:
+            apiGroups: ["authentication.k8s.io"]
+            resources: ["tokenreviews"]
+            verbs: ["create"]

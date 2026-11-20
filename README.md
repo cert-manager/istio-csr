@@ -44,7 +44,7 @@ istio-csr has 3 main components: the TLS certificate obtainer, the gRPC server a
 It uses the cert-manager API to create a CertificateRequest resource, which will be picked up by cert-manager and signed by the configured issuer.
 2. The gRPC server is responsible for receiving certificate signing requests from istiod and sending back the signed certificate.
 Herefore, it uses the cert-manager CertificateRequest API to obtain the signed certificate.
-3. The CA bundle distributor is responsible for creating and updating istio-ca-root-cert ConfigMaps in all namespaces (filtered using namespaceSelector).
+3. The CA bundle distributor is responsible for creating and updating `istio-ca-root-cert` ConfigMaps in all namespaces (filtered using `--configmap-namespace-selector`). RBAC grants ConfigMap `get`/`update` only for the name `istio-ca-root-cert`. Kubernetes RBAC does not support restricting 'create' by resourceNames, and 'list'/'watch' must also remain unscoped to allow the ConfigMap informer cache to work.
 
 ## Istio Ambient
 

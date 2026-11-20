@@ -5,11 +5,21 @@ metadata:
     {{- include "cert-manager-istio-csr.labels" . | nindent 4 }}
   name: {{ include "cert-manager-istio-csr.name" . }}
 rules:
+  # 'create' cannot be restricted by resourceNames in Kubernetes RBAC.
+  # 'list' and 'watch' must remain unscoped for the ConfigMap informer cache to work.
 - apiGroups:
   - ""
   resources:
   - "configmaps"
-  verbs: ["get", "list", "create", "update", "watch"]
+  verbs: ["create", "list", "watch"]
+  # get/update are limited to the istio-ca-root-cert ConfigMap name.
+- apiGroups:
+  - ""
+  resources:
+  - "configmaps"
+  verbs: ["get", "update"]
+  resourceNames:
+  - "istio-ca-root-cert"
 - apiGroups:
   - ""
   resources:

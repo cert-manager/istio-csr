@@ -465,7 +465,7 @@ The namespace where the istio control-plane is running.
 > ```
 #### **app.controller.configmapNamespaceSelector** ~ `string`
 
-If set, limit where istio-csr creates configmaps with root CA certificates. If unset, configmap created in ALL namespaces.  
+If set, limit where istio-csr creates ConfigMaps with root CA certificates. If unset, the ConfigMap is created in ALL namespaces.
 Example: maistra.io/member-of=istio-system
 
 

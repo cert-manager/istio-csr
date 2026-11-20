@@ -43,7 +43,10 @@ import (
 )
 
 const (
-	configMapNameIstioRoot = "istio-ca-root-cert"
+	// ConfigMapNameIstioRoot is the name of the ConfigMap written into mesh
+	// member namespaces containing the Istio root CA. It is hardcoded to match Istio's
+	// expected naming convention.
+	ConfigMapNameIstioRoot = "istio-ca-root-cert"
 	configMapLabelKey      = "istio.io/config"
 )
 
@@ -126,14 +129,13 @@ func AddConfigMapController(ctx context.Context, log logr.Logger, opts Options) 
 		}).
 		// Reconcile ConfigMaps but only cache metadata
 		For(new(corev1.ConfigMap), builder.OnlyMetadata, builder.WithPredicates(predicate.NewPredicateFuncs(func(obj client.Object) bool {
-			// Only process ConfigMaps with the istio configmap name
-			return obj.GetName() == configMapNameIstioRoot
+			return obj.GetName() == ConfigMapNameIstioRoot
 		}))).
 
 		// Watch all Namespaces. Cache whole Namespace to include Phase Status.
 		Watches(&corev1.Namespace{}, handler.EnqueueRequestsFromMapFunc(
 			func(_ context.Context, obj client.Object) []reconcile.Request {
-				return []reconcile.Request{{NamespacedName: types.NamespacedName{Namespace: obj.GetName(), Name: configMapNameIstioRoot}}}
+				return []reconcile.Request{{NamespacedName: types.NamespacedName{Namespace: obj.GetName(), Name: ConfigMapNameIstioRoot}}}
 			},
 		)).
 
@@ -164,7 +166,7 @@ func AddConfigMapController(ctx context.Context, log logr.Logger, opts Options) 
 						continue
 					}
 
-					requests = append(requests, ctrl.Request{NamespacedName: types.NamespacedName{Namespace: namespace.Name, Name: configMapNameIstioRoot}})
+					requests = append(requests, ctrl.Request{NamespacedName: types.NamespacedName{Namespace: namespace.Name, Name: ConfigMapNameIstioRoot}})
 				}
 				return requests
 			},
@@ -177,7 +179,7 @@ func AddConfigMapController(ctx context.Context, log logr.Logger, opts Options) 
 // Reconcile is the main ConfigMap Reconcile loop. It will ensure that the
 // istio ConfigMap exists, and has the correct CA entry.
 func (c *configmap) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	log := c.log.WithValues("namespace", req.Namespace, "configmap", configMapNameIstioRoot)
+	log := c.log.WithValues("namespace", req.Namespace, "configmap", ConfigMapNameIstioRoot)
 	log.V(3).Info("syncing configmap")
 
 	// Check Namespace is not deleted and is not in a terminating state.
@@ -216,14 +218,14 @@ func (c *configmap) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resul
 
 	// Check ConfigMap exists, and has the correct data.
 	var configMap corev1.ConfigMap
-	err = c.client.Get(ctx, client.ObjectKey{Namespace: req.Namespace, Name: configMapNameIstioRoot}, &configMap)
+	err = c.client.Get(ctx, client.ObjectKey{Namespace: req.Namespace, Name: ConfigMapNameIstioRoot}, &configMap)
 
 	// If the ConfigMap doesn't exist, create it with the correct data
 	if apierrors.IsNotFound(err) {
 		log.Info("creating configmap with root CA data")
 		return ctrl.Result{}, c.client.Create(ctx, &corev1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      configMapNameIstioRoot,
+				Name:      ConfigMapNameIstioRoot,
 				Namespace: req.Namespace,
 				Labels:    map[string]string{configMapLabelKey: "true"},
 			},

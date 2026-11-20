@@ -23,7 +23,9 @@ import (
 
 	cmapi "github.com/cert-manager/cert-manager/pkg/api"
 	"github.com/spf13/cobra"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/validation"
+	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"k8s.io/client-go/kubernetes"
@@ -31,6 +33,8 @@ import (
 	clientv1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/tools/record"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/cache"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
@@ -106,6 +110,15 @@ func NewCommand(ctx context.Context) *cobra.Command {
 				HealthProbeBindAddress:        fmt.Sprintf("0.0.0.0:%d", opts.ReadyzPort),
 				Metrics: metricsserver.Options{
 					BindAddress: fmt.Sprintf("0.0.0.0:%d", opts.MetricsPort),
+				},
+				// Restrict the metadata informer to the istio-ca-root-cert ConfigMap.
+				// Runtime issuance uses a separate ConfigMap watch and is unaffected.
+				Cache: cache.Options{
+					ByObject: map[client.Object]cache.ByObject{
+						&corev1.ConfigMap{}: {
+							Field: fields.OneTermEqualSelector("metadata.name", controller.ConfigMapNameIstioRoot),
+						},
+					},
 				},
 				Logger: mlog,
 			})

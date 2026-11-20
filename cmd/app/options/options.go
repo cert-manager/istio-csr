@@ -75,7 +75,7 @@ type OptionsController struct {
 	LeaderElectionNamespace string
 
 	// ConfigMapNamespaceSelector is the selector to filter on the namespaces that
-	// receives the istio-root-ca ConfigMap
+	// receives the istio-ca-root-cert ConfigMap. Empty means all namespaces.
 	ConfigMapNamespaceSelector string
 
 	// DisableKubernetesClientRateLimiter allows the default client-go rate limiter to be disabled
