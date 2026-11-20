@@ -25,8 +25,10 @@ package istiodcert
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"sync"
 
+	apiutil "github.com/cert-manager/cert-manager/pkg/api/util"
 	cmapi "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	cmmeta "github.com/cert-manager/cert-manager/pkg/apis/meta/v1"
 	cmversioned "github.com/cert-manager/cert-manager/pkg/client/clientset/versioned"
@@ -245,6 +247,25 @@ func (dicp *DynamicIstiodCertProvisioner) Reconcile(ctx context.Context, req ctr
 
 	_, err = dicp.certManagerClient.Update(ctx, cert, metav1.UpdateOptions{})
 	return ctrl.Result{}, err
+}
+
+// Check is a readiness check that passes once cert-manager has issued the istiod certificate.
+// cert-manager only sets the Ready condition after it has written the certificate's Secret, so anything
+// that waits for istio-csr to be ready can rely on the istiod-tls Secret being there.
+func (dicp *DynamicIstiodCertProvisioner) Check(req *http.Request) error {
+	cert, err := dicp.certManagerClient.Get(req.Context(), dicp.opts.CertificateName, metav1.GetOptions{})
+	if err != nil {
+		return fmt.Errorf("failed to get istiod certificate %s/%s: %w", dicp.opts.CertificateNamespace, dicp.opts.CertificateName, err)
+	}
+
+	if !apiutil.CertificateHasCondition(cert, cmapi.CertificateCondition{
+		Type:   cmapi.CertificateConditionReady,
+		Status: cmmeta.ConditionTrue,
+	}) {
+		return fmt.Errorf("istiod certificate %s/%s is not ready yet", dicp.opts.CertificateNamespace, dicp.opts.CertificateName)
+	}
+
+	return nil
 }
 
 // makeDNSNamesFromRevisions takes a list of istio revisions and produces a list of
