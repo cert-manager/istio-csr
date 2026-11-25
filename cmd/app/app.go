@@ -113,8 +113,9 @@ func NewCommand(ctx context.Context) *cobra.Command {
 				return fmt.Errorf("failed to create manager: %w", err)
 			}
 
+			var istiodCertController *istiodcert.DynamicIstiodCertProvisioner
 			if opts.IstiodCert.Enabled {
-				istiodCertController, err := istiodcert.New(opts.Logr.WithName("istiod-dynamic"), opts.RestConfig, opts.IstiodCert, cm, opts.TLS.TrustDomain)
+				istiodCertController, err = istiodcert.New(opts.Logr.WithName("istiod-dynamic"), opts.RestConfig, opts.IstiodCert, cm, opts.TLS.TrustDomain)
 				if err != nil {
 					return fmt.Errorf("failed to create dynamic istiod certificate provisioner: %s", err)
 				}
@@ -152,6 +153,13 @@ func NewCommand(ctx context.Context) *cobra.Command {
 			}
 			if err := mgr.Add(tls); err != nil {
 				return fmt.Errorf("failed to add tls provider as runnable: %w", err)
+			}
+
+			// Don't report ready until the istiod certificate is issued, so istiod doesn't start without its Secret.
+			if istiodCertController != nil {
+				if err := mgr.AddReadyzCheck("istiod_certificate", deferCheckUntilIssuerConfig(istiodCertController.Check)); err != nil {
+					return fmt.Errorf("failed to add istiod certificate readiness check: %w", err)
+				}
 			}
 
 			// Create an new server instance that implements the certificate signing API
