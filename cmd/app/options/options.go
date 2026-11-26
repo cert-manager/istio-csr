@@ -75,7 +75,7 @@ type OptionsController struct {
 	LeaderElectionNamespace string
 
 	// ConfigMapNamespaceSelector is the selector to filter on the namespaces that
-	// receives the istio-root-ca ConfigMap
+	// receives the istio-ca-root-cert ConfigMap. Empty means all namespaces.
 	ConfigMapNamespaceSelector string
 
 	// DisableKubernetesClientRateLimiter allows the default client-go rate limiter to be disabled
@@ -353,7 +353,8 @@ func (o *Options) addControllerFlags(fs *pflag.FlagSet) {
 	fs.StringVar(&o.Controller.ConfigMapNamespaceSelector,
 		"configmap-namespace-selector", "",
 		"Selector to filter on namespaces where the controller creates istio-ca-root-cert"+
-			" ConfigMap. Supports '=', '==', and '!='.(e.g. -l key1=value1,key2=value2)")
+			" ConfigMap. Supports '=', '==', and '!='.(e.g. -l key1=value1,key2=value2)."+
+			" Managed ConfigMaps are deleted when a namespace stops matching.")
 
 	fs.BoolVar(&o.Controller.DisableKubernetesClientRateLimiter,
 		"disable-kubernetes-client-rate-limiter", false,
